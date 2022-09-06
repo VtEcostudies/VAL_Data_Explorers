@@ -14,7 +14,7 @@
 		<link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/openlayers/6.1.1/ol.min.css' />
 
 		<!--dynamically include version running in environment-->
-		<script type="text/javascript" src="https://react-components.gbif-staging.org/lib/gbif-react-components.js"></script>
+		<script type="text/javascript" src="https://react-components.gbif.org/lib/gbif-react-components.js"></script>
 
 <!-- GBIF react data widget includes end -->
 

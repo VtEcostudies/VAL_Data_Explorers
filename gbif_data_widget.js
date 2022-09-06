@@ -16,7 +16,7 @@ REACT EVENT SEARCH SCRIPTS
     darkTheme: false,
     fontFamily: '"Roboto", BlinkMacSystemFont, -apple-system, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica", "Arial", sans-serif',
     borderRadius: 4,
-    drawerZIndex: 1000
+    drawerZIndex: 50001
   }});
 
   var userTheme = typeof siteTheme !== 'undefined' ? siteTheme : undefined;
@@ -70,21 +70,24 @@ REACT EVENT SEARCH SCRIPTS
       ]
     },
    highlightedFilters: ['q','taxonKey','gadmGid','locality','elevation','year','recordedBy','publishingOrg','datasetName'],
+   excludedFilters: ['stateProvince'],
    occurrenceSearchTabs: ['GALLERY', 'MAP', 'TABLE', 'DATASETS'], // what tabs should be shown
    defaultTableColumns: ['features','coordinates','locality','year','basisOfRecord','dataset','publisher','recordedBy','collectionCode','institutionCode'],
-   apiKeys: {
-     "maptiler": "qcDo0JkF6EBKzpW7hlYB",
-   },
-   maps: {
-     locale: 'en', // what language should be used for GBIF base maps? See https://tile.gbif.org/ui/ for available languages in basemaps
-     defaultProjection: 'MERCATOR', // what is the default projection
-     defaultMapStyle: 'NATURAL', // what is the default style
-     mapStyles: {
-       MERCATOR: ['NATURAL', 'SATELLITE', 'BRIGHT', 'DARK']
-       , PLATE_CAREE: ['NATURAL', 'BRIGHT', 'DARK']
-     },
-   }
  }
+
+var apiKeys = {
+   "maptiler": "qcDo0JkF6EBKzpW7hlYB",
+}
+
+var maps = {
+  locale: 'en', // what language should be used for GBIF base maps? See https://tile.gbif.org/ui/ for available languages in basemaps
+  defaultProjection: 'MERCATOR', // what is the default projection
+  defaultMapStyle: 'NATURAL', // what is the default style
+  mapStyles: {
+    MERCATOR: ['NATURAL', 'SATELLITE', 'BRIGHT', 'DARK'],
+    PLATE_CAREE: ['NATURAL', 'BRIGHT', 'DARK']
+  },
+}
 
 ReactDOM.render(
   React.createElement(gbifReactComponents.OccurrenceSearch, {
@@ -93,7 +96,9 @@ ReactDOM.render(
       theme: userTheme,
       routes: routes,
       locale: widgetLocale,
-      occurrence: occurrence
+      occurrence: occurrence,
+      apiKeys: apiKeys,
+      maps: maps
     },
     pageLayout: true,
   }),
