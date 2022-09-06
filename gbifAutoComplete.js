@@ -1,5 +1,5 @@
 
-var datasetKey = '&dataset_key=0b1735ff-6a66-454b-8686-cae1cbc732a2';
+var datasetKey = '0b1735ff-6a66-454b-8686-cae1cbc732a2';
 var filterVermont = true;
 
 if (document.getElementById('occ_search')) {
@@ -115,6 +115,7 @@ function gbifAutoComplete(event) {
         var api_url = "https://api.gbif.org/v1/species/suggest?q=" + input.value;
         if (filterVermont) {api_url = api_url + `&datasetKey=${datasetKey}&advanced=1`;}
         if (document.getElementById('api_query')) {document.getElementById('api_query').innerHTML=api_url;}
+        //console.log(`GBIF Species-suggest API query: ${api_url}`);
         window.gbifXHR.open("GET", api_url, true);
         window.gbifXHR.send();
     }

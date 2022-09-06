@@ -37,9 +37,9 @@
 	<div class="content">
 
 		<h1><?php the_field('heading-1'); ?></h1>
-
+<!--
 		<h2><?php the_field('heading-2'); ?></h2>
-
+-->
 		<!-- JTL changes for stats items
 
 			- changed <a> to <button> and left href intact, which should do nothing

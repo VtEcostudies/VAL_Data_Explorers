@@ -337,18 +337,14 @@ async function textOccSearch(search_value=null) {
   if (mRes.usageKey) { //send taxonKey for scientificName
     if (frame) {frame.scrollIntoView(); frame.src = `${gbifHost}/occurrence/search/?taxonKey=${mRes.usageKey}&view=MAP`;}
     else if (react) {
-      console.log(`***********GBIF_react widget FOUND**************`)
-      //window.open(`${thisUrl}?taxonKey=${mRes.usageKey}&view=MAP`);
-      window.location.assign(`${thisUrl}?taxonKey=${mRes.usageKey}&view=MAP`);
+      await window.location.assign(`${thisUrl}?taxonKey=${mRes.usageKey}&view=MAP`);
       react.scrollIntoView();
     }
     else {window.open(`${gbifHost}/occurrence/search/?taxonKey=${mRes.usageKey}&view=MAP`,"_blank");}
   } else { //send raw text for search
     if (frame) {frame.scrollIntoView(); frame.src = `${gbifHost}/occurrence/search/?q=${search_value}&view=MAP`;}
     else if (react) {
-      console.log(`***********GBIF_react widget FOUND**************`)
-      //window.open(`${thisUrl}?q=${search_value}&view=MAP`);
-      window.location.assign(`${thisUrl}?q=${search_value}&view=MAP`);
+      await window.location.assign(`${thisUrl}?q=${search_value}&view=MAP`);
       react.scrollIntoView();
     }
     else {window.open(`${gbifHost}/occurrence/search/?q=${search_value}&view=MAP`,"_blank");}
@@ -381,10 +377,11 @@ function addListeners() {
       /* Respond to mouse click on Occurrence Stats button */
       if (document.getElementById("stats-records")) {
           document.getElementById("stats-records").addEventListener("mouseup", function(e) {
-              console.log('stats-records got mouseup', e);
+              //console.log('stats-records got mouseup', e);
               var frame = document.getElementById("gbif_frame")
               if (frame) {frame.scrollIntoView(); frame.src = `${gbifHost}/occurrence/search/?view=MAP`;}
-              else {window.open(`${gbifHost}/occurrence/search/?view=MAP`, "_blank")}
+              else {window.location.assign(`https://val.vtecostudies.org/gbif-explorer/?view=MAP`)}
+              //else {window.open(`${gbifHost}/occurrence/search/?view=MAP`, "_blank")}
           });
       }
 
@@ -394,26 +391,25 @@ function addListeners() {
       */
       if (document.getElementById("stats-species")) {
           document.getElementById("stats-species").addEventListener("mouseup", function(e) {
-              console.log('stats-species got mouseup', e);
               var frame = document.getElementById("gbif_frame")
               if (frame) {frame.scrollIntoView(); frame.src = `${gbifHost}/occurrence/search`;}
-              else {window.open(`${gbifHost}/occurrence/search`, "_blank")}
+              else {window.location.assign(`https://val.vtecostudies.org/gbif-explorer/?view=GALLERY`)}
+              //else {window.open(`${gbifHost}/occurrence/search`, "_blank")}
           });
       }
 
       /* Respond to mouse click on Datasets Stats button */
       if (document.getElementById("stats-datasets")) {
           document.getElementById("stats-datasets").addEventListener("mouseup", function(e) {
-              console.log('stats-datasets got mouseup', e);
               var frame = document.getElementById("gbif_frame")
               if (frame) {frame.scrollIntoView(); frame.src = `${gbifHost}/occurrence/search/?view=DATASETS`;}
-              else {window.open(`${gbifHost}/occurrence/search/?view=DATASETS`,"_blank")}
+              else {window.location.assign(`https://val.vtecostudies.org/gbif-explorer/?view=DATASETS`)}
+              //else {window.open(`${gbifHost}/occurrence/search/?view=DATASETS`,"_blank")}
           });
       }
 
       if (document.getElementById("stats-publishers")) {
           document.getElementById("stats-publishers").addEventListener("mouseup", function(e) {
-              console.log('stats-publishers got mouseup', e);
               window.open(
                 "https://www.gbif.org/publisher/search?q=vermont"
                 //"https://api.gbif.org/v1/occurrence/search?state_province=Vermont&limit=0&facet=publishingOrg&facetMincount=1&publishingOrg.facetLimit=1000"
@@ -424,7 +420,6 @@ function addListeners() {
 
       if (document.getElementById("stats-citations")) {
           document.getElementById("stats-citations").addEventListener("mouseup", function(e) {
-              console.log('stats-citations got mouseup', e);
               window.open(
               "https://www.gbif.org/resource/search?contentType=literature&publishingOrganizationKey=b6d09100-919d-4026-b35b-22be3dae7156"
               , "_blank"
