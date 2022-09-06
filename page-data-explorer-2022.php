@@ -40,14 +40,16 @@
 
 		<h2><?php the_field('heading-2'); ?></h2>
 
+		<!-- JTL changes for stats items
+
+			- changed <a> to <button> and left href intact, which should do nothing
+			- added unique ids for buttons
+			- see js/gbif-data-explorer.js for button-mouseup function calls which set gbif-explorer iframe src value
+		-->
+
+<!--
+
 		<div class="hero-stats-wrap">
-
-<!-- JTL changes for stats items
-
-	- changed <a> to <button> and left href intact, which should do nothing
-	- added unique ids for buttons
-	- see js/gbif-data-explorer.js for button-mouseup function calls which set gbif-explorer iframe src value
--->
 
 			<button id="stats-records" class="hero-stats-item" href="<?php the_field('records-link'); ?>">
 
@@ -115,13 +117,12 @@
 
 			</button>
 
-		</div> <!-- end 'hero-stats-wrap' -->
+		</div>
+
+end 'hero-stats-wrap' -->
 
 		<form id="searchform" onsubmit="return false;" >
 
-			<!--
-			<input id="occ_search"  class="search-field" onfocus="this.value=''" value="Search GBIF-VT..." type="text" placeholder="Search GBIF-VT..." />
-			-->
 			<!-- gbif autocomplete scientific name lookup -->
 			<input id="occ_search" autocomplete="off" list="gbif_autocomplete_list" class="search-field" onfocus="this.value=''" value="Search GBIF-VT..." type="text" placeholder="Search GBIF-VT..." />
 			<datalist id="gbif_autocomplete_list"></datalist>
@@ -164,4 +165,6 @@
 <script src="https://val.vtecostudies.org/wp-content/themes/val/js/gbif_data_explorer.js" type="text/javascript"></script>
 <script src="https://val.vtecostudies.org/wp-content/themes/val/js/gbifAutoComplete.js" type="module"></script>
 
+<!-- REMOVE footer as an interim solution to double-scrollbar problem: https://github.com/VtEcostudies/VAL_GBIF_Wordpress/issues/11
 <?php get_footer(); ?>
+-->

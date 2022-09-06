@@ -16,34 +16,57 @@
 
 		<div class="hero-stats-wrap">
 
-			<button class="hero-stats-item" href="<?php the_field('records-link'); ?>">
+			<button id="stats-records" class="hero-stats-item" href="<?php the_field('records-link'); ?>">
 
 				<i class="stats-icon far fa-globe-americas"></i>
 
 				<div class="stats">
-
-					<span id="<?php the_field('records-id'); ?>" class="stats-count">
-						<i class="far fa-compass"></i>
-					</span>
-
+					<span id="<?php the_field('records-id'); ?>" class="stats-count"><i class="far fa-compass"></i></span>
 					<span class="stats-desc">records</span>
-
 				</div>
 
 			</button>
 
-			<button class="hero-stats-item" href="<?php the_field('species-link'); ?>">
+			<button id="stats-species" class="hero-stats-item" href="<?php the_field('species-link'); ?>">
 
 				<i class="stats-icon fas fa-trees"></i>
 
 				<div class="stats">
-
-					<span id="<?php the_field('species-id'); ?>" class="stats-count">
-						<i class="far fa-compass"></i>
-					</span>
-
+					<span id="<?php the_field('species-id'); ?>" class="stats-count"><i class="far fa-compass"></i></span>
 					<span class="stats-desc">species</span>
+				</div>
 
+			</button>
+
+			<button id="stats-datasets" class="hero-stats-item" href="<?php the_field('datasets-link'); ?>">
+
+				<i class="stats-icon far fa-list-alt"></i>
+
+				<div class="stats">
+					<span id="<?php the_field('datasets-id'); ?>" class="stats-count"><i class="far fa-compass"></i></span>
+					<span class="stats-desc">datasets</span>
+				</div>
+
+			</button>
+
+			<button id="stats-publishers" class="hero-stats-item" href="<?php the_field('publishers-link'); ?>">
+
+				<i class="stats-icon fa-regular fa-address-card"></i>
+
+				<div class="stats">
+					<span id="<?php the_field('publishers-id'); ?>" class="stats-count"><i class="far fa-compass"></i></span>
+					<span class="stats-desc">publishers</span>
+				</div>
+
+			</button>
+
+			<button id="stats-citations"  class="hero-stats-item" href="<?php the_field('citations-link'); ?>">
+
+				<i class="stats-icon fa-light fa-books"></i>
+
+				<div class="stats">
+					<span id="<?php the_field('citations-id'); ?>" class="stats-count"><i class="far fa-compass"></i></span>
+					<span class="stats-desc">citations</span>
 				</div>
 
 			</button>

@@ -226,10 +226,12 @@ function otherStats() {
   var elemSpAccounts = document.getElementById("vt_species_accounts");
   var citeCount = 68;
   var spAcCount = 0;
-  elemCitations.innerHTML = numeral(citeCount).format('0,0');
-  //elemSpAccounts.innerHTML = numeral(spAcCount).format('0,0');
-  elemSpAccounts.innerHTML = "(coming soon)";
-  elemSpAccounts.style="font-size:8pt";
+  if (elemCitations) {elemCitations.innerHTML = numeral(citeCount).format('0,0');}
+  if(elemSpAccounts) {
+    //elemSpAccounts.innerHTML = numeral(spAcCount).format('0,0');
+    elemSpAccounts.innerHTML = "(coming soon)";
+    elemSpAccounts.style="font-size:8pt";
+  }
 }
 
 window.onload = function() {
@@ -334,11 +336,21 @@ async function textOccSearch(search_value=null) {
 
   if (mRes.usageKey) { //send taxonKey for scientificName
     if (frame) {frame.scrollIntoView(); frame.src = `${gbifHost}/occurrence/search/?taxonKey=${mRes.usageKey}&view=MAP`;}
-    else if (react) {window.open(`${thisUrl}?taxonKey=${mRes.usageKey}&view=MAP`); react.scrollIntoView();}
+    else if (react) {
+      console.log(`***********GBIF_react widget FOUND**************`)
+      //window.open(`${thisUrl}?taxonKey=${mRes.usageKey}&view=MAP`);
+      window.location.assign(`${thisUrl}?taxonKey=${mRes.usageKey}&view=MAP`);
+      react.scrollIntoView();
+    }
     else {window.open(`${gbifHost}/occurrence/search/?taxonKey=${mRes.usageKey}&view=MAP`,"_blank");}
   } else { //send raw text for search
     if (frame) {frame.scrollIntoView(); frame.src = `${gbifHost}/occurrence/search/?q=${search_value}&view=MAP`;}
-    else if (react) {window.open(`${thisUrl}?q=${search_value}&view=MAP`); react.scrollIntoView();}
+    else if (react) {
+      console.log(`***********GBIF_react widget FOUND**************`)
+      //window.open(`${thisUrl}?q=${search_value}&view=MAP`);
+      window.location.assign(`${thisUrl}?q=${search_value}&view=MAP`);
+      react.scrollIntoView();
+    }
     else {window.open(`${gbifHost}/occurrence/search/?q=${search_value}&view=MAP`,"_blank");}
   }
 }
