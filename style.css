@@ -1316,5 +1316,8 @@ main.active { right: 70%; }
 @media screen and (min-width: 815px) { .single-post .date-author { margin: 0 0 30px 0; } }
 
 .single-post main { max-width: 815px; }
+.data-widget .gbif-occurrenceSearchLayout {
+  min-height: calc(100vh - 80px);
+}
 
 /*# sourceMappingURL=style.css.map */
