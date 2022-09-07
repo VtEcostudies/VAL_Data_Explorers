@@ -14,8 +14,6 @@
 		<!--dynamically include version running in environment-->
 		<script type="text/javascript" src="https://react-components.gbif.org/lib/gbif-react-components.js"></script>
 
-		<link rel='stylesheet' href='gbif-data-explorer.css' />
-
 <?php get_header(); the_post(); ?>
 
 <section> <!-- GBIF REACT Data Widget hangs on root -->

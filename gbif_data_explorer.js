@@ -330,24 +330,22 @@ async function textOccSearch(search_value=null) {
   let react = document.getElementById("gbif_react");
   console.log(`textOccSearch(${search_value})`);
 
-  let thisUrl = document.URL.split('?')[0]; //the base URL for this page without route params, which we update here
+  //let thisUrl = document.URL.split('?')[0]; //the base URL for this page without route params, which we update here
 
   let mRes = await speciesMatch(search_value);
 
   if (mRes.usageKey) { //send taxonKey for scientificName
     if (frame) {frame.scrollIntoView(); frame.src = `${gbifHost}/occurrence/search/?taxonKey=${mRes.usageKey}&view=MAP`;}
-    else if (react) {
-      await window.location.assign(`${thisUrl}?taxonKey=${mRes.usageKey}&view=MAP`);
-      react.scrollIntoView();
+    else {
+      await window.location.assign(`https://val.vtecostudies.org/gbif-explorer/?taxonKey=${mRes.usageKey}&view=MAP`);
+      if (react) react.scrollIntoView();
     }
-    else {window.open(`${gbifHost}/occurrence/search/?taxonKey=${mRes.usageKey}&view=MAP`,"_blank");}
   } else { //send raw text for search
     if (frame) {frame.scrollIntoView(); frame.src = `${gbifHost}/occurrence/search/?q=${search_value}&view=MAP`;}
-    else if (react) {
-      await window.location.assign(`${thisUrl}?q=${search_value}&view=MAP`);
-      react.scrollIntoView();
+    else {
+      await window.location.assign(`https://val.vtecostudies.org/gbif-explorer/?q=${search_value}&view=MAP`);
+      if (react) react.scrollIntoView();
     }
-    else {window.open(`${gbifHost}/occurrence/search/?q=${search_value}&view=MAP`,"_blank");}
   }
 }
 

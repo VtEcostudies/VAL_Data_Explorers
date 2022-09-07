@@ -49,8 +49,8 @@ REACT EVENT SEARCH SCRIPTS
     }
 
 ReactDOM.render(
-  React.createElement(gbifReactComponents.literatureSearch, {
-    style: { height: 'calc(100vh - 59px)' },
+  React.createElement(gbifReactComponents.LiteratureSearch, {
+    style: { 'min-height': 'calc(100vh - 80px)' },
     siteConfig: {
       theme: userTheme,
       routes: routes,

@@ -1,6 +1,3 @@
-.data-widget .gbif-occurrenceSearchLayout {
-  min-height: calc(100vh - 80px);
-}
 
 /* JTL separate styles on template::data-explorer and template::data-explorer-2022 - assign <a> to <button> */
 

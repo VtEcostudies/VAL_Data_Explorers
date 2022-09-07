@@ -75,13 +75,16 @@
 
 		<form id="searchform" onsubmit="return false;" >
 
-			<input id="bie_search" class="search-field" onfocus="this.value=''" value="Search the Atlas..." type="text" placeholder="Search the Atlas..." />
+			<!-- gbif autocomplete scientific name lookup -->
+			<input id="occ_search" autocomplete="off" list="gbif_autocomplete_list" class="search-field" onfocus="this.value=''" value="Search GBIF-VT..." type="text" placeholder="Search GBIF-VT..." />
+			<datalist id="gbif_autocomplete_list"></datalist>
 
 			<div class="searchsubmit-wrap">
-				<button id="bie_search_button">
+				<button id="occ_search_button">
 					<i class="far fa-search"></i>
 				</button>
 			</div>
+
 		</form>
 
 	</div>
@@ -314,5 +317,6 @@
 </section>
 
 <script src="https://val.vtecostudies.org/wp-content/themes/val/js/gbif_data_explorer.js" type="text/javascript"></script>
+<script src="https://val.vtecostudies.org/wp-content/themes/val/js/gbifAutoComplete.js" type="module"></script>
 
 <?php get_footer(); ?>

@@ -91,7 +91,7 @@ var maps = {
 
 ReactDOM.render(
   React.createElement(gbifReactComponents.OccurrenceSearch, {
-    style: { height: 'calc(100vh - 59px)' },
+    style: { 'min-height': 'calc(100vh - 80px)' },
     siteConfig: {
       theme: userTheme,
       routes: routes,
