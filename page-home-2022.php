@@ -76,7 +76,8 @@
 		<form id="searchform" onsubmit="return false;" >
 
 			<!-- gbif autocomplete scientific name lookup -->
-			<input id="occ_search" autocomplete="off" list="gbif_autocomplete_list" class="search-field" onfocus="this.value=''" value="Search GBIF-VT..." type="text" placeholder="Search GBIF-VT..." />
+			<input id="occ_search" autocomplete="off" list="gbif_autocomplete_list" class="search-field" onfocus="this.value=''" value="Search the Atlas..." type="text" placeholder="Search the Atlas..." />
+
 			<datalist id="gbif_autocomplete_list"></datalist>
 
 			<div class="searchsubmit-wrap">
