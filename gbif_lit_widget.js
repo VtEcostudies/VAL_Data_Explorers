@@ -23,29 +23,43 @@ REACT EVENT SEARCH SCRIPTS
   var userConfig = typeof siteConfig !== 'undefined' ? siteConfig : {};
   var routes = userConfig.routes || {
       literatureSearch: {
-      route: '/literature',
+      route: '/',
     }
   };
-  routes.basename = '/gbif-explorer';
+  routes.basename = '/gbif-literature';
 
+  //VCE publishingOrganizationKey=b6d09100-919d-4026-b35b-22be3dae7156
+
+  /*
+  predicate: {
+    type: 'or', predicates: [
+      {
+        type: 'in',
+        key: 'countriesOfResearcher',
+        values: ['US', 'VI']
+      },
+      {
+        type: 'in',
+        key: 'countriesOfCoverage',
+        values: ['US']
+      }
+    ]
+  }
+  */
   var literature = {
       rootFilter: {
         predicate: {
           type: 'or', predicates: [
             {
               type: 'in',
-              key: 'countriesOfResearcher',
-              values: ['US', 'VI']
-            },
-            {
-              type: 'in',
-              key: 'countriesOfCoverage',
-              values: ['US']
+              key: 'publishingOrganizationKey',
+              values: ['b6d09100-919d-4026-b35b-22be3dae7156']
             }
           ]
         }
       },
-      highlightedFilters: ['q', 'countriesOfResearcher', 'countriesOfCoverage', 'year']
+      //highlightedFilters: ['q', 'countriesOfResearcher', 'countriesOfCoverage', 'year']
+      highlightedFilters: ['q', 'dataSet', 'year']
     }
 
 ReactDOM.render(
