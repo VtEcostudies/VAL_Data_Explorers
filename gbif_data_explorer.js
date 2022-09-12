@@ -280,18 +280,22 @@ async function speciesSearch(text_value) {
   let reqHost = "https://api.gbif.org/v1";
   let reqRoute = "/species/search";
   let reqQuery = `?q=${text_value}`;
-  let url = reqHost+reqRoute+reqQuery;
+  let reqFilter = `&status=ACCEPTED&datasetKey=${datasetKey}`;
+  let url = reqHost+reqRoute+reqQuery+reqFilter;
   let enc = encodeURI(url);
 
   console.log(`speciesSearch(${text_value})`, enc);
 
   try {
     let res = await fetch(enc);
-    let jsn = await res.json();
-    console.log(`speciesSearch(${text_value}) RESULT:`, jsn);
-    return jsn;
+    let json = await res.json();
+    console.log(`speciesSearch(${text_value}) QUERY:`, enc);
+    console.log(`speciesSearch(${text_value}) RESULT:`, json);
+    return {query:enc, result:json};
   } catch (err) {
+    console.log(`speciesSearch(${text_value}) QUERY:`, enc);
     console.log(`speciesSearch(${text_value}) ERROR:`, err);
+    err.query = enc;
     return new Error(err)
   }
 }
@@ -311,13 +315,14 @@ async function commonSearch(text_value) {
 
   try {
     let res = await fetch(enc);
-    let jsn = await res.json();
-    console.log(`commonSearch(${text_value})`, enc);
-    console.log(`commonSearch(${text_value}) RESULT:`, jsn);
-    return jsn;
+    let json = await res.json();
+    console.log(`commonSearch(${text_value}) QUERY:`, enc);
+    console.log(`commonSearch(${text_value}) RESULT:`, json);
+    return {query:enc, result:json};
   } catch (err) {
-    console.log(`commonSearch(${text_value})`, enc);
+    console.log(`commonSearch(${text_value}) QUERY:`, enc);
     console.log(`commonSearch(${text_value}) ERROR:`, err);
+    err.query = enc;
     return new Error(err)
   }
 }
@@ -340,11 +345,14 @@ async function speciesMatch(text_value) {
 
   try {
     let res = await fetch(enc);
-    let jsn = await res.json();
-    console.log(`speciesMatch(${text_value}) RESULT:`, jsn);
-    return jsn;
+    let json = await res.json();
+    console.log(`speciesMatch(${text_value}) QUERY:`, enc);
+    console.log(`speciesMatch(${text_value}) RESULT:`, json);
+    return {query:enc, result:json};
   } catch (err) {
+    console.log(`speciesMatch(${text_value}) QUERY:`, enc);
     console.log(`speciesMatch(${text_value}) ERROR:`, err);
+    err.query = enc;
     return new Error(err)
   }
 }
@@ -360,8 +368,7 @@ async function textOccSearch(search_value=null) {
 
   //let thisUrl = document.URL.split('?')[0]; //the base URL for this page without route params, which we update here
 
-  //let mRes = await speciesMatch(search_value);
-  let mRes = await commonSearch(search_value);
+  let mRes = await speciesMatch(search_value);
 
   if (mRes.usageKey) { //send taxonKey for scientificName
     if (frame) {frame.scrollIntoView(); frame.src = `${gbifHost}/occurrence/search/?taxonKey=${mRes.usageKey}&view=MAP`;}
@@ -378,6 +385,20 @@ async function textOccSearch(search_value=null) {
   }
 }
 
+async function testSearch(search_value=null) {
+  if (!search_value) {search_value = document.getElementById("test_search").value;}
+
+  console.log(`testSearch(${search_value})`);
+
+  let mRes = await speciesMatch(search_value);
+  let sRes = await speciesSearch(search_value);
+  let cRes = await commonSearch(search_value);
+
+  window.location.assign(mRes.query);
+  window.open(sRes.query);
+  window.open(cRes.query);
+}
+
 /*
   Add listeners to activate search results on Enter key.
 
@@ -390,6 +411,15 @@ function addListeners() {
               //console.log('occ_search got keypress', e);
               if(e.which == 13){
                   textOccSearch();
+              }
+          });
+      }
+
+      if (document.getElementById("test_search")) {
+          document.getElementById("test_search").addEventListener("keypress", function(e) {
+              console.log('test_search got keypress', e);
+              if(e.which == 13){
+                  testSearch();
               }
           });
       }

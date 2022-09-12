@@ -56,13 +56,7 @@ function getSuggests({ client, suggestStyle }) {
       // how to map the results to a single string value
       getValue: suggestion => suggestion.title,
       // how to display the individual suggestions in the list
-      render: function DatasetSuggestItem(suggestion) {
-        return `<div style={{}}>
-          <div style={suggestStyle}>
-            {suggestion.title}
-          </div>
-        </div>`
-      }
+      render: function DatasetSuggestItem(suggestion) {return suggestion.title;}
     },
   };
 }
