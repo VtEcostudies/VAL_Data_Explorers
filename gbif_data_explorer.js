@@ -7,6 +7,8 @@ var spcs = {};//[]; //ditto
 var pubs = {};//[]; //ditto
 var qrys = ['?state_province=Vermont&hasCoordinate=false', '?gadmGid=USA.46_1'];
 var gbifHost = 'https://hp-vtatlasoflife.gbif.org'; // "https://hp-vtatlasoflife.gbif-staging.org";
+var datasetKey = '0b1735ff-6a66-454b-8686-cae1cbc732a2';
+var filterVermont = true;
 
 /*
   this is now called for each value in global array 'qrys', but here's example query:
@@ -295,6 +297,32 @@ async function speciesSearch(text_value) {
 }
 
 /*
+https://api.gbif.org/v1/species/search?qField=VERNACULAR&status=ACCEPTED&q=spotted%20salamander&datasetKey=0b1735ff-6a66-454b-8686-cae1cbc732a2
+*/
+async function commonSearch(text_value) {
+  let reqHost = "https://api.gbif.org/v1";
+  let reqRoute = "/species/search";
+  let reqQuery = `?q=${text_value}`;
+  let reqFilter = `&qField=VERNACULAR&status=ACCEPTED&datasetKey=${datasetKey}`;
+  let url = reqHost+reqRoute+reqQuery+reqFilter;
+  let enc = encodeURI(url);
+
+  console.log(`commonSearch(${text_value})`, enc);
+
+  try {
+    let res = await fetch(enc);
+    let jsn = await res.json();
+    console.log(`commonSearch(${text_value})`, enc);
+    console.log(`commonSearch(${text_value}) RESULT:`, jsn);
+    return jsn;
+  } catch (err) {
+    console.log(`commonSearch(${text_value})`, enc);
+    console.log(`commonSearch(${text_value}) ERROR:`, err);
+    return new Error(err)
+  }
+}
+
+/*
   https://api.gbif.org/v1/species/match?name=Turdus%20migratorius
 
   Fuzzy matches scientific names against the GBIF Backbone Taxonomy with the optional classification provided.
@@ -332,7 +360,8 @@ async function textOccSearch(search_value=null) {
 
   //let thisUrl = document.URL.split('?')[0]; //the base URL for this page without route params, which we update here
 
-  let mRes = await speciesMatch(search_value);
+  //let mRes = await speciesMatch(search_value);
+  let mRes = await commonSearch(search_value);
 
   if (mRes.usageKey) { //send taxonKey for scientificName
     if (frame) {frame.scrollIntoView(); frame.src = `${gbifHost}/occurrence/search/?taxonKey=${mRes.usageKey}&view=MAP`;}
