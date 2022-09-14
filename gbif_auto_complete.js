@@ -1,6 +1,5 @@
-
-var datasetKey = '0b1735ff-6a66-454b-8686-cae1cbc732a2';
-var filterVermont = true;
+const datasetKey = '0b1735ff-6a66-454b-8686-cae1cbc732a2';
+const filterVermont = true;
 
 if (document.getElementById('occ_search')) {
     window.addEventListener("load", function() {

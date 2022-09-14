@@ -317,7 +317,8 @@
 
 </section>
 
-<script src="https://val.vtecostudies.org/wp-content/themes/val/js/gbif_data_explorer.js" type="text/javascript"></script>
-<script src="https://val.vtecostudies.org/wp-content/themes/val/js/gbifAutoComplete.js" type="module"></script>
+<script src="https://val.vtecostudies.org/wp-content/themes/val/js/gbif_omni_search.js" type="module"></script>
+<script src="https://val.vtecostudies.org/wp-content/themes/val/js/gbif_data_stats.js" type="module"></script>
+<script src="https://val.vtecostudies.org/wp-content/themes/val/js/gbif_auto_complete.js" type="module"></script>
 
 <?php get_footer(); ?>

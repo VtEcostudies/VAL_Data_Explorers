@@ -2,8 +2,10 @@
 <html>
 <head>
   <script src="//cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js"></script>
-  <script type="module" src="gbifAutoComplete.js"></script>
-  <script type="module" src="gbif_data_explorer.js"></script>
+  <script type="module" src="gbif_auto_complete.js"></script>
+  <script type="module" src="gbif_species_search.js"></script>
+  <script type="module" src="gbif_species_results.js"></script>
+  <script type="module" src="gbif_data_stats.js"></script>
 </head>
 <body>
 <div>
@@ -21,7 +23,7 @@
 </div>
 </div><div>
   Search:
-  <input id="test_search"
+  <input id="omni_search"
     autocomplete="off"
     list="gbif_autocomplete_list"
     class="search-field"
@@ -32,6 +34,10 @@
     size=100
   />
   <datalist id="gbif_autocomplete_list"></datalist>
+</div>
+<div id="species-results">
+  <table id="species-table">
+  </table>
 </div>
 
 </body>
