@@ -15,8 +15,8 @@
 		<h2><?php the_field('heading-2'); ?></h2>
 
 		<div class="hero-stats-wrap">
-<!--
-			<a class="hero-stats-item" href="<?php the_field('records-link'); ?>">
+
+			<a id="stats-records" class="hero-stats-item" href="<?php site_url(); ?>gbif-explorer?view=MAP">
 
 				<i class="stats-icon far fa-globe-americas"></i>
 
@@ -32,7 +32,7 @@
 
 			</a>
 
-			<a class="hero-stats-item" href="<?php the_field('species-link'); ?>">
+			<a id="stats-species" class="hero-stats-item" href="<?php site_url(); ?>gbif-explorer?view=GALLERY">
 
 				<i class="stats-icon fas fa-trees"></i>
 
@@ -47,49 +47,20 @@
 				</div>
 
 			</a>
--->
-		<button id="stats-records" class="hero-stats-item" href="<?php the_field('records-link'); ?>">
-
-			<i class="stats-icon far fa-globe-americas"></i>
-
-			<div class="stats">
-
-				<span id="<?php the_field('records-id'); ?>" class="stats-count">
-					<i class="far fa-compass"></i>
-				</span>
-
-				<span class="stats-desc">records</span>
-
-			</div>
-
-		</button>
-
-		<button id="stats-species" class="hero-stats-item" href="<?php the_field('species-link'); ?>">
-
-			<i class="stats-icon fas fa-trees"></i>
-
-			<div class="stats">
-
-				<span id="<?php the_field('species-id'); ?>" class="stats-count">
-					<i class="far fa-compass"></i>
-				</span>
-
-				<span class="stats-desc">species</span>
-
-			</div>
-
-		</button>
 
 		</div> <!-- end stats-wrap -->
 
 		<form id="searchform" onsubmit="return false;" >
 
 			<!-- gbif autocomplete scientific name lookup -->
-			<input id="occ_search" autocomplete="off" list="gbif_autocomplete_list" class="search-field" onfocus="this.value=''" value="Search the Atlas..." type="text" placeholder="Search the Atlas..." />
+			<input id="omni_search" autocomplete="off" list="gbif_autocomplete_list" class="search-field" onfocus="this.value=''" value="Search the Atlas..." type="text" placeholder="Search the Atlas..." />
 			<datalist id="gbif_autocomplete_list"></datalist>
 
 			<div class="searchsubmit-wrap">
-				<button id="occ_search_button">
+				<!--
+				<button id="bie_search_button">
+				-->
+				<button id="omni_search_button">
 					<i class="far fa-search"></i>
 				</button>
 			</div>
@@ -324,8 +295,9 @@
 
 </section>
 
-<script src="https://val.vtecostudies.org/wp-content/themes/val/js/gbif_omni_search.js" type="module"></script>
-<script src="https://val.vtecostudies.org/wp-content/themes/val/js/gbif_data_stats.js" type="module"></script>
-<script src="https://val.vtecostudies.org/wp-content/themes/val/js/gbif_auto_complete.js" type="module"></script>
+<script src="/wp-content/themes/val/js/gbif_data_stats.js" type="module"></script>
+<script src="/wp-content/themes/val/js/gbif_species_search.js" type="module"></script>
+<script src="/wp-content/themes/val/js/gbif_species_results.js" type="module"></script>
+<script src="/wp-content/themes/val/js/gbif_auto_complete.js" type="module"></script>
 
 <?php get_footer(); ?>

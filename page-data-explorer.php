@@ -64,7 +64,7 @@
 			<div class="searchsubmit-wrap">
 				<button id="bie_search_button">
 					<i class="far fa-search"></i>
-				</button>				
+				</button>
 			</div>
 		</form>
 
@@ -156,8 +156,8 @@
 									<span id="<?php the_sub_field('data-card-records-id'); ?>"></span> records
 
 								<?php endif; ?>
-						
-							</div>							
+
+							</div>
 
 							<div class="stats">
 
@@ -217,6 +217,6 @@
 
 </section>
 
-<script src="https://val.vtecostudies.org/wp-content/themes/val/js/vce_custom.js" type="text/javascript"></script>
+<script src="/wp-content/themes/val/js/gbif_data_explorer.js" type="text/javascript"></script>
 
 <?php get_footer(); ?>

@@ -16,7 +16,7 @@
 
 		<div class="hero-stats-wrap">
 
-			<button id="stats-records" class="hero-stats-item" href="<?php the_field('records-link'); ?>">
+			<a id="stats-records" class="hero-stats-item" href="<?php site_url(); ?>gbif-explorer?view=MAP">
 
 				<i class="stats-icon far fa-globe-americas"></i>
 
@@ -25,9 +25,9 @@
 					<span class="stats-desc">records</span>
 				</div>
 
-			</button>
+			</a>
 
-			<button id="stats-species" class="hero-stats-item" href="<?php the_field('species-link'); ?>">
+			<a id="stats-species" class="hero-stats-item" href="<?php site_url(); ?>gbif-explorer?view=GALLERY">
 
 				<i class="stats-icon fas fa-trees"></i>
 
@@ -36,9 +36,9 @@
 					<span class="stats-desc">species</span>
 				</div>
 
-			</button>
+			</a>
 
-			<button id="stats-datasets" class="hero-stats-item" href="<?php the_field('datasets-link'); ?>">
+			<a id="stats-datasets" class="hero-stats-item" href="<?php site_url(); ?>gbif-explorer?view=DATASETS">
 
 				<i class="stats-icon far fa-list-alt"></i>
 
@@ -47,9 +47,9 @@
 					<span class="stats-desc">datasets</span>
 				</div>
 
-			</button>
+			</a>
 
-			<button id="stats-publishers" class="hero-stats-item" href="<?php the_field('publishers-link'); ?>">
+			<a id="stats-publishers" class="hero-stats-item" href="<?php the_field('publishers-link'); ?>">
 
 				<i class="stats-icon fa-regular fa-address-card"></i>
 
@@ -58,9 +58,9 @@
 					<span class="stats-desc">publishers</span>
 				</div>
 
-			</button>
+			</a>
 
-			<button id="stats-citations"  class="hero-stats-item" href="<?php the_field('citations-link'); ?>">
+			<a id="stats-citations"  class="hero-stats-item" href="<?php site_url(); ?>gbif-literature">
 
 				<i class="stats-icon fa-light fa-books"></i>
 
@@ -69,21 +69,21 @@
 					<span class="stats-desc">citations</span>
 				</div>
 
-			</button>
+			</a>
 
 		</div>
 
 		<form id="searchform" onsubmit="return false;" >
 
 			<!-- gbif autocomplete scientific name lookup -->
-			<input id="occ_search" autocomplete="off" list="gbif_autocomplete_list" class="search-field" onfocus="this.value=''" value="Search the Atlas..." type="text" placeholder="Search the Atlas..." />
+			<input id="omni_search" autocomplete="off" list="gbif_autocomplete_list" class="search-field" onfocus="this.value=''" value="Search the Atlas..." type="text" placeholder="Search the Atlas..." />
 
 			<datalist id="gbif_autocomplete_list"></datalist>
 
 			<div class="searchsubmit-wrap">
-				<button id="occ_search_button">
+				<a id="omni_search_button">
 					<i class="far fa-search"></i>
-				</button>
+				</a>
 			</div>
 
 		</form>
@@ -317,8 +317,9 @@
 
 </section>
 
-<script src="https://val.vtecostudies.org/wp-content/themes/val/js/gbif_omni_search.js" type="module"></script>
-<script src="https://val.vtecostudies.org/wp-content/themes/val/js/gbif_data_stats.js" type="module"></script>
-<script src="https://val.vtecostudies.org/wp-content/themes/val/js/gbif_auto_complete.js" type="module"></script>
+<script src="/wp-content/themes/val/js/gbif_data_stats.js" type="module"></script>
+<script src="/wp-content/themes/val/js/gbif_species_search.js" type="module"></script>
+<script src="/wp-content/themes/val/js/gbif_species_results.js" type="module"></script>
+<script src="/wp-content/themes/val/js/gbif_auto_complete.js" type="module"></script>
 
 <?php get_footer(); ?>

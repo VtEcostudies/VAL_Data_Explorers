@@ -4,8 +4,6 @@
 */
 ?>
 
-<?php get_header(); the_post(); ?>
-
 <script src="https://unpkg.com/react@16/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"></script>
 
@@ -14,10 +12,12 @@
 
 <script type="text/javascript" src="https://react-components.gbif.org/lib/gbif-react-components.js"></script>
 
+<?php get_header(); the_post(); ?>
+
 <section> <!-- GBIF REACT Data Widget hangs on root -->
 	<div id="gbif_react" class="data-widget">
 		<div id="root"></div>
 	</div>
 </section>
 
-<script src="https://val.vtecostudies.org/wp-content/themes/val/js/gbif_data_widget.js" type="text/javascript"></script>
+<script src="/wp-content/themes/val/js/gbif_data_widget.js" type="text/javascript"></script>

@@ -1,6 +1,13 @@
 const gbifHost = 'https://hp-vtatlasoflife.gbif.org'; // "https://hp-vtatlasoflife.gbif-staging.org";
-const explorerUrl = 'https://val.vtatlasoflife.org/gbif-explorer';
+const thisUrl = new URL(document.URL);
+const hostUrl = thisUrl.host;
+const explorerUrl = `${thisUrl.protocol}/${thisUrl.host}/gbif-explorer/`;
+const resultsUrl = `${thisUrl.protocol}/${thisUrl.host}/gbif-species-results/`;
 const datasetKey = '0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
+
+console.log('HOST URL:', hostUrl);
+console.log('Explorer URL:', explorerUrl);
+console.log('Results URL:', resultsUrl);
 
 /*
   https://api.gbif.org/v1/species?name=Turdus%20migratorius
@@ -15,12 +22,13 @@ const datasetKey = '0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Data
   A quick and simple autocomplete service that returns up to 20 name usages by doing prefix matching against
   the scientific name. Results are ordered by relevance.
 */
-export async function speciesSearch(text_value) {
+export async function speciesSearch(text_value, offset=0, limit=20) {
   let reqHost = "https://api.gbif.org/v1";
   let reqRoute = "/species/search";
   let reqQuery = `?q=${text_value}`;
   let reqFilter = `&status=ACCEPTED&datasetKey=${datasetKey}`;
-  let url = reqHost+reqRoute+reqQuery+reqFilter;
+  let reqSize = `&offset=${offset}&limit=${limit}`;
+  let url = reqHost+reqRoute+reqQuery+reqFilter+reqSize;
   let enc = encodeURI(url);
 
   console.log(`speciesSearch(${text_value})`, enc);
@@ -123,7 +131,12 @@ export async function speciesMatchLoadExplorer(search_value=null) {
   }
 }
 
-//search for text value and reload the page with results in query param
+/*
+  search for text value and reload the current URL with results in query param
+  NOTE: this can be done 2 ways, with a list of keys or with ?q=search
+
+  Now that the search results code can handle the plain search term, use that.
+*/
 export async function omniSearch(search_value=null) {
   if (!search_value) {search_value = document.getElementById("omni_search").value;}
 
@@ -133,18 +146,25 @@ export async function omniSearch(search_value=null) {
 
   let sRes = await speciesSearch(search_value); //includes both scientificName and vernacularName
 
-  let keys = []; let qryP = '';
+  let keyQ = ''; //a list of taxonKeys as a query param
 
   sRes.results.forEach((obj, i) => {
-    keys[i] = obj.nubKey ? obj.nubKey : obj.key;
-    qryP += `taxonKey=${keys[i]}&`;
+    let key = obj.nubKey ? obj.nubKey : obj.key;
+    keyQ += `taxonKey=${key}&`;
   });
 
-  let enc = encodeURI(`${thisUrl}?${qryP}`);
+  let encKey, encQry = null;
 
-  console.log(enc);
+  if ('localhost' == hostUrl) {
+    encQry = `http://localhost?q=${search_value}`
+  } else {
+    encKey = encodeURI(`${resultsUrl}?${keyQ}`);
+    encQry = encodeURI(`${resultsUrl}?q=${search_value}`);
+  }
 
-  window.location.assign(enc);
+  console.log('Query:', encQry);
+
+  window.location.assign(encQry);
 }
 
 /*
@@ -152,28 +172,53 @@ export async function omniSearch(search_value=null) {
 */
 function addListeners() {
 
-      if (document.getElementById("omni_search")) {
-          document.getElementById("omni_search").addEventListener("keypress", function(e) {
-              console.log('omni_search got keypress', e);
-              if(e.which == 13){
-                  omniSearch();
-              }
-          });
-      }
+  if (document.getElementById("species_search")) {
+      document.getElementById("species_search").addEventListener("keypress", function(e) {
+          //console.log('species_search got keypress', e);
+          if (e.which == 13) {
+              let sValue = document.getElementById("species_search").value;
+              omniSearch(sValue);
+          }
+      });
+  }
 
-      if (document.getElementById("occ_search")) {
-          document.getElementById("occ_search").addEventListener("keypress", function(e) {
-              if(e.which == 13){
-                  speciesMatchLoadExplorer();
-              }
-          });
-      }
+  if (document.getElementById("species_search_button")) {
+      document.getElementById("species_search_button").addEventListener("mouseup", function(e) {
+        let sValue = document.getElementById("species_search").value;
+        omniSearch(sValue);
+      });
+  }
 
-      if (document.getElementById("occ_search_button")) {
-          document.getElementById("occ_search_button").addEventListener("mouseup", function(e) {
+  if (document.getElementById("omni_search")) {
+      document.getElementById("omni_search").addEventListener("keypress", function(e) {
+          //console.log('omni_search got keypress', e);
+          if (e.which == 13) {
+            let sValue = document.getElementById("omni_search").value;
+            omniSearch(sValue);
+          }
+      });
+  }
+
+  if (document.getElementById("omni_search_button")) {
+      document.getElementById("omni_search_button").addEventListener("mouseup", function(e) {
+        let sValue = document.getElementById("omni_search").value;
+        omniSearch(sValue);
+      });
+  }
+
+  if (document.getElementById("occ_search")) {
+      document.getElementById("occ_search").addEventListener("keypress", function(e) {
+          if (e.which == 13) {
               speciesMatchLoadExplorer();
-          });
-      }
+          }
+      });
+  }
+
+  if (document.getElementById("occ_search_button")) {
+      document.getElementById("occ_search_button").addEventListener("mouseup", function(e) {
+          speciesMatchLoadExplorer();
+      });
+  }
 }
 
 addListeners();

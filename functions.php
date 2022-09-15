@@ -64,7 +64,7 @@ function admin_acf_styles() {
 add_action( 'admin_enqueue_scripts', 'admin_acf_styles' );
 
 function jason_loomis_dedicated_stylesheet() {
-    wp_enqueue_style('dadra-style', get_stylesheet_directory_uri().'/css/jason-styles.css');
+    wp_enqueue_style('dadra-style', get_stylesheet_directory_uri().'/css/gbif-data-styles.css');
 }
 add_action('wp_enqueue_scripts', 'jason_loomis_dedicated_stylesheet');
 
