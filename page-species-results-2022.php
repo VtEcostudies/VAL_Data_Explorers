@@ -20,7 +20,13 @@
 		<div>
 			<label id="search-value"></label>
 		</div>
-		
+		<div id="page-div">
+			<input id="page-first" type="button" value="|< First" />
+		  <input id="page-prev" type="button" value="< Prev" />
+		  <input id="page-next" type="button" value="Next >" />
+		  <input id="page-last" type="button" value="Last >|" />
+		</div>
+
 </section>
 
 <section>

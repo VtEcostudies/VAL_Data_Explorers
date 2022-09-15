@@ -57,9 +57,6 @@
 			<datalist id="gbif_autocomplete_list"></datalist>
 
 			<div class="searchsubmit-wrap">
-				<!--
-				<button id="bie_search_button">
-				-->
 				<button id="omni_search_button">
 					<i class="far fa-search"></i>
 				</button>
