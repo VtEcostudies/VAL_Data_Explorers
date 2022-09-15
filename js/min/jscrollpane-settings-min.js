@@ -1,1 +1,0 @@
-jQuery(document).ready(function($){$(".scroll-pane").each(function(){$(this).jScrollPane({showArrows:$(this).is(".arrow")});var i=$(this).data("jsp"),n;$(window).bind("resize",function(){n||(n=setTimeout(function(){i.reinitialise(),n=null},50))})})});

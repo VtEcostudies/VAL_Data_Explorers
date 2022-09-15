@@ -1,1 +1,0 @@
-jQuery(document).ready(function($){$("[data-toggle=offcanvas]").click(function(){$("main, #title-wrap").toggleClass("active")})}),$(document).ready(function(){$(".skip").click(function(){var t="#"+this.href.split("#")[1];$(t).attr("tabindex",-1).on("blur focusout",function(){$(this).removeAttr("tabindex")}).focus()})});
