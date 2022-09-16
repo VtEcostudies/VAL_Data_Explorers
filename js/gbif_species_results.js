@@ -6,8 +6,14 @@ const gadmGid = 'USA.46_1';
 const columns = ['canonicalName','vernacularName','rank','taxonomicStatus','parent','occurrences'];
 const thisUrl = new URL(document.URL);
 const hostUrl = thisUrl.host;
-var explorerUrl = `${thisUrl.protocol}/${thisUrl.host}/gbif-explorer/`; if ('localhost' == hostUrl) {explorerUrl='https://val.vtecostudies.org/gbif-explorer';}
-var resultsUrl = `${thisUrl.protocol}/${thisUrl.host}/gbif-species-results/`; if ('localhost' == hostUrl) {resultsUrl='http://localhost/results.html';}
+var explorerUrl = `${thisUrl.protocol}/${thisUrl.host}/gbif-explorer`;
+var resultsUrl = `${thisUrl.protocol}/${thisUrl.host}/gbif-species-explorer`;
+explorerUrl = 'https://vcevaldev.wpengine.com/gbif-explorer';
+resultsUrl = 'https://vcevaldev.wpengine.com/gbif-species-explorer';
+if ('localhost' == hostUrl) {
+  explorerUrl = 'https://val.vtecostudies.org/gbif-explorer';
+  resultsUrl = 'http://localhost/results.html';
+}
 const objUrlParams = new URLSearchParams(window.location.search);
 
 // get query params named 'taxonKey'
@@ -124,21 +130,25 @@ async function getOccCount(key) {
 export function PrevPage() {
   if (offset > 0) {
     offset = offset - limit;
+    //alert(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}`);
     window.location.assign(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}`);
   }
 }
 export function NextPage() {
   if ((offset + limit) < count) {
     offset = offset + limit;
+    //alert(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}`);
     window.location.assign(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}`);
   }
 }
 export function FirstPage() {
+  //alert(`${resultsUrl}?q=${qParm}&offset=0&limit=${limit}`);
   window.location.assign(`${resultsUrl}?q=${qParm}&offset=0&limit=${limit}`);
 }
 export function LastPage() {
   if (count > limit) {
-    offset = count - limit;
+    offset = Math.floor(count/limit)*limit;
+    //alert(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}`);
     window.location.assign(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}`);
   }
 }
@@ -158,13 +168,56 @@ if (document.getElementById("page-last")) {
     document.getElementById("page-last").addEventListener("mouseup", function(e) {
       LastPage();
     });}
+if (document.getElementById("download-json")) {
+    document.getElementById("download-json").addEventListener("mouseup", function(e) {
+      getDownloadData(1);
+    });}
+if (document.getElementById("download-csv")) {
+    document.getElementById("download-csv").addEventListener("mouseup", function(e) {
+      getDownloadData(0);
+    });}
+
+//Download qParm full-result set as csv (type==0) or json (type==1)
+async function getDownloadData(type=0) {
+  let spcs = await speciesSearch(qParm, 0, 10000);
+  if (type) { //json
+    var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(spcs.results));
+    downloadData(dataStr, qParm + ".json") ;
+  } else { //csv
+    var dataStr = "data:text/csv;charset=utf-8," + encodeURIComponent(jsonToCsv(spcs.results));
+    downloadData(dataStr, qParm + ".csv") ;
+  }
+}
+
+//do the download
+function downloadData(dataStr, expName) {
+    var downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", expName);
+    document.body.appendChild(downloadAnchorNode); // required for firefox
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+  }
+
+//convert json array of objects to csv
+function jsonToCsv(json) {
+  const replacer = (key, value) => value === null ? '' : value // specify how you want to handle null values here
+  const header = Object.keys(json[0])
+  const csv = [
+    header.join(','), // header row first
+    ...json.map(row => header.map(fieldName => JSON.stringify(row[fieldName], replacer)).join(','))
+  ].join('\r\n')
+
+  return csv;
+}
 
 if (qParm) {
   let spcs = await speciesSearch(qParm, offset, limit);
   count = spcs.count;
   await addTaxaFromArr(spcs.results);
   await addHead();
-  if (lbl) {lbl.innerHTML = `<u>${+offset} to ${+offset+limit} of ${spcs.count} Search Results for '${qParm}':</u>`;}
+  let finish = (offset+limit)>count ? count : offset+limit;
+  if (lbl) {lbl.innerHTML = `<u>${offset} to ${finish} of ${count} Search Results for '${qParm}':</u>`;}
 }
 else if (tKeys.length) {
   await addTaxaByKeys();

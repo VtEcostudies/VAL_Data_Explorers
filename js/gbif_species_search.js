@@ -1,8 +1,14 @@
 const gbifHost = 'https://hp-vtatlasoflife.gbif.org'; // "https://hp-vtatlasoflife.gbif-staging.org";
 const thisUrl = new URL(document.URL);
 const hostUrl = thisUrl.host;
-var explorerUrl = `${thisUrl.protocol}/${thisUrl.host}/gbif-explorer/`; if ('localhost' == hostUrl) {explorerUrl='https://val.vtecostudies.org/gbif-explorer';}
-var resultsUrl = `${thisUrl.protocol}/${thisUrl.host}/gbif-species-results/`; if ('localhost' == hostUrl) {resultsUrl='http://localhost/results.html';}
+var explorerUrl = `${thisUrl.protocol}/${thisUrl.host}/gbif-explorer`;
+var resultsUrl = `${thisUrl.protocol}/${thisUrl.host}/gbif-species-explorer`;
+explorerUrl = 'https://vcevaldev.wpengine.com/gbif-explorer';
+resultsUrl = 'https://vcevaldev.wpengine.com/gbif-species-explorer';
+if ('localhost' == hostUrl) {
+  explorerUrl = 'https://val.vtecostudies.org/gbif-explorer';
+  resultsUrl = 'http://localhost/results.html';
+}
 const datasetKey = '0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
 
 console.log('HOST URL:', hostUrl);
@@ -159,7 +165,7 @@ export async function omniSearchLoadResults(search_value=null) {
   encQry = encodeURI(`${resultsUrl}?q=${search_value}`);
 
   console.log('Query:', encQry);
-
+  //alert(encQry);
   window.location.assign(encQry);
 }
 
