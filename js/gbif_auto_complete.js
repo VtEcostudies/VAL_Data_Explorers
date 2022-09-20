@@ -1,21 +1,34 @@
 const datasetKey = '0b1735ff-6a66-454b-8686-cae1cbc732a2';
 const filterVermont = true;
+var inputElementId = null; //the Id of the text input to have autoComplete. only put one on a page, multiple is not tested.
+var listElementId = 'gbif_autocomplete_list'; //the Id of the datalist attached to the input (required)
+
+export function listenerInit(elementId=null) {
+  window.addEventListener("load", function() {
+
+      // Add a keyup event listener to our input element
+      var name_input = document.getElementById(elementId);
+      if (name_input) {
+        inputElementId = elementId;
+        name_input.addEventListener("keyup", function(event) {gbifAutoComplete(event);});
+
+        // create one global XHR object
+        // this allows us to abort pending requests when a new one is made
+        window.gbifXHR = new XMLHttpRequest();
+      } else {
+        console.log(`gbifAutoComplete WARNING: html element '${domElementId}' not found.`)
+      }
+  });
+}
 
 if (document.getElementById('occ_search')) {
-    window.addEventListener("load", function() {
-
-        // Add a keyup event listener to our input element
-        var name_input = document.getElementById('occ_search');
-        if (name_input) {
-          name_input.addEventListener("keyup", function(event) {gbifAutoComplete(event);});
-
-          // create one global XHR object
-          // this allows us to abort pending requests when a new one is made
-          window.gbifXHR = new XMLHttpRequest();
-        } else {
-          console.log('gbifAutoComplete WARNING: html element occ_search not found.')
-        }
-    });
+  listenerInit('occ_search')
+}
+if (document.getElementById('species_search')) {
+  listenerInit('species_search')
+}
+if (document.getElementById('omni_search')) {
+  listenerInit('omni_search')
 }
 
 /*
@@ -55,10 +68,10 @@ function gbifAutoComplete(event) {
     }
 
     // retireve the input element
-    input = document.getElementById('occ_search');
+    input = document.getElementById(inputElementId);
 
     // retrieve the datalist element
-    auto_list = document.getElementById('gbif_autocomplete_list');
+    auto_list = document.getElementById(listElementId);
 
     // retrieve the text area list element
     if (document.getElementById('visi_list')) {

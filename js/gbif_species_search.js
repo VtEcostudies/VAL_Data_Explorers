@@ -114,13 +114,13 @@ export async function speciesMatch(text_value) {
 }
 
 // Navigate to Occurrence Search page with speciesMatch results from html element occ_search
-export async function speciesMatchLoadExplorer(search_value=null) {
-  if (!search_value) {search_value = document.getElementById("occ_search").value;}
+export async function speciesMatchLoadExplorer(searchValue=null) {
+  if (!searchValue) {searchValue = document.getElementById("occ_search").value;}
   let frame = document.getElementById("gbif_frame");
   let react = document.getElementById("gbif_react");
-  console.log(`speciesMatchLoadExplorer(${search_value})`);
+  console.log(`speciesMatchLoadExplorer(${searchValue})`);
 
-  let mRes = await speciesMatch(search_value); //single result: match or null
+  let mRes = await speciesMatch(searchValue); //single result: match or null
 
   if (mRes.usageKey) { //successful match API results always have usageKey (aka nubKey?)
     if (frame) {frame.scrollIntoView(); frame.src = `${gbifHost}/occurrence/search/?taxonKey=${mRes.result.usageKey}&view=MAP`;}
@@ -129,9 +129,9 @@ export async function speciesMatchLoadExplorer(search_value=null) {
       if (react) react.scrollIntoView();
     }
   } else { //send raw text for search
-    if (frame) {frame.scrollIntoView(); frame.src = `${gbifHost}/occurrence/search/?q=${search_value}&view=MAP`;}
+    if (frame) {frame.scrollIntoView(); frame.src = `${gbifHost}/occurrence/search/?q=${searchValue}&view=MAP`;}
     else {
-      await window.location.assign(`${explorerUrl}?q=${search_value}&view=MAP`);
+      await window.location.assign(`${explorerUrl}?q=${searchValue}&view=MAP`);
       if (react) react.scrollIntoView();
     }
   }
@@ -143,14 +143,19 @@ export async function speciesMatchLoadExplorer(search_value=null) {
 
   Now that the search results code can handle the plain search term, use that.
 */
-export async function omniSearchLoadResults(search_value=null) {
-  if (!search_value) {search_value = document.getElementById("omni_search").value;}
+export async function omniSearchLoadResults(searchValue=null, elementId=null) {
+  if (!searchValue && elementId) {searchValue = document.getElementById(elementId).value;}
+
+  if (!searchValue || '*' == searchValue) {
+    console.log(`omniSearchLoadResults('${searchValue}', ${elementId}) - please enter a valid search term.`);
+    return;
+  }
 
   let thisUrl = document.URL.split('?')[0]; //the base URL for this page without route params, which we update here
 
-  console.log(`omniSearchLoadResults(${search_value})`);
+  console.log(`omniSearchLoadResults(${searchValue})`);
 
-  let sRes = await speciesSearch(search_value); //includes both scientificName and vernacularName
+  let sRes = await speciesSearch(searchValue); //includes both scientificName and vernacularName
 
   let keyQ = ''; //a list of taxonKeys as a query param
 
@@ -162,7 +167,7 @@ export async function omniSearchLoadResults(search_value=null) {
   let encKey, encQry = null;
 
   encKey = encodeURI(`${resultsUrl}?${keyQ}`);
-  encQry = encodeURI(`${resultsUrl}?q=${search_value}`);
+  encQry = encodeURI(`${resultsUrl}?q=${searchValue}`);
 
   console.log('Query:', encQry);
   //alert(encQry);

@@ -25,13 +25,31 @@ a:focus { outline: none; }
 input[type=search], input:not([type="checkbox"]), textarea { outline: none !important; /*for webkit*/ appearance: none !important; -webkit-appearance: none !important; -moz-appearance: none !important; }
 
 /*** all displays ***/
-@media only screen and (-webkit-min-device-pixel-ratio: 2), only screen and (min-resolution: 192dpi) { a#top-footer { background-image: url(images/top@2x.gif); background-size: 9px 5px; } .home .hero #searchform #searchsubmit { background-image: url(images/magnify-small@2x.png); background-size: 15px 14px; } #title-wrap #sidebar-toggle { background-image: url(images/info-icon@2x.png); background-size: 6px 14px; } #title-wrap.active #sidebar-toggle { background-image: url(images/close-icon@2x.png); background-size: 11px 13px; } aside ul.project-primary-nav li.project-home a { background-image: url(images/home-icon@2x.png); background-size: 18px 15px; } aside ul.project-primary-nav li.project-about a { background-image: url(images/about-icon@2x.png); background-size: 18px 15px; } aside ul.project-primary-nav li.project-results a { background-image: url(images/doc-icon@2x.png); background-size: 18px 14px; } aside ul.project-primary-nav li.project-data a { background-image: url(images/bar-graph@2x.png); background-size: 18px 14px; } aside ul.project-primary-nav li.project-accounts a { background-image: url(images/list-icon@2x.png); background-size: 18px 15px; } aside ul.project-primary-nav li.project-news a { background-image: url(images/news-icon@2x.png); background-size: 18px 15px; } aside ul.project-primary-nav li.project-report-sighting a { background-image: url(images/binoculars-icon@2x.png); background-size: 18px 14px; } }
+@media only screen and (-webkit-min-device-pixel-ratio: 2), only screen and (min-resolution: 192dpi) {
+  a#top-footer { background-image: url(images/top@2x.gif); background-size: 9px 5px; }
+  .home .hero #searchform #searchsubmit { background-image: url(images/magnify-small@2x.png); background-size: 15px 14px; }
+  #title-wrap #sidebar-toggle { background-image: url(images/info-icon@2x.png); background-size: 6px 14px; }
+  #title-wrap.active #sidebar-toggle { background-image: url(images/close-icon@2x.png); background-size: 11px 13px; }
+  aside ul.project-primary-nav li.project-home a { background-image: url(images/home-icon@2x.png); background-size: 18px 15px; }
+  aside ul.project-primary-nav li.project-about a { background-image: url(images/about-icon@2x.png); background-size: 18px 15px; }
+  aside ul.project-primary-nav li.project-results a { background-image: url(images/doc-icon@2x.png); background-size: 18px 14px; }
+  aside ul.project-primary-nav li.project-data a { background-image: url(images/bar-graph@2x.png); background-size: 18px 14px; }
+  aside ul.project-primary-nav li.project-accounts a { background-image: url(images/list-icon@2x.png); background-size: 18px 15px; }
+  aside ul.project-primary-nav li.project-news a { background-image: url(images/news-icon@2x.png); background-size: 18px 15px; }
+  aside ul.project-primary-nav li.project-report-sighting a { background-image: url(images/binoculars-icon@2x.png); background-size: 18px 14px; }
+}
 
 /*** medium displays and up -- 680px and more ***/
-@media only screen and (-webkit-min-device-pixel-ratio: 2) and (min-width: 680px), only screen and (min-resolution: 192dpi) and (min-width: 680px) { .home .hero #searchform:after { background-image: url(images/hummingbird@2x.png); background-size: 113px 122px; } .home .hero #searchform #searchsubmit { background-image: url(images/magnify-medium@2x.png); background-size: 19px 19px; } #crumbs a { background-image: url(images/breadcrumbs-divider@2x.png); background-size: 14px 52px; } }
+@media only screen and (-webkit-min-device-pixel-ratio: 2) and (min-width: 680px), only screen and (min-resolution: 192dpi) and (min-width: 680px) {
+  .home .hero #searchform:after { background-image: url(images/hummingbird@2x.png); background-size: 113px 122px; }
+  .home .hero #searchform #searchsubmit { background-image: url(images/magnify-medium@2x.png); background-size: 19px 19px; }
+  #crumbs a { background-image: url(images/breadcrumbs-divider@2x.png); background-size: 14px 52px; }
+}
 
 /*** large displays -- 950px and more ***/
-@media only screen and (-webkit-min-device-pixel-ratio: 2) and (min-width: 950px), only screen and (min-resolution: 192dpi) and (min-width: 950px) { .home .hero #searchform #searchsubmit { background-image: url(images/magnify-large@2x.png); background-size: 21px 21px; } }
+@media only screen and (-webkit-min-device-pixel-ratio: 2) and (min-width: 950px), only screen and (min-resolution: 192dpi) and (min-width: 950px) {
+  .home .hero #searchform #searchsubmit { background-image: url(images/magnify-large@2x.png); background-size: 21px 21px; }
+}
 
 .boxed-links-large { clear: both; margin: 20px 0; }
 

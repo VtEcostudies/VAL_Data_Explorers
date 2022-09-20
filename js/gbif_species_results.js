@@ -4,6 +4,7 @@ const datasetKey = '0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Data
 const gadmGid = 'USA.46_1';
 //const columns = ['key','nubKey','canonicalName','scientificName','vernacularName','rank','taxonomicStatus','synonym','parentKey','parent','occurrences'];
 const columns = ['canonicalName','vernacularName','rank','taxonomicStatus','parent','occurrences'];
+const columNames = {'key':'GBIF Key', 'nubKey':'GBIF Nub Key', 'canonicalName':'Scientific Name', 'vernacularName':'Common Name', 'rank':'Rank', 'taxonomicStatus':'Taxon Status', 'parent':'Parent Name', 'occurrences':'Occurrences'};
 const thisUrl = new URL(document.URL);
 const hostUrl = thisUrl.host;
 var explorerUrl = `${thisUrl.protocol}/${thisUrl.host}/gbif-explorer`;
@@ -35,7 +36,7 @@ async function addHead() {
   let hedRow = objHed.insertRow(0); //just one header objRow
   columns.forEach(async (hedNam, hedIdx) => {
     let colObj = await hedRow.insertCell(hedIdx);
-    colObj.innerHTML = hedNam;
+    colObj.innerHTML = columNames[hedNam];
   });
 }
 
@@ -217,10 +218,15 @@ if (qParm) {
   await addTaxaFromArr(spcs.results);
   await addHead();
   let finish = (offset+limit)>count ? count : offset+limit;
-  if (lbl) {lbl.innerHTML = `<u>${offset} to ${finish} of ${count} Search Results for '${qParm}':</u>`;}
+  if (lbl) {lbl.innerHTML = `<u>Showing ${offset} to ${finish} of ${count} Search Results for <b>'${qParm}'</b></u>`;}
 }
 else if (tKeys.length) {
   await addTaxaByKeys();
   await addHead();
-  if (lbl) {lbl.inntKeys.forEach((key,idx) => {lbl.innerHTML += key + ', ';})}
+  if (lbl) {
+    lbl.innerHTML = "Showing results for taxon key ";
+    if (tkeys.length > 1) {lbl.innerHtml += "s:";} else {lbl.innerHtml += ":";}
+    tKeys.forEach((key,idx) => {lbl.innerHTML += key + ', ';})
+    innerHTML = innerHTML.slice(0, -1);
+  }
 }
