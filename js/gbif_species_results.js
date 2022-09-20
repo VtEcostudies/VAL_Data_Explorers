@@ -3,8 +3,8 @@ import { speciesSearch } from './gbif_species_search.js';
 const datasetKey = '0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
 const gadmGid = 'USA.46_1';
 //const columns = ['key','nubKey','canonicalName','scientificName','vernacularName','rank','taxonomicStatus','synonym','parentKey','parent','occurrences'];
-const columns = ['canonicalName','vernacularName','rank','taxonomicStatus','parent','occurrences'];
-const columNames = {'key':'GBIF Key', 'nubKey':'GBIF Nub Key', 'canonicalName':'Scientific Name', 'vernacularName':'Common Name', 'rank':'Rank', 'taxonomicStatus':'Taxon Status', 'parent':'Parent Name', 'occurrences':'Occurrences'};
+const columns = ['canonicalName','vernacularNames','rank','taxonomicStatus','higherClassificationMap','occurrences'];
+const columNames = {'key':'GBIF Key', 'nubKey':'GBIF Nub Key', 'canonicalName':'Scientific Name', 'vernacularNames':'Common Names', 'rank':'Rank', 'taxonomicStatus':'Taxon Status', 'parent':'Parent Name', 'higherClassificationMap':'Parent Taxa', 'occurrences':'Occurrences'};
 const thisUrl = new URL(document.URL);
 const hostUrl = thisUrl.host;
 var explorerUrl = `${thisUrl.protocol}//${thisUrl.host}/gbif-explorer`;
@@ -28,6 +28,14 @@ var count = 0; //this is set after loading data
 var page = offset / limit + 1;
 console.log('Query param q:', qParm, 'offset:', offset, 'limit:', limit, 'page:', page);
 
+var other = ''; var objOther = {};
+objUrlParams.forEach((val, key) => {
+  if ('taxonKey'!=key && 'q'!=key && 'offset'!=key && 'limit'!=key) {
+    other += `&${key}=${val}`;
+    objOther[key] = val;
+  }
+});
+
 const ePg = document.getElementById("page-number"); ePg.innerText = `Page ${nFmt.format(page)}`;
 const tbl = document.getElementById("species-table");
 const lbl = document.getElementById("search-value");
@@ -45,7 +53,7 @@ async function addHead() {
 async function addTaxaByKeys() {
   tKeys.forEach(async (key, rowIdx) => {
     let objRow = tbl.insertRow(rowIdx);
-    await fillRow({key: key}, objRow, rowIdx);
+    await fillRow({taxonKey: key}, objRow, rowIdx);
   })
 }
 
@@ -64,11 +72,14 @@ async function addTaxaFromArr(sArr) {
 async function fillRow(objSpc, objRow, rowIdx) {
   var key = objSpc.nubKey ? objSpc.nubKey : objSpc.key;
   var res = objSpc; var occ = {count: 'n/a'}; //initialize these to valid objects in case GETs, below, fail
-  try {
-    res = await getTaxon(key);
-    key = res.nubKey ? res.nubKey : res.key; //must again resolve key to nubKey if exists
-  } catch (err) {
-    //getTaxon failed, so leave it as initialized
+  if (objSpc.taxonKey) { //search by query param taxonKey
+    key = objSpc.taxonKey;
+    try {
+      res = await getTaxon(key);
+      key = res.nubKey ? res.nubKey : res.key; //must again resolve key to nubKey if exists
+    } catch (err) {
+      //getTaxon failed, so leave it as initialized
+    }
   }
   try {
     occ = await getOccCount(key);
@@ -78,11 +89,31 @@ async function fillRow(objSpc, objRow, rowIdx) {
   columns.forEach((colNam, colIdx) => {
     let colObj = objRow.insertCell(colIdx);
     switch(colNam) {
-      case 'canonicalName': case 'scientificName': case 'parent': case 'vernacularName':
+      case 'canonicalName':
+        let name = res[colNam] ? res[colNam] : res['scientificName'];
+        colObj.innerHTML = `<a href="${resultsUrl}?q=${name}">${name}</a>`;
+        break;
+      case 'vernacularNames':
+        let vnArr = res[colNam]; //array of vernacular columNames
+        if (!vnArr) break;
+        vnArr.forEach((ele, idx) => {
+          colObj.innerHTML += `<a href="${resultsUrl}?q=${ele.vernacularName}">${ele.vernacularName}</a>`;
+          if (idx < Object.keys(vnArr).length-1) {colObj.innerHTML += ', ';}
+        })
+        break;
+      case 'scientificName': case 'parent': case 'vernacularName':
         colObj.innerHTML = res[colNam] ? `<a href="${resultsUrl}?q=${res[colNam]}">${res[colNam]}</a>` : null;
         break;
       case 'key': case 'nubKey': case 'parentKey':
         colObj.innerHTML = res[colNam] ? `<a href="${resultsUrl}?taxonKey=${res[colNam]}">${res[colNam]}</a>` : null;
+        break;
+      case 'higherClassificationMap':
+        let tree = res[colNam]; //object of upper taxa like {123456:Name,234567:Name,...}
+        if (!tree) break;
+        Object.keys(tree).forEach((key, idx) => {
+          colObj.innerHTML += `<a href="${resultsUrl}?q=${tree[key]}">${tree[key]}</a>`;
+          if (idx < Object.keys(tree).length-1) {colObj.innerHTML += ', ';}
+        })
         break;
       case 'occurrences':
         colObj.innerHTML = `<a href="${explorerUrl}?taxonKey=${key}&view=MAP">${nFmt.format(occ.count)}</a>`;
@@ -100,7 +131,7 @@ async function getTaxon(key) {
   let reqHost = "https://api.gbif.org/v1";
   let reqRoute = "/species/";
   let reqValue = key;
-  let reqFilter = `?datasetKey=${datasetKey}&advanced=1`
+  let reqFilter = `?datasetKey=${datasetKey}&advanced=1${other}`;
   let url = reqHost+reqRoute+reqValue+reqFilter;
   let enc = encodeURI(url);
 
@@ -232,20 +263,33 @@ function jsonToCsv(json) {
 }
 
 if (qParm || "" === qParm) { //important: include q="" to show all species results
-  let spcs = await speciesSearch(qParm, offset, limit);
+  if ("" === qParm) {other='&rank=KINGDOM'; objOther={'rank':'KINGDOM'};}
+  let spcs = await speciesSearch(qParm, offset, limit, other);
   count = spcs.count;
   await addTaxaFromArr(spcs.results);
   await addHead();
   let finish = (offset+limit)>count ? count : offset+limit;
-  if (lbl) {lbl.innerHTML = `<u>Showing ${nFmt.format(count?offset+1:0)}-${nFmt.format(finish)}/${nFmt.format(count)} Results for Search Term <b>'${qParm}'</b></u>`;}
+  if (lbl) {
+    lbl.innerHTML = `<u>Showing ${nFmt.format(count?offset+1:0)}-${nFmt.format(finish)}/${nFmt.format(count)} Results`;
+    if (qParm) {
+      lbl.innerHTML += ` for Search Term <b>'${qParm}'</b>`;
+    }
+    lbl.innerHTML += `</u>`;
+    if (Object.keys(objOther).length) {lbl.innerHTML += ' where ';}
+    Object.keys(objOther).forEach((key, idx) => {
+      lbl.innerHTML += ` ${key} is ${objOther[key]}`;
+      if (idx < Object.keys(objOther).length-1) {lbl.innerHTML += ' and ';}
+    });
+  }
 }
 else if (tKeys.length) {
   await addTaxaByKeys();
   await addHead();
   if (lbl) {
-    lbl.innerHTML = "Showing results for taxon key ";
-    if (tkeys.length > 1) {lbl.innerHtml += "s:";} else {lbl.innerHtml += ":";}
-    tKeys.forEach((key,idx) => {lbl.innerHTML += key + ', ';})
-    innerHTML = innerHTML.slice(0, -1);
+    lbl.innerHTML = "Showing results for taxon keys: ";
+    tKeys.forEach((key, idx) => {
+      lbl.innerHTML += key;
+      if (idx < tKeys.length-1) {lbl.innerHTML += ', ';}
+    })
   }
 }

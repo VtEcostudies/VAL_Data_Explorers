@@ -25,28 +25,30 @@ console.log('Results URL:', resultsUrl);
   https://api.gbif.org/v1/species/suggest?datasetKey=d7dddbf4-2cf0-4f39-9b2a-bb099caae36c&q=Turdus%20migratorius
   A quick and simple autocomplete service that returns up to 20 name usages by doing prefix matching against
   the scientific name. Results are ordered by relevance.
+
+  NOTE: otherParams must be in the form '&key=value&key=value&...'
 */
-export async function speciesSearch(text_value, offset=0, limit=20) {
+export async function speciesSearch(searchTerm, offset=0, limit=20, otherParams='') {
   let reqHost = "https://api.gbif.org/v1";
   let reqRoute = "/species/search";
-  let reqQuery = `?q=${text_value}`;
-  let reqFilter = `&datasetKey=${datasetKey}`;
+  let reqQuery = `?q=${searchTerm}`;
+  let reqFilter = `&datasetKey=${datasetKey}${otherParams}`;
   let reqSize = `&offset=${offset}&limit=${limit}`;
   let url = reqHost+reqRoute+reqQuery+reqFilter+reqSize;
   let enc = encodeURI(url);
 
-  console.log(`speciesSearch(${text_value})`, enc);
+  console.log(`speciesSearch(${searchTerm})`, enc);
 
   try {
     let res = await fetch(enc);
     let json = await res.json();
-    console.log(`speciesSearch(${text_value}) QUERY:`, enc);
-    console.log(`speciesSearch(${text_value}) RESULT:`, json);
+    console.log(`speciesSearch(${searchTerm}) QUERY:`, enc);
+    console.log(`speciesSearch(${searchTerm}) RESULT:`, json);
     json.query = enc;
     return json;
   } catch (err) {
-    console.log(`speciesSearch(${text_value}) QUERY:`, enc);
-    console.log(`speciesSearch(${text_value}) ERROR:`, err);
+    console.log(`speciesSearch(${searchTerm}) QUERY:`, enc);
+    console.log(`speciesSearch(${searchTerm}) ERROR:`, err);
     err.query = enc;
     return new Error(err)
   }
@@ -55,26 +57,26 @@ export async function speciesSearch(text_value, offset=0, limit=20) {
 /*
 https://api.gbif.org/v1/species/search?qField=VERNACULAR&status=ACCEPTED&q=spotted%20salamander&datasetKey=0b1735ff-6a66-454b-8686-cae1cbc732a2
 */
-export async function commonSearch(text_value) {
+export async function commonSearch(searchTerm) {
   let reqHost = "https://api.gbif.org/v1";
   let reqRoute = "/species/search";
-  let reqQuery = `?q=${text_value}`;
+  let reqQuery = `?q=${searchTerm}`;
   let reqFilter = `&qField=VERNACULAR&datasetKey=${datasetKey}`;
   let url = reqHost+reqRoute+reqQuery+reqFilter;
   let enc = encodeURI(url);
 
-  console.log(`commonSearch(${text_value})`, enc);
+  console.log(`commonSearch(${searchTerm})`, enc);
 
   try {
     let res = await fetch(enc);
     let json = await res.json();
-    console.log(`commonSearch(${text_value}) QUERY:`, enc);
-    console.log(`commonSearch(${text_value}) RESULT:`, json);
+    console.log(`commonSearch(${searchTerm}) QUERY:`, enc);
+    console.log(`commonSearch(${searchTerm}) RESULT:`, json);
     json.query = enc;
     return json;
   } catch (err) {
-    console.log(`commonSearch(${text_value}) QUERY:`, enc);
-    console.log(`commonSearch(${text_value}) ERROR:`, err);
+    console.log(`commonSearch(${searchTerm}) QUERY:`, enc);
+    console.log(`commonSearch(${searchTerm}) ERROR:`, err);
     err.query = enc;
     return new Error(err)
   }
@@ -87,25 +89,25 @@ export async function commonSearch(text_value) {
   If a classification is provided and strict is not set to true, the default matching will also try to match
   against these if no direct match is found for the name parameter alone.
 */
-export async function speciesMatch(text_value) {
+export async function speciesMatch(searchTerm) {
   let reqHost = "https://api.gbif.org/v1";
   let reqRoute = "/species/match";
-  let reqQuery = `?name=${text_value}`;
+  let reqQuery = `?name=${searchTerm}`;
   let url = reqHost+reqRoute+reqQuery;
   let enc = encodeURI(url);
 
-  console.log(`speciesMatch(${text_value})`, enc);
+  console.log(`speciesMatch(${searchTerm})`, enc);
 
   try {
     let res = await fetch(enc);
     let json = await res.json();
-    console.log(`speciesMatch(${text_value}) QUERY:`, enc);
-    console.log(`speciesMatch(${text_value}) RESULT:`, json);
+    console.log(`speciesMatch(${searchTerm}) QUERY:`, enc);
+    console.log(`speciesMatch(${searchTerm}) RESULT:`, json);
     json.query = enc;
     return json;
   } catch (err) {
-    console.log(`speciesMatch(${text_value}) QUERY:`, enc);
-    console.log(`speciesMatch(${text_value}) ERROR:`, err);
+    console.log(`speciesMatch(${searchTerm}) QUERY:`, enc);
+    console.log(`speciesMatch(${searchTerm}) ERROR:`, err);
     err.query = enc;
     return new Error(err)
   }
