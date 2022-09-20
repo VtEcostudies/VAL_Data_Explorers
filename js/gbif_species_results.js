@@ -14,11 +14,11 @@ if ('localhost' == hostUrl) {
   resultsUrl = 'http://localhost/results.html';
 }
 const objUrlParams = new URLSearchParams(window.location.search);
-const nFmt = new Intl.NumberFormat(); //use this to format numbers by locale... automagically?
+var nFmt = new Intl.NumberFormat(); //use this to format numbers by locale... automagically?
 
 // get query params named 'taxonKey'
 let tKeys = objUrlParams.getAll('taxonKey');
-console.log('GET taxonKeys:', tKeys);
+console.log('Query Param(s) taxonKeys:', tKeys);
 
 // get 'q' query param
 var qParm = objUrlParams.get('q');
@@ -26,7 +26,7 @@ var offset = objUrlParams.get('offset'); offset = Number(offset) ? Number(offset
 var limit = objUrlParams.get('limit'); limit = Number(limit) ? Number(limit) : 20;
 var count = 0; //this is set after loading data
 var page = offset / limit + 1;
-console.log('FIND search param', qParm, 'offset:', offset, 'limit:', limit, 'page:', page);
+console.log('Query param q:', qParm, 'offset:', offset, 'limit:', limit, 'page:', page);
 
 const ePg = document.getElementById("page-number"); ePg.innerText = `Page ${nFmt.format(page)}`;
 const tbl = document.getElementById("species-table");
@@ -45,25 +45,36 @@ async function addHead() {
 async function addTaxaByKeys() {
   tKeys.forEach(async (key, rowIdx) => {
     let objRow = tbl.insertRow(rowIdx);
-    await fillRow(await getTaxon(key), objRow, rowIdx);
+    await fillRow({key: key}, objRow, rowIdx);
   })
 }
 
 // Create table row for each array element, then fill row of cells
 async function addTaxaFromArr(sArr) {
-  sArr.forEach(async (sObj, rowIdx) => {
+  sArr.forEach(async (objSpc, rowIdx) => {
     let objRow = tbl.insertRow(rowIdx);
-    await fillRow(sObj.nubKey ? sObj.nubKey : sObj.key, objRow, rowIdx);
+    //let taxKey = objSpc.nubKey ? objSpc.nubKey : objSpc.key;
+    //console.log(`get_species_results::addTaxaFromArr | key:${sObj.key} | nubKey:${sObj.nubKey} | result:${taxKey}`);
+    await fillRow(objSpc, objRow, rowIdx);
   })
 }
 
-// Fill a row of cells for a taxon key
-async function fillRow(key, objRow, rowIdx) {
-  var res = await getTaxon(key);
-  var key = res.nubKey ? res.nubKey : res.key; //must resolve key to nubKey if exists
-  var occ = await getOccCount(key);
-  var hrow = null;
-  var colIdx = 0;
+// Fill a row of cells for a taxon object retrieved from species search, or other. At minimum, objSpc
+// must be {key: taxonKey}
+async function fillRow(objSpc, objRow, rowIdx) {
+  var key = objSpc.nubKey ? objSpc.nubKey : objSpc.key;
+  var res = objSpc; var occ = {count: 'n/a'}; //initialize these to valid objects in case GETs, below, fail
+  try {
+    res = await getTaxon(key);
+    key = res.nubKey ? res.nubKey : res.key; //must again resolve key to nubKey if exists
+  } catch (err) {
+    //getTaxon failed, so leave it as initialized
+  }
+  try {
+    occ = await getOccCount(key);
+  } catch (err) {
+    //getOccCount failed, so leave it as initialized
+  }
   columns.forEach((colNam, colIdx) => {
     let colObj = objRow.insertCell(colIdx);
     switch(colNam) {
@@ -74,17 +85,17 @@ async function fillRow(key, objRow, rowIdx) {
         colObj.innerHTML = res[colNam] ? `<a href="${resultsUrl}?taxonKey=${res[colNam]}">${res[colNam]}</a>` : null;
         break;
       case 'occurrences':
-        colObj.innerHTML = `<a href="${explorerUrl}?taxonKey=${key}&view=MAP">${occ.count}</a>`;
+        colObj.innerHTML = `<a href="${explorerUrl}?taxonKey=${key}&view=MAP">${nFmt.format(occ.count)}</a>`;
         break;
       default:
         colObj.innerHTML = res[colNam] ? res[colNam] : null;
         break;
     }
-    colIdx++;
   });
 }
 
 //get a GBIF taxon from the species API by taxonKey
+// return a single object with taxon keys like canonicalName
 async function getTaxon(key) {
   let reqHost = "https://api.gbif.org/v1";
   let reqRoute = "/species/";
@@ -94,15 +105,14 @@ async function getTaxon(key) {
   let enc = encodeURI(url);
 
   try {
-    let res = await fetch(enc);
-    let json = await res.json();
+    let tres = await fetch(enc);
+    let json = await tres.json();
     //console.log(`getTaxon(${key}) QUERY:`, enc);
     //console.log(`getTaxon(${key}) RESULT:`, json);
     return json;
   } catch (err) {
-    //console.log(`getTaxon(${key}) QUERY:`, enc);
-    //console.log(`getTaxon(${key}) ERROR:`, err);
     err.query = enc;
+    console.log(`getTaxon(${key}) ERROR:`, err);
     return new Error(err)
   }
 }
@@ -122,9 +132,8 @@ async function getOccCount(key) {
     //console.log(`getOccCount(${key}) RESULT:`, json);
     return json;
   } catch (err) {
-    //console.log(`getOccCount(${key}) QUERY:`, enc);
-    //console.log(`getOccCount(${key}) ERROR:`, err);
     err.query = enc;
+    console.log(`getOccCount(${key}) ERROR:`, err);
     return new Error(err)
   }
 }
@@ -139,7 +148,7 @@ export function PrevPage() {
 export function NextPage() {
   if ((offset + limit) < count) {
     offset = offset + limit;
-    alert(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}`);
+    //alert(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}`);
     window.location.assign(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}`);
   }
 }
@@ -150,6 +159,7 @@ export function FirstPage() {
 export function LastPage() {
   if (count > limit) {
     offset = Math.floor(count/limit)*limit;
+    if (offset >= count) {offset = offset - limit;}
     //alert(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}`);
     window.location.assign(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}`);
   }
