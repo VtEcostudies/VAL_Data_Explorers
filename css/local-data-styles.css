@@ -16,6 +16,10 @@ Before deployment:
         text-align:center;
     }
 }
+
+.pagination {padding:0;}
+#search-term {margin-top:8px;}
+
 /* lines 28 - 52 in style.css */
 /*** all displays ***/
 @media only screen and (-webkit-min-device-pixel-ratio: 2), only screen and (min-resolution: 192dpi) {

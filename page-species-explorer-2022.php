@@ -13,7 +13,7 @@
 
   	<div class="content">
 
-  		<h2>GBIF Species Explorer</h2>
+  		<h2>VAL GBIF Species Explorer</h2>
 
   		<form id="searchform" onsubmit="return false;" >
 
@@ -40,7 +40,7 @@
 
       <div class="row">
 
-    		<div class="col-lg-5 col-md-6 col-xs-12" id="species-value">
+				<div class="col-lg-5 col-md-6 col-xs-12" id="search-term">
     			<label id="search-value"></label>
     		</div>
   <!--
@@ -55,12 +55,7 @@
           <ul class="pagination">
             <li id="page-first" class="page-item"><a class="page-link">First</a></li>
             <li id="page-prev" class="page-item"><a class="page-link">Prev</a></li>
-            <!--
-            <li id="page-number" class="page-item"><a class="page-link">1</a></li>
-            <li id="page-number" class="page-item"><a class="page-link">2</a></li>
-            <li id="page-number" class="page-item"><a class="page-link">3</a></li>
-            <li id="page-elipsis" class="page-item"><a class="page-link">...</a></li>
-            -->
+						<li class="page-item"><a id="page-number" class="page-link">Page 1</a></li>
             <li id="page-next" class="page-item"><a class="page-link">Next</a></li>
             <li id="page-last" class="page-item"><a class="page-link">Last</a></li>
           </ul>
@@ -87,6 +82,7 @@
 
   </section>
 
+<?php get_footer(); ?>
+
 <script src="/wp-content/themes/val/js/gbif_auto_complete.js" type="module"></script>
-<script src="/wp-content/themes/val/js/gbif_species_search.js" type="module"></script>
 <script src="/wp-content/themes/val/js/gbif_species_results.js" type="module"></script>

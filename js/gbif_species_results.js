@@ -7,27 +7,28 @@ const columns = ['canonicalName','vernacularName','rank','taxonomicStatus','pare
 const columNames = {'key':'GBIF Key', 'nubKey':'GBIF Nub Key', 'canonicalName':'Scientific Name', 'vernacularName':'Common Name', 'rank':'Rank', 'taxonomicStatus':'Taxon Status', 'parent':'Parent Name', 'occurrences':'Occurrences'};
 const thisUrl = new URL(document.URL);
 const hostUrl = thisUrl.host;
-var explorerUrl = `${thisUrl.protocol}/${thisUrl.host}/gbif-explorer`;
-var resultsUrl = `${thisUrl.protocol}/${thisUrl.host}/gbif-species-explorer`;
-explorerUrl = 'https://vcevaldev.wpengine.com/gbif-explorer';
-resultsUrl = 'https://vcevaldev.wpengine.com/gbif-species-explorer';
+var explorerUrl = `${thisUrl.protocol}//${thisUrl.host}/gbif-explorer`;
+var resultsUrl = `${thisUrl.protocol}//${thisUrl.host}/gbif-species-explorer`;
 if ('localhost' == hostUrl) {
   explorerUrl = 'https://val.vtecostudies.org/gbif-explorer';
   resultsUrl = 'http://localhost/results.html';
 }
 const objUrlParams = new URLSearchParams(window.location.search);
+const nFmt = new Intl.NumberFormat(); //use this to format numbers by locale... automagically?
 
 // get query params named 'taxonKey'
 let tKeys = objUrlParams.getAll('taxonKey');
-console.log('taxonKeys:', tKeys);
+console.log('GET taxonKeys:', tKeys);
 
 // get 'q' query param
 var qParm = objUrlParams.get('q');
 var offset = objUrlParams.get('offset'); offset = Number(offset) ? Number(offset) : 0;
 var limit = objUrlParams.get('limit'); limit = Number(limit) ? Number(limit) : 20;
 var count = 0; //this is set after loading data
-console.log('search param', qParm, 'offset:', offset, 'limit:', limit);
+var page = offset / limit + 1;
+console.log('FIND search param', qParm, 'offset:', offset, 'limit:', limit, 'page:', page);
 
+const ePg = document.getElementById("page-number"); ePg.innerText = `Page ${nFmt.format(page)}`;
 const tbl = document.getElementById("species-table");
 const lbl = document.getElementById("search-value");
 
@@ -138,7 +139,7 @@ export function PrevPage() {
 export function NextPage() {
   if ((offset + limit) < count) {
     offset = offset + limit;
-    //alert(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}`);
+    alert(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}`);
     window.location.assign(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}`);
   }
 }
@@ -171,16 +172,24 @@ if (document.getElementById("page-last")) {
     });}
 if (document.getElementById("download-json")) {
     document.getElementById("download-json").addEventListener("mouseup", function(e) {
-      getDownloadData(1);
+      if (count > 1000) {
+        alert('Download limited to 1000 records. Please limit your search.');
+      } else {
+        getDownloadData(1);
+      }
     });}
 if (document.getElementById("download-csv")) {
     document.getElementById("download-csv").addEventListener("mouseup", function(e) {
-      getDownloadData(0);
+      if (count > 1000) {
+        alert('Download limited to 1000 records. Please limit your search.');
+      } else {
+        getDownloadData(0);
+      }
     });}
 
 //Download qParm full-result set as csv (type==0) or json (type==1)
 async function getDownloadData(type=0) {
-  let spcs = await speciesSearch(qParm, 0, 10000);
+  let spcs = await speciesSearch(qParm, 0, 30000);
   if (type) { //json
     var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(spcs.results));
     downloadData(dataStr, qParm + ".json") ;
@@ -212,13 +221,13 @@ function jsonToCsv(json) {
   return csv;
 }
 
-if (qParm) {
+if (qParm || "" === qParm) { //important: include q="" to show all species results
   let spcs = await speciesSearch(qParm, offset, limit);
   count = spcs.count;
   await addTaxaFromArr(spcs.results);
   await addHead();
   let finish = (offset+limit)>count ? count : offset+limit;
-  if (lbl) {lbl.innerHTML = `<u>Showing ${offset} to ${finish} of ${count} Search Results for <b>'${qParm}'</b></u>`;}
+  if (lbl) {lbl.innerHTML = `<u>Showing ${nFmt.format(count?offset+1:0)}-${nFmt.format(finish)}/${nFmt.format(count)} Results for Search Term <b>'${qParm}'</b></u>`;}
 }
 else if (tKeys.length) {
   await addTaxaByKeys();

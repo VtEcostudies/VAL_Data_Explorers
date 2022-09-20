@@ -32,7 +32,7 @@
 
 			</a>
 
-			<a id="stats-species" class="hero-stats-item" href="<?php site_url(); ?>gbif-explorer?view=GALLERY">
+			<a id="stats-species" class="hero-stats-item" href="<?php site_url(); ?>gbif-species-explorer?q=">
 
 				<i class="stats-icon fas fa-trees"></i>
 
@@ -53,7 +53,7 @@
 		<form id="searchform" onsubmit="return false;" >
 
 			<!-- gbif autocomplete scientific name lookup -->
-			<input id="omni_search" autocomplete="off" list="gbif_autocomplete_list" class="search-field" onfocus="this.value=''" value="Search the Atlas..." type="text" placeholder="Search the Atlas..." />
+			<input id="species_search" autocomplete="off" list="gbif_autocomplete_list" class="search-field" onfocus="this.value=''" value="Search the Atlas..." type="text" placeholder="Search the Atlas..." />
 			<datalist id="gbif_autocomplete_list"></datalist>
 
 			<div class="searchsubmit-wrap">
