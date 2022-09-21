@@ -1,4 +1,4 @@
-import { speciesSearch } from './gbif_species_search.js';
+import { speciesSearch } from './gbif_species_search.js'; //NOTE: importing just a function includes the entire module
 
 const datasetKey = '0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
 const gadmGid = 'USA.46_1';
@@ -36,9 +36,10 @@ objUrlParams.forEach((val, key) => {
   }
 });
 
-const ePg = document.getElementById("page-number"); ePg.innerText = `Page ${nFmt.format(page)}`;
+const ePg = document.getElementById("page-number"); if (ePg) {ePg.innerText = `Page ${nFmt.format(page)}`;}
 const tbl = document.getElementById("species-table");
 const lbl = document.getElementById("search-value");
+const siz = document.getElementById("page-size"); if (siz) {siz.value =  limit;}
 
 async function addHead() {
   let objHed = tbl.createTHead();
@@ -47,6 +48,12 @@ async function addHead() {
     let colObj = await hedRow.insertCell(hedIdx);
     colObj.innerHTML = columNames[hedNam];
   });
+}
+
+async function putErrorOnScreen(err) {
+  let objRow = tbl.insertRow(0);
+  let colObj = objRow.insertCell(0);
+  colObj.innerHTML = err;
 }
 
 // Create table row for each taxonKey, then fill row of cells
@@ -169,32 +176,51 @@ async function getOccCount(key) {
   }
 }
 
+export function SamePage(newParm=qParm, newLimit=limit, newOffset=offset, newOther=other) {
+  qParm = newParm;
+  limit = newLimit;
+  offset = newOffset;
+  other = newOther;
+  window.location.assign(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}${other}`);
+}
 export function PrevPage() {
   if (offset > 0) {
     offset = offset - limit;
     //alert(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}`);
-    window.location.assign(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}`);
+    window.location.assign(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}${other}`);
   }
 }
 export function NextPage() {
   if ((offset + limit) < count) {
     offset = offset + limit;
     //alert(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}`);
-    window.location.assign(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}`);
+    window.location.assign(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}${other}`);
   }
 }
 export function FirstPage() {
   //alert(`${resultsUrl}?q=${qParm}&offset=0&limit=${limit}`);
-  window.location.assign(`${resultsUrl}?q=${qParm}&offset=0&limit=${limit}`);
+  window.location.assign(`${resultsUrl}?q=${qParm}&offset=0&limit=${limit}${other}`);
 }
 export function LastPage() {
   if (count > limit) {
     offset = Math.floor(count/limit)*limit;
     if (offset >= count) {offset = offset - limit;}
     //alert(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}`);
-    window.location.assign(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}`);
+    window.location.assign(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}${other}`);
   }
 }
+if (document.getElementById("results_search")) {
+    document.getElementById("results_search").addEventListener("keypress", function(e) {
+      if (e.which == 13) {
+        let newParm = document.getElementById("results_search").value;
+        SamePage(newParm, limit, 0, ""); //new search - remove otherParms, go to page 0, but keep user-defined limit
+      }
+    });}
+if (document.getElementById("results_search_button")) {
+    document.getElementById("results_search_button").addEventListener("mouseup", function(e) {
+      let newParm = document.getElementById("results_search").value;
+      SamePage(newParm, limit, 0, ""); //new search - remove otherParms, go to page 0, but keep user-defined limit
+    });}
 if (document.getElementById("page-prev")) {
     document.getElementById("page-prev").addEventListener("mouseup", function(e) {
       PrevPage();
@@ -210,6 +236,12 @@ if (document.getElementById("page-first")) {
 if (document.getElementById("page-last")) {
     document.getElementById("page-last").addEventListener("mouseup", function(e) {
       LastPage();
+    });}
+if (document.getElementById("page-size")) {
+    document.getElementById("page-size").addEventListener("change", function(e) {
+      let newLimit = document.getElementById("page-size").value;
+      console.log('page-size change to', newLimit);
+      SamePage(qParm, newLimit);
     });}
 if (document.getElementById("download-json")) {
     document.getElementById("download-json").addEventListener("mouseup", function(e) {
@@ -262,34 +294,42 @@ function jsonToCsv(json) {
   return csv;
 }
 
-if (qParm || "" === qParm) { //important: include q="" to show all species results
-  if ("" === qParm) {other='&rank=KINGDOM'; objOther={'rank':'KINGDOM'};}
-  let spcs = await speciesSearch(qParm, offset, limit, other);
-  count = spcs.count;
-  await addTaxaFromArr(spcs.results);
-  await addHead();
-  let finish = (offset+limit)>count ? count : offset+limit;
-  if (lbl) {
-    lbl.innerHTML = `<u>Showing ${nFmt.format(count?offset+1:0)}-${nFmt.format(finish)}/${nFmt.format(count)} Results`;
-    if (qParm) {
-      lbl.innerHTML += ` for Search Term <b>'${qParm}'</b>`;
+if (tbl) { //results are displayed in a table with id="species-table". we need that to begin.
+  if (tKeys.length) {
+    await addTaxaByKeys();
+    await addHead();
+    if (lbl) {
+      lbl.innerHTML = "Showing results for taxon keys: ";
+      tKeys.forEach((key, idx) => {
+        lbl.innerHTML += key;
+        if (idx < tKeys.length-1) {lbl.innerHTML += ', ';}
+      })
     }
-    lbl.innerHTML += `</u>`;
-    if (Object.keys(objOther).length) {lbl.innerHTML += ' where ';}
-    Object.keys(objOther).forEach((key, idx) => {
-      lbl.innerHTML += ` ${key} is ${objOther[key]}`;
-      if (idx < Object.keys(objOther).length-1) {lbl.innerHTML += ' and ';}
-    });
+  } else { //important: include q="" to show all species result
+    if (!qParm) {qParm = "";}
+    if ("" === qParm && !other) {other='&rank=KINGDOM'; objOther={'rank':'KINGDOM'};}
+    try {
+      let spcs = await speciesSearch(qParm, offset, limit, other);
+      count = spcs.count;
+      await addTaxaFromArr(spcs.results);
+      await addHead();
+      let finish = (offset+limit)>count ? count : offset+limit;
+      if (lbl) {
+        lbl.innerHTML = `<u>Showing ${nFmt.format(count?offset+1:0)}-${nFmt.format(finish)}/${nFmt.format(count)} Results`;
+        if (qParm) {
+          lbl.innerHTML += ` for Search Term <b>'${qParm}'</b>`;
+        }
+        lbl.innerHTML += `</u>`;
+        if (Object.keys(objOther).length) {lbl.innerHTML += ' where ';}
+        Object.keys(objOther).forEach((key, idx) => {
+          lbl.innerHTML += ` ${key} is ${objOther[key]}`;
+          if (idx < Object.keys(objOther).length-1) {lbl.innerHTML += ' and ';}
+        });
+      }
+    } catch (err) {
+      putErrorOnScreen(err);
+    }
   }
-}
-else if (tKeys.length) {
-  await addTaxaByKeys();
-  await addHead();
-  if (lbl) {
-    lbl.innerHTML = "Showing results for taxon keys: ";
-    tKeys.forEach((key, idx) => {
-      lbl.innerHTML += key;
-      if (idx < tKeys.length-1) {lbl.innerHTML += ', ';}
-    })
-  }
+} else {
+  console.log('gbif_species_results.js requires a table having id="species-table" to operate.')
 }

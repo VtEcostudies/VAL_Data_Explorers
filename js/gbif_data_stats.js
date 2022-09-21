@@ -7,6 +7,7 @@ var spcs = {};//[]; //ditto
 var pubs = {};//[]; //ditto
 var qrys = ['?state_province=Vermont&hasCoordinate=false', '?gadmGid=USA.46_1'];
 var datasetKey = '0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
+var nFmt = new Intl.NumberFormat(); //use this to format numbers by locale... automagically?
 
 /*
   this is now called for each value in global array 'qrys', but here's example query:
@@ -30,7 +31,7 @@ function occStats(reqQuery) {
                 console.log(`OCCURRENCES => ${reqAll} occurrences: ${res.count}`);
                 occs += res.count;
                 if (elem) {
-                  elem.innerHTML = numeral(occs).format('0,0');
+                  elem.innerHTML = nFmt.format(occs);// numeral(occs).format('0,0');
                 } else {
                   console.log('HTML element id="vt_occurrences" NOT found.')
                 }
@@ -87,7 +88,7 @@ function datasetStats(reqQuery) {
               var count = Object.keys(sets).length;
               console.log(`DATASETS => This:`, set.length, 'Agg:', count, 'Query:', reqAll);
               if (elem) {
-                elem.innerHTML = numeral(count).format('0,0');
+                elem.innerHTML = nFmt.format(count); //numeral(count).format('0,0');
               } else {
                 console.log('HTML element id="vt_datasets" NOT found.')
               }
@@ -142,7 +143,7 @@ function speciesStats(reqQuery) {
               var count = Object.keys(spcs).length;
               console.log(`SPECIES => This:`, spc.length, 'Agg:', count, 'Query:', reqAll);
               if (elem) {
-                elem.innerHTML = numeral(speciesOffset+count).format('0,0');
+                elem.innerHTML = nFmt.format(speciesOffset+count); //numeral(speciesOffset+count).format('0,0');
               } else {
                 console.log('HTML element id="vt_species" NOT found.')
               }
@@ -195,7 +196,7 @@ function publisherStats(reqQuery) {
               var count = Object.keys(pubs).length;
               console.log(`PUBLISHERS => This:`, spc.length, 'Agg:', count, 'Query:', reqAll);
               if (elem) {
-                elem.innerHTML = numeral(count).format('0,0');
+                elem.innerHTML = nFmt.format(count); //numeral(count).format('0,0');
               } else {
                 console.log('HTML element id="vt_publishers" NOT found.')
               }
@@ -226,9 +227,9 @@ function otherStats() {
   var elemSpAccounts = document.getElementById("vt_species_accounts");
   var citeCount = 68;
   var spAcCount = 0;
-  if (elemCitations) {elemCitations.innerHTML = numeral(citeCount).format('0,0');}
+  if (elemCitations) {elemCitations.innerHTML = nFmt.format(citeCount);} //numeral(citeCount).format('0,0');}
   if(elemSpAccounts) {
-    //elemSpAccounts.innerHTML = numeral(spAcCount).format('0,0');
+    //elemSpAccounts.innerHTML = nFmt.format(spAcCount); //numeral(spAcCount).format('0,0');
     elemSpAccounts.innerHTML = "(coming soon)";
     elemSpAccounts.style="font-size:8pt";
   }

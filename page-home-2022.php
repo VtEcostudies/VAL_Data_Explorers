@@ -76,12 +76,12 @@
 		<form id="searchform" onsubmit="return false;" >
 
 			<!-- gbif autocomplete scientific name lookup -->
-			<input id="omni_search" autocomplete="off" list="gbif_autocomplete_list" class="search-field" onfocus="this.value=''" value="Search the Atlas..." type="text" placeholder="Search the Atlas..." />
+			<input id="species_search" autocomplete="off" list="gbif_autocomplete_list" class="search-field" type="text" placeholder="Search the Atlas..." />
 
 			<datalist id="gbif_autocomplete_list"></datalist>
 
 			<div class="searchsubmit-wrap">
-				<a id="omni_search_button">
+				<a id="species_search_button">
 					<i class="far fa-search"></i>
 				</a>
 			</div>
@@ -319,7 +319,6 @@
 
 <script src="/wp-content/themes/val/js/gbif_data_stats.js" type="module"></script>
 <script src="/wp-content/themes/val/js/gbif_species_search.js" type="module"></script>
-<script src="/wp-content/themes/val/js/gbif_species_results.js" type="module"></script>
 <script src="/wp-content/themes/val/js/gbif_auto_complete.js" type="module"></script>
 
 <?php get_footer(); ?>

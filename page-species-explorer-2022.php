@@ -17,11 +17,17 @@
 
   		<form id="searchform" onsubmit="return false;" >
 
-				<input id="species_search" autocomplete="off" list="gbif_autocomplete_list" class="search-field" value="" type="text" placeholder="Search the Atlas..." />
+				<input id="results_search"
+          autocomplete="off"
+          list="gbif_autocomplete_list"
+          class="search-field"
+          type="text"
+          placeholder="Search the Atlas..."
+          />
   			<datalist id="gbif_autocomplete_list"></datalist>
 
   			<div class="searchsubmit-wrap">
-  				<button id="species_search_button">
+  				<button id="results_search_button">
   					<i class="far fa-search"></i>
   				</button>
   			</div>
@@ -43,18 +49,20 @@
 				<div class="col-lg-5 col-md-6 col-xs-12" id="search-term">
     			<label id="search-value"></label>
     		</div>
-  <!--
-    		<div class="species-paging" style="display:inline;">
-    			<input id="page-first" type="button" value="|< First" />
-    			<input id="page-prev" type="button" value="< Prev" />
-    			<input id="page-next" type="button" value="Next >" />
-    			<input id="page-last" type="button" value="Last >|" />
-    		</div>
-  -->
         <div class="col-lg-4 col-md-6 col-xs-12" id="species-paging">
           <ul class="pagination">
             <li id="page-first" class="page-item"><a class="page-link">First</a></li>
             <li id="page-prev" class="page-item"><a class="page-link">Prev</a></li>
+						<li class="page-item">
+              <select id="page-size" class="page-link">
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+                <option value="500">500</option>
+                <option value="1000">1000</option>
+              </select>
+            </li>
 						<li class="page-item"><a id="page-number" class="page-link">Page 1</a></li>
             <li id="page-next" class="page-item"><a class="page-link">Next</a></li>
             <li id="page-last" class="page-item"><a class="page-link">Last</a></li>

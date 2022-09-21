@@ -26,13 +26,18 @@ console.log('Results URL:', resultsUrl);
   A quick and simple autocomplete service that returns up to 20 name usages by doing prefix matching against
   the scientific name. Results are ordered by relevance.
 
-  NOTE: otherParams must be in the form '&key=value&key=value&...'
+  NOTE: otherParms must be in the form '&key=value&key=value&...'
 */
-export async function speciesSearch(searchTerm, offset=0, limit=20, otherParams='') {
+export async function speciesSearch(searchTerm="", offset=0, limit=20, otherParms='') {
+
+  let s = searchTerm.split("&"); //allow searchTerm inline query params delmited by &
+  for (var i=1;i<s.length;i++) {otherParms += "&" + s[i];}
+  searchTerm = s[0];
+
   let reqHost = "https://api.gbif.org/v1";
   let reqRoute = "/species/search";
   let reqQuery = `?q=${searchTerm}`;
-  let reqFilter = `&datasetKey=${datasetKey}${otherParams}`;
+  let reqFilter = `&datasetKey=${datasetKey}${otherParms}`;
   let reqSize = `&offset=${offset}&limit=${limit}`;
   let url = reqHost+reqRoute+reqQuery+reqFilter+reqSize;
   let enc = encodeURI(url);
@@ -50,7 +55,7 @@ export async function speciesSearch(searchTerm, offset=0, limit=20, otherParams=
     console.log(`speciesSearch(${searchTerm}) QUERY:`, enc);
     console.log(`speciesSearch(${searchTerm}) ERROR:`, err);
     err.query = enc;
-    return new Error(err)
+    throw new Error(err)
   }
 }
 
@@ -138,14 +143,14 @@ export async function speciesMatchLoadExplorer(searchValue=null) {
 }
 
 /*
-  search for text value and reload the current URL with results in query param
-  NOTE: this can be done 2 ways, with a list of keys or with ?q=search
+  search for text value and load the results page URL with query param
+  NOTE: this can be done 2 ways, with a list of taxonKeys or with ?q=search
 
-  Now that the search results code can handle the plain search term, use that.
+  NOTE: this is primarily used with ?q=search. using taxonKeys is a legacy holdover.
+
+  NOTE: taxonKeys is a flag. set to true to send list of taxonKeys to species-explorer
 */
 export async function speciesSearchLoadResults(searchValue=null, taxonKeys=0) {
-
-  let thisUrl = document.URL.split('?')[0]; //the base URL for this page without route params, which we update here
 
   console.log(`speciesSearchLoadResults(${searchValue})`);
 
@@ -181,13 +186,15 @@ function addListeners() {
       document.getElementById("species_search").addEventListener("keypress", function(e) {
           //console.log('species_search got keypress', e);
           if (e.which == 13) {
-              let sValue = document.getElementById("species_search").value;
-              speciesSearchLoadResults(sValue);
+            //alert('gbif_species_search.js event listener for elementId "species_search"');
+            let sValue = document.getElementById("species_search").value;
+            speciesSearchLoadResults(sValue);
           }
       });
   }
   if (document.getElementById("species_search_button")) {
       document.getElementById("species_search_button").addEventListener("mouseup", function(e) {
+        //alert('gbif_species_search.js event listener for elementId "species_search_button"');
         let sValue = document.getElementById("species_search").value;
         speciesSearchLoadResults(sValue);
       });

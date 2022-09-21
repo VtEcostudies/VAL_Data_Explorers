@@ -19,6 +19,7 @@ Before deployment:
 
 .pagination {padding:0;}
 #search-term {margin-top:8px;}
+.pagination li {cursor:pointer;}
 
 /* lines 28 - 52 in style.css */
 /*** all displays ***/
