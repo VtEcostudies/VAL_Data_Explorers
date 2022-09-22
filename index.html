@@ -4,39 +4,59 @@
   <script type="module" src="js/gbif_species_search.js"></script>
   <script type="module" src="js/gbif_data_stats.js"></script>
   <script type="module" src="js/gbif_auto_complete.js"></script>
+  <link rel="stylesheet" href="/css/local-data-styles.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" rel="stylesheet">
 </head>
+
+<body class="page-template-page-species-explorer-2022">
+
+  <section class="hero">
+
+  	<div class="content">
+
+  		<h2>Vermont Atlas of Life</h2>
+
+  		<form id="searchform" onsubmit="return false;" >
+
+				<input id="species_search"
+          autocomplete="off"
+          list="gbif_autocomplete_list"
+          class="search-field"
+          type="text"
+          placeholder="Search the Atlas..."
+          onClick="this.setSelectionRange(0, this.value.length)"
+          />
+  			<datalist id="gbif_autocomplete_list"></datalist>
+
+  			<div class="searchsubmit-wrap">
+  				<button id="species_search_button">
+  					<i class="far fa-search"></i>
+  				</button>
+  			</div>
+
+  		</form>
+
+  	</div>
+
+  	<span class="overlay"></span>
+
+  </section>
+
+
 <body>
 <div>
-  Occurrences:<label id="vt_occurrences">qwer</label>
+  Occurrences:<label id="vt_occurrences">0</label>
 </div><div>
-  Datasets:<label id="vt_datasets">asdf</label>
+  Datasets:<label id="vt_datasets">0</label>
 </div><div>
-  Taxa:<label id="vt_species">zcxv</label>
+  Taxa:<label id="vt_species">0</label>
 </div><div>
-  Publishers:<label id="vt_publishers">uiop</label>
+  Publishers:<label id="vt_publishers">0</label>
 </div><div>
-  Citations:<label id="vt_citations">ghjk</label>
+  Citations:<label id="vt_citations">0</label>
 </div><div>
   Species Accounts:<label id="vt_species_accounts">(none)</label>
-</div>
-
-</div><div>
-  Search:
-  <input id="species_search"
-    autocomplete="off"
-    list="gbif_autocomplete_list"
-    class="search-field"
-    onfocus="this.value=''"
-    value="Search the Atlas..."
-    type="text"
-    placeholder="Search the Atlas..."
-    size=100
-  />
-  <datalist id="gbif_autocomplete_list"></datalist>
-</div>
-<div id="species-results">
-  <table id="species-table">
-  </table>
 </div>
 
 </body>

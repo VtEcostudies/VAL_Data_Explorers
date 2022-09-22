@@ -28,7 +28,7 @@ if (document.getElementById('species_search')) {
   listenerInit('species_search')
 }
 if (document.getElementById('omni_search')) {
-  listenerInit('omni_search')
+  listenerInit('results_search')
 }
 
 /*

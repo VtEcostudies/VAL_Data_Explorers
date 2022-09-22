@@ -15,6 +15,47 @@
 .pagination {padding:0;}
 #search-term {margin-top:8px;}
 .pagination li {cursor:pointer;}
+#taxon-rank {
+    padding: 0px 0px;
+    width: 105px;
+}
+#page-size {
+  padding: 0px 0px;
+  width: 60px;
+}
+#select-label {
+  color: light blue ;
+  font-size: 10px;
+  margin-left: 10px;
+  padding-top: 0px;
+}
+.page-list {
+  line-height: 12px;
+}
+#download-overlay {
+  position: fixed; /* Sit on top of the page content */
+  display: none; /* Hidden by default */
+  width: 100%; /* Full width (cover the whole page) */
+  height: 100%; /* Full height (cover the whole page) */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5); /* Black background with opacity */
+  z-index: 1100; /* Specify a stack order in case you're using a different order for other elements */
+  cursor: pointer; /* Add a pointer on hover */
+}
+.centered-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.download-progress{
+  background-color: red;
+  font-size: 32px;
+  z-index: 1200;
+}
 
 /* lines 28 - 52 in style.css */
 /*** all displays ***/

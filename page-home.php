@@ -52,8 +52,14 @@
 
 		<form id="searchform" onsubmit="return false;" >
 
-			<!-- gbif autocomplete scientific name lookup -->
-			<input id="species_search" autocomplete="off" list="gbif_autocomplete_list" class="search-field" type="text" placeholder="Search the Atlas..." />
+			<input id="species_search"
+				autocomplete="off"
+				list="gbif_autocomplete_list"
+				class="search-field"
+				type="text"
+				placeholder="Search the Atlas..."
+				onClick="this.setSelectionRange(0, this.value.length)"
+				/>
 			<datalist id="gbif_autocomplete_list"></datalist>
 
 			<div class="searchsubmit-wrap">

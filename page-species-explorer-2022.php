@@ -23,6 +23,7 @@
           class="search-field"
           type="text"
           placeholder="Search the Atlas..."
+          onClick="this.setSelectionRange(0, this.value.length)"
           />
   			<datalist id="gbif_autocomplete_list"></datalist>
 
@@ -44,17 +45,31 @@
 
   	<div class="container species-display">
 
-      <div class="row">
+			<div class="row">
 
-				<div class="col-lg-5 col-md-6 col-xs-12" id="search-term">
+				<div class="col-lg-4 col-md-8 col-xs-12" id="search-term">
     			<label id="search-value"></label>
     		</div>
-        <div class="col-lg-4 col-md-6 col-xs-12" id="species-paging">
+        <div class="col-lg-5 col-md-8 col-xs-12">
           <ul class="pagination">
-            <li id="page-first" class="page-item"><a class="page-link">First</a></li>
-            <li id="page-prev" class="page-item"><a class="page-link">Prev</a></li>
-						<li class="page-item">
-              <select id="page-size" class="page-link">
+            <li id="rank-list" class="page-item page-list">
+              <label id="select-label">Taxon Rank</label>
+              <select id="taxon-rank" class="page-link" title="Taxon Rank">
+                <option value="ALL">All</option>
+                <option value="KINGDOM">Kingdom</option>
+                <option value="PHYLUM">Phylum</option>
+                <option value="CLASS">Class</option>
+                <option value="ORDER">Order</option>
+                <option value="FAMILY">Family</option>
+                <option value="GENUS">Genus</option>
+                <option value="SPECIES">Species</option>
+                <option value="SUBSPECIES">Subspecies</option>
+                <option value="VARIETY">Variety</option>
+              </select>
+            </li>
+            <li id="page-list" class="page-item page-list">
+              <label id="select-label">#/page</label>
+              <select id="page-size" class="page-link" title="Records per Page">
                 <option value="10">10</option>
                 <option value="20">20</option>
                 <option value="50">50</option>
@@ -63,12 +78,14 @@
                 <option value="1000">1000</option>
               </select>
             </li>
-						<li class="page-item"><a id="page-number" class="page-link">Page 1</a></li>
+            <li id="page-first" class="page-item"><a class="page-link">First</a></li>
+            <li id="page-prev" class="page-item"><a class="page-link">Prev</a></li>
+            <li class="page-item"><a id="page-number" class="page-link">Page 1</a></li>
             <li id="page-next" class="page-item"><a class="page-link">Next</a></li>
             <li id="page-last" class="page-item"><a class="page-link">Last</a></li>
           </ul>
         </div>
-    		<div class="col-lg-3 col-md-6 col-xs-12" id="species-download">
+    		<div class="col-lg-2 offset-1 col-md-4 col-xs-12" id="species-download">
           <button class="btn btn-link" id="download-csv" type="submit">
             <i class="fa fa-download" aria-hidden="true"></i>
             CSV
@@ -80,6 +97,12 @@
         </div>
 
       </div>
+
+      <div class="centered-text">
+          <label id="download-progress" class="download-progress">Downloading...</label>
+      </div>
+
+      <div id="download-overlay"></div>
 
   		<div id="species-results">
   			<table id="species-table" class="table table-striped table-sm">
