@@ -103,7 +103,8 @@ async function fillRow(objSpc, objRow, rowIdx) {
     switch(colNam) {
       case 'canonicalName':
         let name = res[colNam] ? res[colNam] : res['scientificName'];
-        colObj.innerHTML = `<a href="${resultsUrl}?q=${name}">${name}</a>`;
+        //colObj.innerHTML = `<a href="${resultsUrl}?q=${name}">${name}</a>`;
+        colObj.innerHTML = `<a href="${resultsUrl}?q=&higherTaxonKey=${res['key']}&higherTaxonName=${name}&higherTaxonRank=${res['rank']}">${name}</a>`;
         break;
       case 'vernacularNames':
         let vnArr = res[colNam]; //array of vernacular columNames
@@ -231,7 +232,12 @@ if (document.getElementById("taxon-rank")) {
       let newRank = document.getElementById("taxon-rank").value;
       console.log('taxon-rank change to', newRank);
       var newOther = "";
-      if ("ALL" != newRank) {newOther = `&rank=${newRank}`;}
+      if ("ALL" != newRank) { //now we have to search the extant 'other' args for 'rank' and replace it...
+        objOther.rank = newRank; //just assign it in the object version of 'other' - this adds or replaces 'rank'
+      } else {
+        delete objOther.rank;
+      }
+      Object.keys(objOther).forEach(key => {newOther += `&${key}=${objOther[key]}`;}) //rebuild 'other' list from 'other' object
       SamePage(qParm, limit, 0, newOther);
     });}
 if (document.getElementById("page-size")) {
