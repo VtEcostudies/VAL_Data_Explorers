@@ -4,7 +4,7 @@ const datasetKey = '0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Data
 const gadmGid = 'USA.46_1';
 //const columns = ['key','nubKey','canonicalName','scientificName','vernacularName','rank','taxonomicStatus','synonym','parentKey','parent','occurrences'];
 const columns = ['canonicalName','vernacularNames','rank','taxonomicStatus','higherClassificationMap','occurrences'];
-const columNames = {'key':'GBIF Key', 'nubKey':'GBIF Nub Key', 'canonicalName':'Scientific Name', 'vernacularNames':'Common Names', 'rank':'Rank', 'taxonomicStatus':'Taxon Status', 'parent':'Parent Name', 'higherClassificationMap':'Parent Taxa', 'occurrences':'Occurrences'};
+const columNames = {'key':'GBIF Key', 'nubKey':'GBIF Nub Key', 'canonicalName':'Scientific Name', 'vernacularNames':'Common Names', 'rank':'Rank', 'taxonomicStatus':'Status', 'parent':'Parent Name', 'higherClassificationMap':'Parent Taxa', 'occurrences':'Occurrences'};
 const thisUrl = new URL(document.URL);
 const hostUrl = thisUrl.host;
 var explorerUrl = `${thisUrl.protocol}//${thisUrl.host}/gbif-explorer`;
@@ -105,6 +105,7 @@ async function fillRow(objSpc, objRow, rowIdx) {
         let name = res[colNam] ? res[colNam] : res['scientificName'];
         //colObj.innerHTML = `<a href="${resultsUrl}?q=${name}">${name}</a>`;
         colObj.innerHTML = `<a href="${resultsUrl}?q=&higherTaxonKey=${res['key']}&higherTaxonName=${name}&higherTaxonRank=${res['rank']}">${name}</a>`;
+        colObj.title = `Search child taxa of ${name}`;
         break;
       case 'vernacularNames':
         let vnArr = res[colNam]; //array of vernacular columNames
@@ -130,12 +131,17 @@ async function fillRow(objSpc, objRow, rowIdx) {
         break;
       case 'occurrences':
         colObj.innerHTML = `<a href="${explorerUrl}?taxonKey=${key}&view=MAP">${nFmt.format(occ.count)}</a>`;
+        //colObj.innerHTML += `<a href="${explorerUrl}?${getChildKeys(key)}&view=MAP">+</a>`;
         break;
       default:
         colObj.innerHTML = res[colNam] ? res[colNam] : null;
         break;
     }
   });
+}
+
+function getChildKeys(key) {
+    return `taxonKey=5&taxonKey=99&taxonKey=943`;
 }
 
 //get a GBIF taxon from the species API by taxonKey
@@ -290,7 +296,6 @@ async function getAllDataPages(q=qParm, l=limit, o=other) {
 //Download qParm full-result set as csv (type==0) or json (type==1)
 async function getDownloadData(type=0) {
   let res = await getAllDataPages();
-  //let spcs = await speciesSearch(qParm, 0, 30000, other);
   var name = `VAL_taxa`;
   if (qParm) {name += `_${qParm}`;}
   Object.keys(objOther).forEach(key => {name += `_${objOther[key]}`;})

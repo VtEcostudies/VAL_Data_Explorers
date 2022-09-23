@@ -47,12 +47,15 @@
 }
 .centered-text {
   position: absolute;
-  top: 50%;
+  top: 200px;
   left: 50%;
   transform: translate(-50%, -50%);
+  z-index: 1200;
 }
 .download-progress{
-  background-color: red;
+  position: relative;
+  background-color: green;
+  color: white;
   font-size: 32px;
   z-index: 1200;
 }
