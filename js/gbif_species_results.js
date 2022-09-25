@@ -45,6 +45,7 @@ const eleRnk = document.getElementById("taxon-rank"); if (eleRnk) {eleRnk.value 
 const eleSiz = document.getElementById("page-size"); if (eleSiz) {eleSiz.value =  limit;}
 const eleDwn = document.getElementById("download-progress"); if (eleDwn) {eleDwn.style.display = 'none';}
 const eleOvr = document.getElementById("download-overlay"); if (eleOvr) {eleOvr.style.display = 'none';}
+const eleInf = document.getElementById("information-overlay"); if (eleInf) {eleInf.style.display = 'none';}
 
 async function addHead() {
   let objHed = eleTbl.createTHead();
@@ -138,6 +139,13 @@ async function fillRow(objSpc, objRow, rowIdx) {
         break;
     }
   });
+}
+
+function showInfo() {
+  eleInf.style.display = 'block';
+}
+function hideInfo() {
+  eleInf.style.display = 'none';
 }
 
 function getChildKeys(key) {

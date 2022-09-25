@@ -53,8 +53,8 @@
         <div class="col-lg-5 col-md-8 col-xs-12">
           <ul class="pagination">
             <li id="rank-list" class="page-item page-list">
-              <label id="select-label">Taxon Rank</label>
-              <select id="taxon-rank" class="page-link" title="Taxon Rank">
+              <label id="select-label">Filter by Rank</label>
+              <select id="taxon-rank" class="page-link" title="Filter Search Results by Taxon Rank">
                 <option value="ALL">All</option>
                 <option value="KINGDOM">Kingdom</option>
                 <option value="PHYLUM">Phylum</option>
@@ -68,8 +68,8 @@
               </select>
             </li>
             <li id="page-list" class="page-item page-list">
-              <label id="select-label">#/page</label>
-              <select id="page-size" class="page-link" title="Records per Page">
+              <label id="select-label">Recs/page</label>
+              <select id="page-size" class="page-link" title="Number of Records to Show per Page - Also Applies to Download Page-Size">
                 <option value="10">10</option>
                 <option value="20">20</option>
                 <option value="50">50</option>

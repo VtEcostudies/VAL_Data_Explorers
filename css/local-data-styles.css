@@ -26,7 +26,7 @@ Before deployment:
 }
 #page-size {
   padding: 0px 0px;
-  width: 60px;
+  width: 80px;
 }
 #select-label {
   color: light blue ;
@@ -63,6 +63,19 @@ Before deployment:
   color: white;
   font-size: 32px;
   z-index: 1200;
+}
+#information-overlay {
+  position: fixed; /* Sit on top of the page content */
+  display: none; /* Hidden by default */
+  width: 50%; /* Full width (cover the whole page) */
+  height: 50%; /* Full height (cover the whole page) */
+  top: 200;
+  left: 25%;
+  right: 25%;
+  bottom: 0;
+  background-color: white; /* Black background with opacity */
+  z-index: 1100; /* Specify a stack order in case you're using a different order for other elements */
+  cursor: pointer; /* Add a pointer on hover */
 }
 
 /* lines 28 - 52 in style.css */
