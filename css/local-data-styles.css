@@ -68,20 +68,8 @@ Before deployment:
   position: fixed;
   display: none;
   flex-flow: column;
-/*
-  flex-grow: 1;
-  flex-shrink: 1;
-  flex-basis: auto;
-  flex-basis: content;
-*/
-  left: 25%;
-  width: 50%;
-/*
-  left: 50%;
-  margin-left: -25%;
-  min-width: 25%;
-  max-width: 50%;
-*/
+  left: 25%; /* simple way to align variable box in the middle */
+  width: 50%; /* simple way to align variable box in the middle */
   max-height: 50%;
   overflow: auto;
   top: 200px;
