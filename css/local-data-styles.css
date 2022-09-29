@@ -75,11 +75,15 @@ Before deployment:
   flex-basis: content;
 */
   left: 25%;
-  float: left;
-  max-height: 50%;
-  overflow: auto;
+  width: 50%;
+/*
+  left: 50%;
+  margin-left: -25%;
   min-width: 25%;
   max-width: 50%;
+*/
+  max-height: 50%;
+  overflow: auto;
   top: 200px;
   border: solid black 1px;
   border-radius: 25px;
@@ -90,6 +94,7 @@ Before deployment:
 }
 #information-button {
   max-width: 75px;
+  align-self:flex-end;
 }
 /*
 @media (max-width: 680px) {
