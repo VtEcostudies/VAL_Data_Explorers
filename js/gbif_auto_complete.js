@@ -27,6 +27,9 @@ if (document.getElementById('occ_search')) {
 if (document.getElementById('species_search')) {
   listenerInit('species_search')
 }
+if (document.getElementById('results_search')) {
+  listenerInit('results_search')
+}
 if (document.getElementById('omni_search')) {
   listenerInit('results_search')
 }

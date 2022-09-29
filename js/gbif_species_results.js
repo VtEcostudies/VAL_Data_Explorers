@@ -1,6 +1,7 @@
 import { speciesSearch } from './gbif_species_search.js'; //NOTE: importing just a function includes the entire module
 
 const datasetKey = '0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
+const gbifApi = "https://api.gbif.org/v1";
 const gadmGid = 'USA.46_1';
 //const columns = ['key','nubKey','canonicalName','scientificName','vernacularName','rank','taxonomicStatus','synonym','parentKey','parent','occurrences'];
 const columns = ['canonicalName','vernacularNames','rank','taxonomicStatus','higherClassificationMap','occurrences'];
@@ -45,7 +46,7 @@ const eleRnk = document.getElementById("taxon-rank"); if (eleRnk) {eleRnk.value 
 const eleSiz = document.getElementById("page-size"); if (eleSiz) {eleSiz.value =  limit;}
 const eleDwn = document.getElementById("download-progress"); if (eleDwn) {eleDwn.style.display = 'none';}
 const eleOvr = document.getElementById("download-overlay"); if (eleOvr) {eleOvr.style.display = 'none';}
-const eleInf = document.getElementById("information-overlay"); if (eleInf) {eleInf.style.display = 'none';}
+//const eleInf = document.getElementById("information-overlay"); if (eleInf) {eleInf.style.display = 'none';}
 
 async function addHead() {
   let objHed = eleTbl.createTHead();
@@ -53,6 +54,13 @@ async function addHead() {
   columns.forEach(async (hedNam, hedIdx) => {
     let colObj = await hedRow.insertCell(hedIdx);
     colObj.innerHTML = columNames[hedNam];
+    if ("canonicalName" == hedNam) {
+      colObj.innerHTML = `
+        ${columNames[hedNam]}
+        <a href="#" onclick="toggleInfo('Click Scientific Name to list its child taxa.');">
+          <i class="fa fa-info-circle"></i>
+        </a>`;
+    }
   });
 }
 
@@ -106,7 +114,7 @@ async function fillRow(objSpc, objRow, rowIdx) {
         let name = res[colNam] ? res[colNam] : res['scientificName'];
         //colObj.innerHTML = `<a href="${resultsUrl}?q=${name}">${name}</a>`;
         colObj.innerHTML = `<a href="${resultsUrl}?q=&higherTaxonKey=${res['key']}&higherTaxonName=${name}&higherTaxonRank=${res['rank']}">${name}</a>`;
-        colObj.title = `Search child taxa of ${name}`;
+        colObj.title = `List child taxa of ${name}`;
         break;
       case 'vernacularNames':
         let vnArr = res[colNam]; //array of vernacular columNames
@@ -130,7 +138,7 @@ async function fillRow(objSpc, objRow, rowIdx) {
           if (idx < Object.keys(tree).length-1) {colObj.innerHTML += ', ';}
         })
         break;
-      case 'occurrences':
+      case 'occurrences': //to-do: break higher-level taxa into child keys for distinct display
         colObj.innerHTML = `<a href="${explorerUrl}?taxonKey=${key}&view=MAP">${nFmt.format(occ.count)}</a>`;
         //colObj.innerHTML += `<a href="${explorerUrl}?${getChildKeys(key)}&view=MAP">+</a>`;
         break;
@@ -141,21 +149,24 @@ async function fillRow(objSpc, objRow, rowIdx) {
   });
 }
 
-function showInfo() {
-  eleInf.style.display = 'block';
+export function showInfo(text=false) {
+  if (eleInf) {if (text) eleInf.innerHTML = text; eleInf.style.display = 'block'; info_on = true;}
 }
-function hideInfo() {
-  eleInf.style.display = 'none';
+export function hideInfo() {
+  if (eleInf) {eleInf.style.display = 'none'; info_on = false;}
+}
+export function toggleInfo(text=false) {
+  if (eleInf) { if (text && text != eleInf.innerHTML) {showInfo(text);} else if (info_on) {hideInfo();} else {showInfo(text);} }
 }
 
 function getChildKeys(key) {
-    return `taxonKey=5&taxonKey=99&taxonKey=943`;
+    return `taxonKey=1&taxonKey=100&taxonKey=1000`;
 }
 
 //get a GBIF taxon from the species API by taxonKey
 // return a single object with taxon keys like canonicalName
 async function getTaxon(key) {
-  let reqHost = "https://api.gbif.org/v1";
+  let reqHost = gbifApi;
   let reqRoute = "/species/";
   let reqValue = key;
   let reqFilter = `?datasetKey=${datasetKey}&advanced=1${other}`;
@@ -177,7 +188,7 @@ async function getTaxon(key) {
 
 //get an occurrence count from the occurrence API by taxonKey
 async function getOccCount(key) {
-  let reqHost = "https://api.gbif.org/v1";
+  let reqHost = gbifApi;
   let reqRoute = "/occurrence/search";
   let reqFilter = `?advanced=1&limit=0&gadm_gid=${gadmGid}&taxon_key=${key}`
   let url = reqHost+reqRoute+reqFilter;
@@ -193,6 +204,29 @@ async function getOccCount(key) {
     err.query = enc;
     console.log(`getOccCount(${key}) ERROR:`, err);
     return new Error(err)
+  }
+}
+
+//get dataset info for datasetKey
+export async function getDatasetInfo(datasetKey) {
+
+  let reqHost = gbifApi;
+  let reqRoute = `/dataset/${datasetKey}`;
+  let url = reqHost+reqRoute;
+  let enc = encodeURI(url);
+
+  console.log(`getDatasetInfo(${datasetKey})`, enc);
+
+  try {
+    let res = await fetch(enc);
+    let json = await res.json();
+    json.query = enc;
+    //console.log(`getDatasetInfo(${datasetKey}) RESULT:`, json);
+    return json;
+  } catch (err) {
+    err.query = enc;
+    console.log(`getDatasetInfo(${datasetKey}) ERROR:`, err);
+    throw new Error(err)
   }
 }
 
@@ -278,13 +312,14 @@ if (document.getElementById("page-last")) {
     });}
 if (document.getElementById("download-json")) {
     document.getElementById("download-json").addEventListener("mouseup", function(e) {
-      getDownloadData(0);
+      getDownloadData(1);
     });}
 if (document.getElementById("download-csv")) {
     document.getElementById("download-csv").addEventListener("mouseup", function(e) {
       getDownloadData(0);
     });}
 
+//using search term and other query parameters, download all species data by page and concatenate into a single array of objects
 async function getAllDataPages(q=qParm, l=limit, o=other) {
   var res = []; var page = {}; var off = 0;
   eleDwn.style.display = 'block'; eleOvr.style.display = 'block';
@@ -303,15 +338,18 @@ async function getAllDataPages(q=qParm, l=limit, o=other) {
 
 //Download qParm full-result set as csv (type==0) or json (type==1)
 async function getDownloadData(type=0) {
-  let res = await getAllDataPages();
-  var name = `VAL_taxa`;
-  if (qParm) {name += `_${qParm}`;}
-  Object.keys(objOther).forEach(key => {name += `_${objOther[key]}`;})
-  if (type) { //json
+  let spc = await getAllDataPages(); //returns just an array of taxa, not a decorated object
+  let dsi = await getDatasetInfo(datasetKey); //returns a single object
+  var name = `VAL_taxa`; //download file name
+  if (qParm) {name += `_${qParm}`;} //add search term to download file name
+  Object.keys(objOther).forEach(key => {name += `_${objOther[key]}`;}) //add query params to download file name
+  if (type) { //json-download
+    var res = {citation: dsi.citation.text, taxa: spc}; console.log('JSON Download:', res);
     var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(res));
     downloadData(dataStr, name + ".json") ;
-  } else { //csv
-    var dataStr = "data:text/csv;charset=utf-8," + encodeURIComponent(jsonToCsv(res));
+  } else { //csv-download
+    var res = dsi.citation.text + '\r\n' + jsonToCsv(spc);
+    var dataStr = "data:text/csv;charset=utf-8," + encodeURIComponent(res);
     downloadData(dataStr, name + ".csv") ;
   }
 }

@@ -1,4 +1,4 @@
-const gbifHost = 'https://hp-vtatlasoflife.gbif.org'; // "https://hp-vtatlasoflife.gbif-staging.org";
+const gbifPortal = 'https://hp-vtatlasoflife.gbif.org'; // "https://hp-vtatlasoflife.gbif-staging.org";
 const thisUrl = new URL(document.URL);
 const hostUrl = thisUrl.host;
 var explorerUrl = `${thisUrl.protocol}//${thisUrl.host}/gbif-explorer`;
@@ -7,6 +7,7 @@ if ('localhost' == hostUrl) {
   explorerUrl = 'https://val.vtecostudies.org/gbif-explorer';
   resultsUrl = 'http://localhost/results.html';
 }
+const gbifApi = "https://api.gbif.org/v1";
 const datasetKey = '0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
 
 console.log('HOST URL:', hostUrl);
@@ -34,7 +35,7 @@ export async function speciesSearch(searchTerm="", offset=0, limit=20, otherParm
   for (var i=1;i<s.length;i++) {otherParms += "&" + s[i];}
   searchTerm = s[0];
 
-  let reqHost = "https://api.gbif.org/v1";
+  let reqHost = gbifApi;
   let reqRoute = "/species/search";
   let reqQuery = `?q=${searchTerm}`;
   let reqFilter = `&datasetKey=${datasetKey}${otherParms}`;
@@ -47,14 +48,12 @@ export async function speciesSearch(searchTerm="", offset=0, limit=20, otherParm
   try {
     let res = await fetch(enc);
     let json = await res.json();
-    console.log(`speciesSearch(${searchTerm}) QUERY:`, enc);
-    console.log(`speciesSearch(${searchTerm}) RESULT:`, json);
     json.query = enc;
+    console.log(`speciesSearch(${searchTerm}) RESULT:`, json);
     return json;
   } catch (err) {
-    console.log(`speciesSearch(${searchTerm}) QUERY:`, enc);
-    console.log(`speciesSearch(${searchTerm}) ERROR:`, err);
     err.query = enc;
+    console.log(`speciesSearch(${searchTerm}) ERROR:`, err);
     throw new Error(err)
   }
 }
@@ -63,7 +62,7 @@ export async function speciesSearch(searchTerm="", offset=0, limit=20, otherParm
 https://api.gbif.org/v1/species/search?qField=VERNACULAR&status=ACCEPTED&q=spotted%20salamander&datasetKey=0b1735ff-6a66-454b-8686-cae1cbc732a2
 */
 export async function commonSearch(searchTerm) {
-  let reqHost = "https://api.gbif.org/v1";
+  let reqHost = gbifApi;
   let reqRoute = "/species/search";
   let reqQuery = `?q=${searchTerm}`;
   let reqFilter = `&qField=VERNACULAR&datasetKey=${datasetKey}`;
@@ -75,14 +74,12 @@ export async function commonSearch(searchTerm) {
   try {
     let res = await fetch(enc);
     let json = await res.json();
-    console.log(`commonSearch(${searchTerm}) QUERY:`, enc);
-    console.log(`commonSearch(${searchTerm}) RESULT:`, json);
     json.query = enc;
+    console.log(`commonSearch(${searchTerm}) RESULT:`, json);
     return json;
   } catch (err) {
-    console.log(`commonSearch(${searchTerm}) QUERY:`, enc);
-    console.log(`commonSearch(${searchTerm}) ERROR:`, err);
     err.query = enc;
+    console.log(`commonSearch(${searchTerm}) ERROR:`, err);
     return new Error(err)
   }
 }
@@ -95,7 +92,7 @@ export async function commonSearch(searchTerm) {
   against these if no direct match is found for the name parameter alone.
 */
 export async function speciesMatch(searchTerm) {
-  let reqHost = "https://api.gbif.org/v1";
+  let reqHost = gbifApi;
   let reqRoute = "/species/match";
   let reqQuery = `?name=${searchTerm}`;
   let url = reqHost+reqRoute+reqQuery;
@@ -106,14 +103,12 @@ export async function speciesMatch(searchTerm) {
   try {
     let res = await fetch(enc);
     let json = await res.json();
-    console.log(`speciesMatch(${searchTerm}) QUERY:`, enc);
-    console.log(`speciesMatch(${searchTerm}) RESULT:`, json);
     json.query = enc;
+    console.log(`speciesMatch(${searchTerm}) RESULT:`, json);
     return json;
   } catch (err) {
-    console.log(`speciesMatch(${searchTerm}) QUERY:`, enc);
-    console.log(`speciesMatch(${searchTerm}) ERROR:`, err);
     err.query = enc;
+    console.log(`speciesMatch(${searchTerm}) ERROR:`, err);
     return new Error(err)
   }
 }
@@ -128,13 +123,13 @@ export async function speciesMatchLoadExplorer(searchValue=null) {
   let mRes = await speciesMatch(searchValue); //single result: match or null
 
   if (mRes.usageKey) { //successful match API results always have usageKey (aka nubKey?)
-    if (frame) {frame.scrollIntoView(); frame.src = `${gbifHost}/occurrence/search/?taxonKey=${mRes.result.usageKey}&view=MAP`;}
+    if (frame) {frame.scrollIntoView(); frame.src = `${gbifPortal}/occurrence/search/?taxonKey=${mRes.result.usageKey}&view=MAP`;}
     else {
       await window.location.assign(`${explorerUrl}?taxonKey=${mRes.result.usageKey}&view=MAP`);
       if (react) react.scrollIntoView();
     }
   } else { //send raw text for search
-    if (frame) {frame.scrollIntoView(); frame.src = `${gbifHost}/occurrence/search/?q=${searchValue}&view=MAP`;}
+    if (frame) {frame.scrollIntoView(); frame.src = `${gbifPortal}/occurrence/search/?q=${searchValue}&view=MAP`;}
     else {
       await window.location.assign(`${explorerUrl}?q=${searchValue}&view=MAP`);
       if (react) react.scrollIntoView();
