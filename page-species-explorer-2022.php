@@ -6,6 +6,25 @@
 
 <?php get_header(); the_post(); ?>
 
+<script language="Javascript">
+	var info_on = false;
+	function showInfo(text=false) {
+		document.getElementById("information-overlay").style.display = 'flex';
+		if (text) {document.getElementById("information-content").innerText = text;}
+		info_on = true;
+	}
+	function hideInfo() {
+		document.getElementById("information-overlay").style.display = 'none';
+		info_on = false;
+	}
+	function toggleInfo(text=false) {
+		var eleTxt = document.getElementById("information-content");
+		if (eleTxt) {
+			if (!info_on || `${text}` != `${eleTxt.innerText}`) {showInfo(text);} else {hideInfo();}
+		} else {console.log(`No element with id 'information-content'`); }
+	}
+</script>
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" rel="stylesheet">
 
@@ -13,7 +32,13 @@
 
   	<div class="content">
 
-  		<h2>Species Explorer</h2>
+      <div class="hero-header-info-icon">
+  		  <h2 style="display: inline-block;">Species Explorer</h2>
+        <a href="#" onclick="toggleInfo('The Species Explorer does a full text search of the Checklist of Vermont Species on GBIF. Text is searched against Scientific Name, Common Name, and Species Description.');"
+          style="display: inline-block; vertical-align: top;">
+          <i class="fa fa-info-circle"></i>
+        </a>`;
+      </div>
 
   		<form id="searchform" onsubmit="return false;" >
 
@@ -47,10 +72,11 @@
 
 			<div class="row">
 
-				<div class="col-lg-4 col-md-8 col-xs-12" id="search-term">
+        <div class="col-lg-4 col-md-6 col-xs-12" id="search-term">
     			<label id="search-value"></label>
     		</div>
-        <div class="col-lg-5 col-md-8 col-xs-12">
+
+        <div class="col-lg-2 col-md-6 col-xs-6">
           <ul class="pagination">
             <li id="rank-list" class="page-item page-list">
               <label id="select-label">Filter by Rank</label>
@@ -78,6 +104,11 @@
                 <option value="1000">1000</option>
               </select>
             </li>
+          </ul>
+        </div>
+
+        <div class="col-lg-3 col-md6 col-xs-12">
+          <ul class="pagination">
             <li id="page-first" class="page-item"><a class="page-link">First</a></li>
             <li id="page-prev" class="page-item"><a class="page-link">Prev</a></li>
             <li class="page-item"><a id="page-number" class="page-link">Page 1</a></li>
@@ -85,7 +116,8 @@
             <li id="page-last" class="page-item"><a class="page-link">Last</a></li>
           </ul>
         </div>
-    		<div class="col-lg-2 offset-1 col-md-4 col-xs-12" id="species-download">
+
+    		<div class="col-lg-2 offset-1 col-md-5 col-xs-11" id="species-download">
           <button class="btn btn-link" id="download-csv" type="submit">
             <i class="fa fa-download" aria-hidden="true"></i>
             CSV
@@ -103,6 +135,18 @@
       </div>
 
       <div id="download-overlay"></div>
+
+      <div id="information-overlay">
+        <p id="information-content">
+          Click Scientific Name to list all its child taxa.
+        </p>
+        <button class="btn btn-primary" id="information-button" onclick="hideInfo();">Ok</button>
+      </div>
+
+      <div id="species-results">
+  			<table id="species-table" class="table table-striped table-sm">
+        </table>
+  		</div>
 
   		<div id="species-results">
   			<table id="species-table" class="table table-striped table-sm">

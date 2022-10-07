@@ -84,43 +84,12 @@ Before deployment:
   max-width: 75px;
   align-self:flex-end;
 }
-/*
-@media (max-width: 680px) {
-  #information-overlay {
-    position: fixed;
-    display: flex;
-    flex-flow: column wrap;
-    width: 80%;
-    height: 50%;
-    top: 100px;
-    left: 10%;
-    right: 10%;
-    bottom: 0;
-    border: solid black;
-    border-radius: 25px;
-    background: lightgrey;
-    z-index: 1100;
-    cursor: pointer;
-    padding: 20px;
-  }
+.fa-info-circle { /* white border around info icons for visibility */
+  border: solid white 3px;
+  border-radius: 50%;
+  background-color: black;
 }
-*/
-/*
-#information-content {
-  position: relative;
-  font-size: 16px;
-  top: 0%;
-  left: 0%;
-  padding: 30px;
-}
-#information-button {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  margin-right: 30px;
-  margin-bottom: 20px;
-}
-*/
+
 /* lines 28 - 52 in style.css */
 /*** all displays ***/
 @media only screen and (-webkit-min-device-pixel-ratio: 2), only screen and (min-resolution: 192dpi) {

@@ -28,6 +28,25 @@ REACT EVENT SEARCH SCRIPTS
   };
   routes.basename = '/gbif-explorer';
 
+  function getSuggests({ client }) { //NOTE: function must be named exactly this to work
+    return {
+      gadmGid: {
+        // how to get the list of suggestion data, before you would also have to define how to render the suggestion, but the new part I added means that below is enough
+        getSuggestions: ({ q }) => {
+          const { promise, cancel } = client.v1Get(`/geocode/gadm/search?gadmGid=USA.46_1&limit=100&q=${q}`); // this gadmGid=USA.46_1 is the new part, that means that the suggester will now only suggest things in Vermont
+          return {
+            promise: promise.then(response => {
+              return {
+                data: response.data.results.map(x => ({ title: x.name, key: x.id, ...x }))
+              }
+            }),
+            cancel
+          }
+        }
+      }
+    }
+  }
+
   var occurrence = {
     mapSettings: {
       lat: 43.90328996258526,
@@ -73,6 +92,7 @@ REACT EVENT SEARCH SCRIPTS
    excludedFilters: ['stateProvince', 'continent', 'country', 'publishingCountry', 'hostingOrganization', 'networkKey', 'publishingProtocol'],
    occurrenceSearchTabs: ['GALLERY', 'MAP', 'TABLE', 'DATASETS'], // what tabs should be shown
    defaultTableColumns: ['features','coordinates','locality','year','basisOfRecord','dataset','publisher','recordedBy','collectionCode','institutionCode'],
+   getSuggests: getSuggests, //just be names exactly this to work
  }
 
 var apiKeys = {

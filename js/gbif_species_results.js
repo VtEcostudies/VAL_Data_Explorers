@@ -11,7 +11,7 @@ const hostUrl = thisUrl.host;
 var explorerUrl = `${thisUrl.protocol}//${thisUrl.host}/gbif-explorer`;
 var resultsUrl = `${thisUrl.protocol}//${thisUrl.host}/gbif-species-explorer`;
 if ('localhost' == hostUrl) {
-  explorerUrl = 'https://val.vtecostudies.org/gbif-explorer';
+  explorerUrl = 'http://localhost/occurrences.html';
   resultsUrl = 'http://localhost/results.html';
 }
 const objUrlParams = new URLSearchParams(window.location.search);
