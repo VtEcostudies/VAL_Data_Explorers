@@ -21,7 +21,7 @@
 				<i class="stats-icon far fa-globe-americas"></i>
 
 				<div class="stats">
-					<span id="<?php the_field('records-id'); ?>" class="stats-count"><i class="far fa-compass"></i></span>
+					<span id="count-occurrences" class="stats-count"><i class="far fa-compass"></i></span>
 					<span class="stats-desc">records</span>
 				</div>
 
@@ -32,7 +32,7 @@
 				<i class="stats-icon fas fa-trees"></i>
 
 				<div class="stats">
-					<span id="<?php the_field('species-id'); ?>" class="stats-count"><i class="far fa-compass"></i></span>
+					<span id="count-species" class="stats-count"><i class="far fa-compass"></i></span>
 					<span class="stats-desc">species</span>
 				</div>
 
@@ -43,7 +43,7 @@
 				<i class="stats-icon far fa-list-alt"></i>
 
 				<div class="stats">
-					<span id="<?php the_field('datasets-id'); ?>" class="stats-count"><i class="far fa-compass"></i></span>
+					<span id="count-datasets" class="stats-count"><i class="far fa-compass"></i></span>
 					<span class="stats-desc">datasets</span>
 				</div>
 
@@ -54,7 +54,7 @@
 				<i class="stats-icon fa-regular fa-address-card"></i>
 
 				<div class="stats">
-					<span id="<?php the_field('publishers-id'); ?>" class="stats-count"><i class="far fa-compass"></i></span>
+					<span id="count-publishers" class="stats-count"><i class="far fa-compass"></i></span>
 					<span class="stats-desc">publishers</span>
 				</div>
 
@@ -65,7 +65,7 @@
 				<i class="stats-icon fa-light fa-books"></i>
 
 				<div class="stats">
-					<span id="<?php the_field('citations-id'); ?>" class="stats-count"><i class="far fa-compass"></i></span>
+					<span id="count-literature" class="stats-count"><i class="far fa-compass"></i></span>
 					<span class="stats-desc">citations</span>
 				</div>
 

@@ -1,21 +1,17 @@
+import { dataConfig } from './gbif_data_config.js';
 import { speciesSearch } from './gbif_species_search.js'; //NOTE: importing just a function includes the entire module
 
-const datasetKey = '0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
-const gbifApi = "https://api.gbif.org/v1";
-const gadmGid = 'USA.46_1';
-//const columns = ['key','nubKey','canonicalName','scientificName','vernacularName','rank','taxonomicStatus','synonym','parentKey','parent','occurrences'];
-const columns = ['canonicalName','vernacularNames','rank','taxonomicStatus','higherClassificationMap','occurrences'];
-const columNames = {'key':'GBIF Key', 'nubKey':'GBIF Nub Key', 'canonicalName':'Scientific Name', 'vernacularNames':'Common Names', 'rank':'Rank', 'taxonomicStatus':'Status', 'parent':'Parent Name', 'higherClassificationMap':'Parent Taxa', 'occurrences':'Occurrences'};
-const thisUrl = new URL(document.URL);
-const hostUrl = thisUrl.host;
-var explorerUrl = `${thisUrl.protocol}//${thisUrl.host}/gbif-explorer`;
-var resultsUrl = `${thisUrl.protocol}//${thisUrl.host}/gbif-species-explorer`;
-if ('localhost' == hostUrl) {
-  explorerUrl = 'http://localhost/occurrences.html';
-  resultsUrl = 'http://localhost/results.html';
-}
+const gbifApi = dataConfig.gbifApi; //"https://api.gbif.org/v1";
+const datasetKey = dataConfig.datasetKey; //'0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
+const gadmGid = dataConfig.gadmGid; //'USA.46_1';
+const thisUrl = dataConfig.thisUrl;
+const hostUrl = dataConfig.hostUrl;
+const explorerUrl = dataConfig.explorerUrl;
+const resultsUrl = dataConfig.resultsUrl;
+const columns = dataConfig.columns; //['canonicalName','vernacularNames','rank','taxonomicStatus','higherClassificationMap','occurrences'];
+const columNames = dataConfig.columNames; //{'key':'GBIF Key', 'nubKey':'GBIF Nub Key', 'canonicalName':'Scientific Name', 'vernacularNames':'Common Names', 'rank':'Rank', 'taxonomicStatus':'Status', 'parent':'Parent Name', 'higherClassificationMap':'Parent Taxa', 'occurrences':'Occurrences'};
+const nFmt = new Intl.NumberFormat(); //use this to format numbers by locale... automagically
 const objUrlParams = new URLSearchParams(window.location.search);
-var nFmt = new Intl.NumberFormat(); //use this to format numbers by locale... automagically?
 
 // get query params named 'taxonKey'
 let tKeys = objUrlParams.getAll('taxonKey');
@@ -30,6 +26,7 @@ var count = 0; //this is set after loading data
 var page = offset / limit + 1;
 console.log('Query param q:', qParm, 'offset:', offset, 'limit:', limit, 'page:', page);
 
+//get other query params (there are many, and they are necessary. eg. higherTaxonRank)
 var other = ''; var objOther = {};
 objUrlParams.forEach((val, key) => {
   if ('taxonKey'!=key && 'q'!=key && 'offset'!=key && 'limit'!=key) {

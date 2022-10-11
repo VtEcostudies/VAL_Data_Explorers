@@ -1,3 +1,48 @@
+import { dataConfig } from './gbif_data_config.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_widget.js"></script>
+
+const datasetKey = dataConfig.datasetKey; //'0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
+const qrys = predicateToQueries(dataConfig.rootPredicate); //['?state_province=Vermont&hasCoordinate=false', '?gadmGid=USA.46_1'];
+
+//parse rootPredicate into an array of http query parameters for combined and iterative calls to API here
+export function predicateToQueries(rootPredicate=[]) {
+  let qrys = [];
+  if ('or' == rootPredicate.type.toLowerCase()) {
+    for (var topIdx=0; topIdx<rootPredicate.predicates.length;topIdx++) {
+      let topEle = rootPredicate.predicates[topIdx];
+      //alert(`rootPredicate | ${JSON.stringify(topEle)} | ${topIdx}`);
+      if (topEle.predicates) { //nested predicate object
+        let qry = '?';
+        for (var subIdx=0; subIdx<topEle.predicates.length; subIdx++) {
+          let subEle = topEle.predicates[subIdx];
+          //alert(`subPredicate | ${JSON.stringify(subEle)} | ${subIdx}`);
+          if ('or' == topEle.type.toLowerCase()) {
+            if ('in' == subEle.type.toLowerCase()) {
+              for (var valIdx=0; valIdx<subEle.values.length; valIdx++) {
+                qrys.push(`?${subEle.key}=${subEle.values[valIdx]}`); //add multiple '?' query array-elements for sub-predicates' sub-values
+              }
+            } else {
+              qrys.push(`?${subEle.key}=${subEle.value}`); //add multiple '?' query array-elements for sub-predicates
+            }
+          } else if ('and' == topEle.type.toLowerCase()) {
+            if ('in' == subEle.type.toLowerCase()) {
+              for (var valIdx=0; valIdx<subEle.values.length; valIdx++) {
+                qry += `${subEle.key}=${subEle.values[valIdx]}&`; //string sub-predicates' values together as '&' values in one query
+              }
+            } else {
+              qry += `${subEle.key}=${subEle.value}&`; //string sub-predicates together as '&' values in one query
+            }
+          }
+        }
+        if ('?' != qry) {qrys.push(qry);} //add single '?' query array-element for 'and' sub-predicate
+      } else {
+        qrys.push(`?${topEle.key}=${topEle.value}`);
+      }
+    }
+  }
+  return qrys;
+}
+//console.dir(qrys);
+
 var begEvent = new Event('xhttpBeg');
 var endEvent = new Event('xhttpEnd');
 var xhrTimeout = 10000;
@@ -5,8 +50,6 @@ var occs = 0;
 var sets = {};//[]; //use object. array.find is waaaay slower than obj[value]
 var spcs = {};//[]; //ditto
 var pubs = {};//[]; //ditto
-var qrys = ['?state_province=Vermont&hasCoordinate=false', '?gadmGid=USA.46_1'];
-var datasetKey = '0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
 var nFmt = new Intl.NumberFormat(); //use this to format numbers by locale... automagically?
 
 /*
@@ -20,7 +63,7 @@ function occStats(reqQuery) {
     //var reqQuery = "?state_province=Vermont";
     var reqLimit = "&limit=0";
     var reqAll=reqHost+reqRoute+reqQuery+reqLimit;
-    var elem = document.getElementById("vt_occurrences");
+    var elem = document.getElementById("count-occurrences");
 
     document.dispatchEvent(begEvent);
 
@@ -33,7 +76,7 @@ function occStats(reqQuery) {
                 if (elem) {
                   elem.innerHTML = nFmt.format(occs);// numeral(occs).format('0,0');
                 } else {
-                  console.log('HTML element id="vt_occurrences" NOT found.')
+                  console.log('HTML element id="count-occurrences" NOT found.')
                 }
             } else {
                 console.log(`An http ${xmlhttp.status} result was returned from ${reqHost}.`);
@@ -41,7 +84,7 @@ function occStats(reqQuery) {
                   elem.style="font-size:8pt";
                   elem.innerHTML = `(http ${xmlhttp.status} from ${reqAll})`;
                 } else {
-                  console.log('HTML element id="vt_occurrences" NOT found.')
+                  console.log('HTML element id="count-occurrences" NOT found.')
                 }
             }
             document.dispatchEvent(endEvent);
@@ -73,7 +116,7 @@ function datasetStats(reqQuery) {
   var reqFacet="&facet=datasetKey&facetMincount=1&datasetKey.facetLimit=10000";
   var reqLimit="&limit=0";
   var reqAll=reqHost+reqRoute+reqQuery+reqFacet+reqLimit
-  var elem = document.getElementById("vt_datasets");
+  var elem = document.getElementById("count-datasets");
 
   document.dispatchEvent(begEvent);
 
@@ -82,15 +125,15 @@ function datasetStats(reqQuery) {
           if (xmlhttp.status == 200) {
               const res = JSON.parse(xmlhttp.responseText);
               const set = res.facets[0].counts; //array of objects haing datasetID and occurrence count, like [{name:4fa7b334-ce0d-4e88-aaae-2e0c138d049e,count:6758210},{},...]
-              set.forEach((ele) => {
-                if (!sets[ele.name]) {sets[ele.name] = ele.count}
+              set.forEach((topEle) => {
+                if (!sets[topEle.name]) {sets[topEle.name] = topEle.count}
               });
               var count = Object.keys(sets).length;
               console.log(`DATASETS => This:`, set.length, 'Agg:', count, 'Query:', reqAll);
               if (elem) {
                 elem.innerHTML = nFmt.format(count); //numeral(count).format('0,0');
               } else {
-                console.log('HTML element id="vt_datasets" NOT found.')
+                console.log('HTML element id="count-datasets" NOT found.')
               }
           } else {
               console.log(`An http ${xmlhttp.status} result was returned from ${reqHost}.`);
@@ -98,7 +141,7 @@ function datasetStats(reqQuery) {
                 elem.style="font-size:8pt";
                 elem.innerHTML = `(http ${xmlhttp.status} from ${reqAll})`;
               } else {
-                console.log('HTML element id="vt_datasets" NOT found.')
+                console.log('HTML element id="count-datasets" NOT found.')
               }
           }
           document.dispatchEvent(endEvent);
@@ -128,7 +171,7 @@ function speciesStats(reqQuery) {
   var reqFacet=`&facet=scientificName&facetMincount=1&scientificName.facetOffset=${speciesOffset}&scientificName.facetLimit=${speciesLimit}`;
   var reqLimit="&limit=0";
   var reqAll=reqHost+reqRoute+reqQuery+reqFacet+reqLimit;
-  var elem = document.getElementById("vt_species");
+  var elem = document.getElementById("count-species");
 
   document.dispatchEvent(begEvent);
 
@@ -137,15 +180,15 @@ function speciesStats(reqQuery) {
           if (xmlhttp.status == 200) {
               const res = JSON.parse(xmlhttp.responseText);
               const spc = res.facets[0].counts; //array of objects having sciName and occurrence count, like [{name:4fa7b334-ce0d-4e88-aaae-2e0c138d049e,count:6758210},{},...]
-              spc.forEach((ele) => {
-                if (!spcs[ele.name]) {spcs[ele.name] = ele.count}
+              spc.forEach((topEle) => {
+                if (!spcs[topEle.name]) {spcs[topEle.name] = topEle.count}
               })
               var count = Object.keys(spcs).length;
               console.log(`SPECIES => This:`, spc.length, 'Agg:', count, 'Query:', reqAll);
               if (elem) {
                 elem.innerHTML = nFmt.format(speciesOffset+count); //numeral(speciesOffset+count).format('0,0');
               } else {
-                console.log('HTML element id="vt_species" NOT found.')
+                console.log('HTML element id="count-species" NOT found.')
               }
           } else {
               console.log(`An http ${xmlhttp.status} result was returned from ${reqHost}.`);
@@ -153,7 +196,7 @@ function speciesStats(reqQuery) {
                 elem.style="font-size:8pt";
                 elem.innerHTML = `(http ${xmlhttp.status} from ${reqHost+reqRoute+reqQuery+reqFacet+reqLimit})`;
               } else {
-                console.log('HTML element id="vt_species" NOT found.')
+                console.log('HTML element id="count-species" NOT found.')
               }
           }
           document.dispatchEvent(endEvent);
@@ -181,7 +224,7 @@ function publisherStats(reqQuery) {
   var reqFacet="&facet=publishingOrg&facetMincount=1&publishingOrg.facetLimit=1000";
   var reqLimit="&limit=0";
   var reqAll=reqHost+reqRoute+reqQuery+reqFacet+reqLimit;
-  var elem = document.getElementById("vt_publishers");
+  var elem = document.getElementById("count-publishers");
 
   document.dispatchEvent(begEvent);
 
@@ -189,16 +232,16 @@ function publisherStats(reqQuery) {
       if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
           if (xmlhttp.status == 200) {
               const res = JSON.parse(xmlhttp.responseText);
-              const spc = res.facets[0].counts; //array of objects having vt_publishers and occurrence count, like [{name:4fa7b334-ce0d-4e88-aaae-2e0c138d049e,count:6758210},{},...]
-              spc.forEach((ele) => {
-                if (!pubs[ele.name]) {pubs[ele.name] = ele.count}
+              const spc = res.facets[0].counts; //array of objects having count-publishers and occurrence count, like [{name:4fa7b334-ce0d-4e88-aaae-2e0c138d049e,count:6758210},{},...]
+              spc.forEach((topEle) => {
+                if (!pubs[topEle.name]) {pubs[topEle.name] = topEle.count}
               })
               var count = Object.keys(pubs).length;
               console.log(`PUBLISHERS => This:`, spc.length, 'Agg:', count, 'Query:', reqAll);
               if (elem) {
                 elem.innerHTML = nFmt.format(count); //numeral(count).format('0,0');
               } else {
-                console.log('HTML element id="vt_publishers" NOT found.')
+                console.log('HTML element id="count-publishers" NOT found.')
               }
           } else {
               console.log(`An http ${xmlhttp.status} result was returned from ${reqHost}.`);
@@ -206,7 +249,7 @@ function publisherStats(reqQuery) {
                 elem.style="font-size:8pt";
                 elem.innerHTML = `(http ${xmlhttp.status} from ${reqHost+reqRoute+reqQuery+reqFacet+reqLimit})`;
               } else {
-                console.log('HTML element id="vt_publishers" NOT found.')
+                console.log('HTML element id="count-publishers" NOT found.')
               }
           }
           document.dispatchEvent(endEvent);
@@ -223,8 +266,8 @@ function publisherStats(reqQuery) {
 }
 
 function otherStats() {
-  var elemCitations = document.getElementById("vt_citations");
-  var elemSpAccounts = document.getElementById("vt_species_accounts");
+  var elemCitations = document.getElementById("count-citations");
+  var elemSpAccounts = document.getElementById("count-species_accounts");
   var citeCount = 68;
   var spAcCount = 0;
   if (elemCitations) {elemCitations.innerHTML = nFmt.format(citeCount);} //numeral(citeCount).format('0,0');}
@@ -271,21 +314,16 @@ function addListeners() {
               //console.log('stats-records got mouseup', e);
               var frame = document.getElementById("gbif_frame")
               if (frame) {frame.scrollIntoView(); frame.src = `${gbifHost}/occurrence/search/?view=MAP`;}
-              else {window.location.assign(`https://val.vtecostudies.org/gbif-explorer/?view=MAP`)}
-              //else {window.open(`${gbifHost}/occurrence/search/?view=MAP`, "_blank")}
+              else {window.location.assign(`${dataConfig.explorerUrl}?view=MAP`)}
           });
       }
 
       /*
         Respond to mouse click on Species Stats button
-        For now, since GBIF do not have this query, just show occurrence GALLERY
       */
       if (document.getElementById("stats-species")) {
           document.getElementById("stats-species").addEventListener("mouseup", function(e) {
-              var frame = document.getElementById("gbif_frame")
-              if (frame) {frame.scrollIntoView(); frame.src = `${gbifHost}/occurrence/search`;}
-              else {window.location.assign(`https://val.vtecostudies.org/gbif-explorer/?view=GALLERY`)}
-              //else {window.open(`${gbifHost}/occurrence/search`, "_blank")}
+              window.location.assign(`${dataConfig.resultsUrl}?rank=SPECIES`)
           });
       }
 
@@ -294,16 +332,15 @@ function addListeners() {
           document.getElementById("stats-datasets").addEventListener("mouseup", function(e) {
               var frame = document.getElementById("gbif_frame")
               if (frame) {frame.scrollIntoView(); frame.src = `${gbifHost}/occurrence/search/?view=DATASETS`;}
-              else {window.location.assign(`https://val.vtecostudies.org/gbif-explorer/?view=DATASETS`)}
-              //else {window.open(`${gbifHost}/occurrence/search/?view=DATASETS`,"_blank")}
+              else {window.location.assign(`${dataConfig.explorerUrl}?view=DATASETS`)}
           });
       }
 
       if (document.getElementById("stats-publishers")) {
           document.getElementById("stats-publishers").addEventListener("mouseup", function(e) {
               window.open(
-                "https://www.gbif.org/publisher/search?q=vermont"
-                //"https://api.gbif.org/v1/occurrence/search?state_province=Vermont&limit=0&facet=publishingOrg&facetMincount=1&publishingOrg.facetLimit=1000"
+                //"https://www.gbif.org/publisher/search?q=vermont"
+                `https://api.gbif.org/v1/occurrence/search?${gadmGid=dataConfig.gadmGid}&limit=0&facet=publishingOrg&facetMincount=1&publishingOrg.facetLimit=1000`
                 , "_blank"
               );
           });

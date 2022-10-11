@@ -1,4 +1,6 @@
-const datasetKey = '0b1735ff-6a66-454b-8686-cae1cbc732a2';
+import { dataConfig } from './gbif_data_config.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_widget.js"></script>
+
+const datasetKey = dataConfig.datasetKey; //'0b1735ff-6a66-454b-8686-cae1cbc732a2';
 const filterVermont = true;
 var inputElementId = null; //the Id of the text input to have autoComplete. only put one on a page, multiple is not tested.
 var listElementId = 'gbif_autocomplete_list'; //the Id of the datalist attached to the input (required)

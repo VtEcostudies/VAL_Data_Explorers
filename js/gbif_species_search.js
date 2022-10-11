@@ -1,4 +1,9 @@
-const gbifPortal = 'https://hp-vtatlasoflife.gbif.org'; // "https://hp-vtatlasoflife.gbif-staging.org";
+import { dataConfig } from './gbif_data_config.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_widget.js"></script>
+
+const gbifPortal = dataConfig.gbifPortal; //'https://hp-vtatlasoflife.gbif.org'; // "https://hp-vtatlasoflife.gbif-staging.org";
+const gbifApi = dataConfig.gbifApi; //"https://api.gbif.org/v1";
+const datasetKey = dataConfig.datasetKey; //'0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
+
 const thisUrl = new URL(document.URL);
 const hostUrl = thisUrl.host;
 var explorerUrl = `${thisUrl.protocol}//${thisUrl.host}/gbif-explorer`;
@@ -7,8 +12,6 @@ if ('localhost' == hostUrl) {
   explorerUrl = 'https://val.vtecostudies.org/gbif-explorer';
   resultsUrl = 'http://localhost/results.html';
 }
-const gbifApi = "https://api.gbif.org/v1";
-const datasetKey = '0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
 
 console.log('HOST URL:', hostUrl);
 console.log('Explorer URL:', explorerUrl);

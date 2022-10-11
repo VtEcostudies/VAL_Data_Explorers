@@ -22,4 +22,4 @@
 	</div>
 </section>
 
-<script src="/wp-content/themes/val/js/gbif_lit_widget.js" type="text/javascript"></script>
+<script src="/wp-content/themes/val/js/gbif_lit_widget.js" type="module"></script>

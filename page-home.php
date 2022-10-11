@@ -22,7 +22,7 @@
 
 				<div class="stats">
 
-					<span id="<?php the_field('records-id'); ?>" class="stats-count">
+					<span id="count-occurrences" class="stats-count">
 						<i class="far fa-compass"></i>
 					</span>
 
@@ -38,7 +38,7 @@
 
 				<div class="stats">
 
-					<span id="<?php the_field('species-id'); ?>" class="stats-count">
+					<span id="count-species" class="stats-count">
 						<i class="far fa-compass"></i>
 					</span>
 
