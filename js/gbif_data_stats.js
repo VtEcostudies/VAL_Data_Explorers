@@ -215,8 +215,11 @@ function speciesStats(reqQuery) {
 /*
   this is now called for each value in global array 'qrys', but here's example query:
   https://api.gbif.org/v1/occurrence/search?state_province=Vermont&limit=0&facet=publishingOrg&facetMincount=1&publishingOrg.facetLimit=1000
+
+  UPDATE: Publisher stats are a separate API - literature. If we have a publishingOrgKey, don't use occurrence API
+  https://api.gbif.org/v1/literature/search?contentType=literature&publishingOrganizationKey=${dataConfig.publishingOrgKey}
 */
-function publisherStats(reqQuery) {
+function publisherOccStats(reqQuery) {
   var xmlhttp = new XMLHttpRequest();
   var reqHost = "https://api.gbif.org/v1";
   var reqRoute = "/occurrence/search";
@@ -265,10 +268,44 @@ function publisherStats(reqQuery) {
   xmlhttp.send();
 }
 
+export async function publisherStats(publOrgKey=false) {
+
+  var elem = document.getElementById("count-citations"); //To-Do: which is it?
+  //elem = document.getElementById("count-publishers"); //To-Do: which is it?
+
+  if (!publOrgKey) {publOrgKey = dataConfig.publishingOrgKey;}
+
+  let reqHost = dataConfig.gbifApi;
+  let reqRoute = "/literature/search";
+  let reqQuery = `?contentType=literature`;
+  let reqFilter = `&publishingOrganizationKey=${publOrgKey}`;
+  let url = reqHost+reqRoute+reqQuery+reqFilter;
+  let enc = encodeURI(url);
+
+  console.log(`publisherStats(${publOrgKey})`, enc);
+
+  try {
+    let res = await fetch(enc);
+    let json = await res.json();
+    json.query = enc;
+    console.log(`publisherStats(${publOrgKey}) RESULT:`, json);
+    if (elem) {
+      elem.innerHTML = nFmt.format(json.count);
+    } else {
+      console.log('HTML element id="count-publishers" NOT found.')
+    }
+    return json;
+  } catch (err) {
+    err.query = enc;
+    console.log(`publisherStats(${publOrgKey}) ERROR:`, err);
+    throw new Error(err)
+  }
+}
+
 function otherStats() {
   var elemCitations = document.getElementById("count-citations");
   var elemSpAccounts = document.getElementById("count-species_accounts");
-  var citeCount = 68;
+  var citeCount = 0;
   var spAcCount = 0;
   if (elemCitations) {elemCitations.innerHTML = nFmt.format(citeCount);} //numeral(citeCount).format('0,0');}
   if(elemSpAccounts) {
@@ -340,7 +377,8 @@ function addListeners() {
           document.getElementById("stats-publishers").addEventListener("mouseup", function(e) {
               window.open(
                 //"https://www.gbif.org/publisher/search?q=vermont"
-                `https://api.gbif.org/v1/occurrence/search?${gadmGid=dataConfig.gadmGid}&limit=0&facet=publishingOrg&facetMincount=1&publishingOrg.facetLimit=1000`
+                //`https://api.gbif.org/v1/occurrence/search?gadmGid=${dataConfig.gadmGid}&limit=0&facet=publishingOrg&facetMincount=1&publishingOrg.facetLimit=1000`
+                `https://api.gbif.org/v1/literature/search?contentType=literature&publishingOrganizationKey=${dataConfig.publishingOrgKey}`
                 , "_blank"
               );
           });
@@ -349,7 +387,7 @@ function addListeners() {
       if (document.getElementById("stats-citations")) {
           document.getElementById("stats-citations").addEventListener("mouseup", function(e) {
               window.open(
-              "https://www.gbif.org/resource/search?contentType=literature&publishingOrganizationKey=b6d09100-919d-4026-b35b-22be3dae7156"
+              `https://www.gbif.org/resource/search?contentType=literature&publishingOrganizationKey=${dataConfig.publishingOrgKey}`
               , "_blank"
               );
           });
@@ -362,12 +400,21 @@ function addListeners() {
       }
 }
 
+function setContext() {
+  let homeTitle = document.getElementById("home-title")
+  if (homeTitle) {
+    homeTitle.innerText = dataConfig.atlasName;
+  }
+}
+
+setContext();
 qrys.forEach(qry => {
   console.log('**************Data Stats NOW QUERYING:', qry);
   speciesStats(qry);
   occStats(qry);
   datasetStats(qry);
-  publisherStats(qry);
+  //publisherOccStats(qry);
 })
+if (dataConfig.publishingOrgKey) {publisherStats(dataConfig.publishingOrgKey);}
 otherStats(); //attempt to do this within WP user access so it can be easily edited
 addListeners();

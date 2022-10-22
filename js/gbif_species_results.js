@@ -35,6 +35,7 @@ objUrlParams.forEach((val, key) => {
   }
 });
 
+const eleTtl = document.getElementById("species-title"); //the h tag within the title
 const eleTxt = document.getElementById("results_search"); if (eleTxt) {eleTxt.value = qParm;}
 const elePag = document.getElementById("page-number"); if (elePag) {elePag.innerText = `Page ${nFmt.format(page)}`;}
 const eleTbl = document.getElementById("species-table");
@@ -146,6 +147,7 @@ async function fillRow(objSpc, objRow, rowIdx) {
   });
 }
 
+//These functions are implemented directly within html by ann inline javascript tag
 export function showInfo(text=false) {
   if (eleInf) {if (text) eleInf.innerHTML = text; eleInf.style.display = 'block'; info_on = true;}
 }
@@ -410,4 +412,8 @@ if (eleTbl) { //results are displayed in a table with id="species-table". we nee
   }
 } else {
   console.log('gbif_species_results.js requires a table having id="species-table" to operate.')
+}
+
+if (eleTtl) {
+  eleTtl.innerText = `${dataConfig.atlasPlace} Species Explorer`;
 }
