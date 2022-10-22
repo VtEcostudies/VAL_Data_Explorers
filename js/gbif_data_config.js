@@ -4,8 +4,8 @@ const apiColumns = ['key','nubKey','canonicalName','scientificName','vernacularN
 
 const thisUrl = new URL(document.URL);
 const hostUrl = thisUrl.host;
-var explorerUrl = `${thisUrl.protocol}//${thisUrl.host}/gbif-explorer`;
-var resultsUrl = `${thisUrl.protocol}//${thisUrl.host}/gbif-species-explorer`;
+var explorerUrl = `${thisUrl.protocol}//${thisUrl.host}/${thisUrl.pathname}/gbif-explorer`;
+var resultsUrl = `${thisUrl.protocol}//${thisUrl.host}/${thisUrl.pathname}/gbif-species-explorer`;
 if ('localhost' == hostUrl) {
   explorerUrl = 'http://localhost/occurrences.html';
   resultsUrl = 'http://localhost/results.html';
