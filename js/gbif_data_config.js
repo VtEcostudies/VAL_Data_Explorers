@@ -4,8 +4,11 @@ const apiColumns = ['key','nubKey','canonicalName','scientificName','vernacularN
 
 const thisUrl = new URL(document.URL);
 const hostUrl = thisUrl.host;
-var explorerUrl = `${thisUrl.protocol}//${thisUrl.host}/${thisUrl.pathname}/gbif-explorer`;
-var resultsUrl = `${thisUrl.protocol}//${thisUrl.host}/${thisUrl.pathname}/gbif-species-explorer`;
+const urlPath = thisUrl.pathname;
+var urlRout = urlPath.split('/');
+urlRout = urlRout.splice(0, urlRout.length-1).join('/'); //Note urlRout has leading '/'
+var explorerUrl = `${thisUrl.protocol}/${thisUrl.host}${urlRout}/gbif-explorer`;
+var resultsUrl = `${thisUrl.protocol}/${thisUrl.host}${urlRout}/gbif-species-explorer`;
 if ('localhost' == hostUrl) {
   explorerUrl = 'http://localhost/occurrences.html';
   resultsUrl = 'http://localhost/results.html';
