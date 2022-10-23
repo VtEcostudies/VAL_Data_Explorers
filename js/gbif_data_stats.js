@@ -402,12 +402,28 @@ function addListeners() {
 
 function setContext() {
   let homeTitle = document.getElementById("home-title")
+  let countOccs = document.getElementById("count-occurrences");
+  let countDset = document.getElementById("count-datasets");
+  let countSpcs = document.getElementById("count-species");
+  let countCite = document.getElementById("count-citations");
+  let countPubl = document.getElementById("count-publishers");
   if (homeTitle) {
     homeTitle.innerText = dataConfig.atlasName;
   }
-  let countOccs = document.getElementById("count-occurrences");
   if (countOccs) {
     countOccs.href = dataConfig.exploreUrl + '?view=MAP';
+  }
+  if (countDset) {
+    countDset.href = dataConfig.exploreUrl + '?view=DATASETS';
+  }
+  if (countSpcs) {
+    countSpcs.href = dataConfig.resultsUrl + '?rank=SPECIES';
+  }
+  if (countCite) {
+    countCite.href = dataConfig.literatUrl;
+  }
+  if (countPubl) {
+    countPubl.href = dataConfig.publishUrl;
   }
 }
 

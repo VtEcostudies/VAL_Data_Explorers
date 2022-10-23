@@ -9,12 +9,18 @@ var urlRout = urlPath.split('/');
 urlRout = urlRout.splice(0, urlRout.length-1).join('/'); //Note urlRout has leading '/'. Keep it to handle an empty urlRout.
 var exploreEnd = '/gbif-explorer';
 var resultsEnd = '/gbif-species-explorer';
+var literatEnd = '/gbif-literature-explorer';
+var literatEnd = '/gbif-publishers';
 if ('vtatlasoflife.org' == hostUrl || 'localhost' == hostUrl) {
   exploreEnd = '/occurrences.html';
   resultsEnd = '/results.html';
+  literatEnd = '/literature.html';
+  publishEnd = '/publishers.html';
 }
 const exploreUrl = `${thisUrl.protocol}//${hostUrl}${urlRout}${exploreEnd}`;
 const resultsUrl = `${thisUrl.protocol}//${hostUrl}${urlRout}${resultsEnd}`;
+const literatUrl = `${thisUrl.protocol}//${hostUrl}${urlRout}${literatEnd}`;
+const publishUrl = `${thisUrl.protocol}//${hostUrl}${urlRout}${publishEnd}`;
 console.log('gbif_data_config.js | hostUrl', hostUrl);
 console.log('gbif_data_config.js | urlPath', urlPath);
 console.log('gbif_data_config.js | urlRout', urlRout);
@@ -29,6 +35,8 @@ const valConfig = {
   hostUrl: hostUrl,
   exploreUrl: exploreUrl,
   resultsUrl: resultsUrl,
+  literatUrl: literatUrl,
+  publishUrl: publishUrl,
   gbifPortal: 'https://hp-vtatlasoflife.gbif.org',
   gbifApi: "https://api.gbif.org/v1", //this should not change at all
   gadmGid: 'USA.46_1', //'Vermont' GADM administrative bounding region
@@ -89,6 +97,8 @@ const mvaConfig = {
   hostUrl: hostUrl,
   exploreUrl: exploreUrl,
   resultsUrl: resultsUrl,
+  literatUrl: literatUrl,
+  publishUrl: publishUrl,
   gbifPortal: false,
   gbifApi: "https://api.gbif.org/v1", //this should not change at all
   gadmGid: 'USA.22.4_1', //'Dukes County, MA' GADM administrative bounding region
