@@ -93,7 +93,7 @@ const mvaConfig = {
   gbifApi: "https://api.gbif.org/v1", //this should not change at all
   gadmGid: 'USA.22.4_1', //'Dukes County, MA' GADM administrative bounding region
   datasetKey: '298a29ef-a66a-4330-93a1-ea59482e25d9', //Martha's Vineyard Regional Species List Dataset Key
-  publishingOrgKey: false, //
+  publishingOrgKey: false, //MVAL is not a GBIF Publisher. Yet.
   columns: ['canonicalName','vernacularNames','rank','taxonomicStatus','higherClassificationMap','occurrences'],
   columNames: {'key':'GBIF Key', 'nubKey':'GBIF Nub Key', 'canonicalName':'Scientific Name', 'vernacularNames':'Common Names', 'rank':'Rank', 'taxonomicStatus':'Status', 'parent':'Parent Name', 'higherClassificationMap':'Parent Taxa', 'occurrences':'Occurrences'},
   mapSettings: {

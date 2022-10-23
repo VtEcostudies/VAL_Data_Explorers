@@ -405,6 +405,10 @@ function setContext() {
   if (homeTitle) {
     homeTitle.innerText = dataConfig.atlasName;
   }
+  let countOccs = document.getElementById("count-occurrences");
+  if (countOccs) {
+    countOccs.href = dataConfig.exploreUrl + '?view=MAP';
+  }
 }
 
 setContext();
