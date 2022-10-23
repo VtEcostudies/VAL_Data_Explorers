@@ -93,25 +93,25 @@ Before deployment:
 /* lines 28 - 52 in style.css */
 /*** all displays ***/
 @media only screen and (-webkit-min-device-pixel-ratio: 2), only screen and (min-resolution: 192dpi) {
-  .page-template-page-species-explorer-2022 .hero #searchform #searchsubmit { background-image: url(/images/magnify-small@2x.png); background-size: 15px 14px; }
+  .page-template-page-species-explorer-2022 .hero #searchform #searchsubmit { background-image: url(../images/magnify-small@2x.png); background-size: 15px 14px; }
 }
 /*** medium displays and up -- 680px and more ***/
 @media only screen and (-webkit-min-device-pixel-ratio: 2) and (min-width: 680px), only screen and (min-resolution: 192dpi) and (min-width: 680px) {
-  .page-template-page-species-explorer-2022 .hero #searchform:after { background-image: url(/images/hummingbird@2x.png); background-size: 113px 122px; }
-  .page-template-page-species-explorer-2022 .hero #searchform #searchsubmit { background-image: url(/images/magnify-medium@2x.png); background-size: 19px 19px; }
-  #crumbs a { background-image: url(/images/breadcrumbs-divider@2x.png); background-size: 14px 52px; }
+  .page-template-page-species-explorer-2022 .hero #searchform:after { background-image: url(../images/hummingbird@2x.png); background-size: 113px 122px; }
+  .page-template-page-species-explorer-2022 .hero #searchform #searchsubmit { background-image: url(../images/magnify-medium@2x.png); background-size: 19px 19px; }
+  #crumbs a { background-image: url(../images/breadcrumbs-divider@2x.png); background-size: 14px 52px; }
 }
 /*** large displays -- 950px and more ***/
 @media only screen and (-webkit-min-device-pixel-ratio: 2) and (min-width: 950px), only screen and (min-resolution: 192dpi) and (min-width: 950px) {
-  .page-template-page-species-explorer-2022 .hero #searchform #searchsubmit { background-image: url(/images/magnify-large@2x.png); background-size: 21px 21px; }
+  .page-template-page-species-explorer-2022 .hero #searchform #searchsubmit { background-image: url(../images/magnify-large@2x.png); background-size: 21px 21px; }
 }
 
 /* lines 939 - 1014 in style.css */
-.page-template-page-species-explorer-2022 .hero { position: relative; padding: 30px 30px 30px 30px; text-align: center; color: #fff; background: url(/images/vermont-panorama-small.jpg) no-repeat center; background-size: cover; z-index: 1000; }
+.page-template-page-species-explorer-2022 .hero { position: relative; padding: 30px 30px 30px 30px; text-align: center; color: #fff; background: url(../images/vermont-panorama-small.jpg) no-repeat center; background-size: cover; z-index: 1000; }
 
-@media screen and (min-width: 680px) { .page-template-page-species-explorer-2022 .hero { padding: 30px 30px 30px 30px; background-image: url(/images/vermont-panorama-medium.jpg); } }
+@media screen and (min-width: 680px) { .page-template-page-species-explorer-2022 .hero { padding: 30px 30px 30px 30px; background-image: url(../images/vermont-panorama-medium.jpg); } }
 
-@media screen and (min-width: 950px) { .page-template-page-species-explorer-2022 .hero { padding: 30px 30px 30px 30px; background-image: url(/images/vermont-panorama-large.jpg); } }
+@media screen and (min-width: 950px) { .page-template-page-species-explorer-2022 .hero { padding: 30px 30px 30px 30px; background-image: url(../images/vermont-panorama-large.jpg); } }
 
 .page-template-page-species-explorer-2022 .hero .content { position: relative; z-index: 1000; }
 
@@ -172,9 +172,9 @@ Before deployment:
 
 .page-template-page-species-explorer-2022 .hero #searchform .searchsubmit-wrap button i { font-size: 1.8em; font-family: "Font Awesome 5 Pro"; }
 
-@media screen and (min-width: 950px) { .page-template-page-species-explorer-2022 .hero #searchform:after { content: ""; display: block; position: absolute; right: -180px; top: -30px; width: 150px; height: 163px; background: url(/images/hummingbird.png); background-size: 150px 163px; } }
+@media screen and (min-width: 950px) { .page-template-page-species-explorer-2022 .hero #searchform:after { content: ""; display: block; position: absolute; right: -180px; top: -30px; width: 150px; height: 163px; background: url(../images/hummingbird.png); background-size: 150px 163px; } }
 
-@media screen and (min-width: 680px) { .page-template-page-species-explorer-2022 .hero #searchform:after { content: ""; display: block; position: absolute; right: -90px; top: -15px; width: 75px; height: 81px; background: url(/images/hummingbird.png); background-size: 75px 81px; } }
+@media screen and (min-width: 680px) { .page-template-page-species-explorer-2022 .hero #searchform:after { content: ""; display: block; position: absolute; right: -90px; top: -15px; width: 75px; height: 81px; background: url(../images/hummingbird.png); background-size: 75px 81px; } }
 
 .page-template-page-species-explorer-2022 .hero .button-wrap { margin: 30px 0; font-size: 1.2em; }
 
