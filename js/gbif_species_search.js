@@ -3,18 +3,10 @@ import { dataConfig } from './gbif_data_config.js'; //in html must declare this 
 const gbifPortal = dataConfig.gbifPortal; //'https://hp-vtatlasoflife.gbif.org'; // "https://hp-vtatlasoflife.gbif-staging.org";
 const gbifApi = dataConfig.gbifApi; //"https://api.gbif.org/v1";
 const datasetKey = dataConfig.datasetKey; //'0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
+const exploreUrl = dataConfig.exploreUrl;
+const resultsUrl = dataConfig.resultsUrl;
 
-const thisUrl = new URL(document.URL);
-const hostUrl = thisUrl.host;
-var explorerUrl = `${thisUrl.protocol}//${thisUrl.host}/gbif-explorer`;
-var resultsUrl = `${thisUrl.protocol}//${thisUrl.host}/gbif-species-explorer`;
-if ('localhost' == hostUrl) {
-  explorerUrl = 'https://val.vtecostudies.org/gbif-explorer';
-  resultsUrl = 'http://localhost/results.html';
-}
-
-console.log('HOST URL:', hostUrl);
-console.log('Explorer URL:', explorerUrl);
+console.log('Explorer URL:', exploreUrl);
 console.log('Results URL:', resultsUrl);
 
 /*
@@ -128,13 +120,13 @@ export async function speciesMatchLoadExplorer(searchValue=null) {
   if (mRes.usageKey) { //successful match API results always have usageKey (aka nubKey?)
     if (frame) {frame.scrollIntoView(); frame.src = `${gbifPortal}/occurrence/search/?taxonKey=${mRes.result.usageKey}&view=MAP`;}
     else {
-      await window.location.assign(`${explorerUrl}?taxonKey=${mRes.result.usageKey}&view=MAP`);
+      await window.location.assign(`${exploreUrl}?taxonKey=${mRes.result.usageKey}&view=MAP`);
       if (react) react.scrollIntoView();
     }
   } else { //send raw text for search
     if (frame) {frame.scrollIntoView(); frame.src = `${gbifPortal}/occurrence/search/?q=${searchValue}&view=MAP`;}
     else {
-      await window.location.assign(`${explorerUrl}?q=${searchValue}&view=MAP`);
+      await window.location.assign(`${exploreUrl}?q=${searchValue}&view=MAP`);
       if (react) react.scrollIntoView();
     }
   }

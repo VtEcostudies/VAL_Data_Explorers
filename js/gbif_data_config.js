@@ -6,14 +6,20 @@ const thisUrl = new URL(document.URL);
 const hostUrl = thisUrl.host;
 const urlPath = thisUrl.pathname;
 var urlRout = urlPath.split('/');
-urlRout = urlRout.splice(1, urlRout.length-2).join('/'); //Note urlRout had leading '/'. We remove it.
-var explorerUrl = `${thisUrl.protocol}/${hostUrl}/${urlRout}/gbif-explorer`;
-var resultsUrl = `${thisUrl.protocol}/${hostUrl}/${urlRout}/gbif-species-explorer`;
-if ('localhost' == hostUrl) {
-  explorerUrl = 'http://localhost/occurrences.html';
-  resultsUrl = 'http://localhost/results.html';
+urlRout = urlRout.splice(0, urlRout.length-1).join('/'); //Note urlRout has leading '/'. Keep it to handle an empty urlRout.
+var exploreEnd = '/gbif-explorer';
+var resultsEnd = '/gbif-species-explorer';
+if ('vtatlasoflife.org' == hostUrl || 'localhost' == hostUrl) {
+  exploreEnd = '/occurrences.html';
+  resultsEnd = '/results.html';
 }
-console.log(hostUrl, urlPath, urlRout);
+const exploreUrl = `${thisUrl.protocol}//${hostUrl}${urlRout}${exploreEnd}`;
+const resultsUrl = `${thisUrl.protocol}//${hostUrl}${urlRout}${resultsEnd}`;
+console.log('gbif_data_config.js | hostUrl', hostUrl);
+console.log('gbif_data_config.js | urlPath', urlPath);
+console.log('gbif_data_config.js | urlRout', urlRout);
+console.log('gbif_data_config.js | exploreUrl', exploreUrl);
+console.log('gbif_data_config.js | resultsUrl', resultsUrl);
 
 const valConfig = {
   atlasPlace: 'Vermont',
@@ -21,7 +27,7 @@ const valConfig = {
   atlasAbbrev: 'VAL',
   thisUrl: thisUrl,
   hostUrl: hostUrl,
-  explorerUrl: explorerUrl,
+  exploreUrl: exploreUrl,
   resultsUrl: resultsUrl,
   gbifPortal: 'https://hp-vtatlasoflife.gbif.org',
   gbifApi: "https://api.gbif.org/v1", //this should not change at all
@@ -81,7 +87,7 @@ const mvaConfig = {
   atlasAbbrev: 'MVAL',
   thisUrl: thisUrl,
   hostUrl: hostUrl,
-  explorerUrl: explorerUrl,
+  exploreUrl: exploreUrl,
   resultsUrl: resultsUrl,
   gbifPortal: false,
   gbifApi: "https://api.gbif.org/v1", //this should not change at all

@@ -4,9 +4,7 @@ import { speciesSearch } from './gbif_species_search.js'; //NOTE: importing just
 const gbifApi = dataConfig.gbifApi; //"https://api.gbif.org/v1";
 const datasetKey = dataConfig.datasetKey; //'0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
 const gadmGid = dataConfig.gadmGid; //'USA.46_1';
-const thisUrl = dataConfig.thisUrl;
-const hostUrl = dataConfig.hostUrl;
-const explorerUrl = dataConfig.explorerUrl;
+const exploreUrl = dataConfig.exploreUrl;
 const resultsUrl = dataConfig.resultsUrl;
 const columns = dataConfig.columns; //['canonicalName','vernacularNames','rank','taxonomicStatus','higherClassificationMap','occurrences'];
 const columNames = dataConfig.columNames; //{'key':'GBIF Key', 'nubKey':'GBIF Nub Key', 'canonicalName':'Scientific Name', 'vernacularNames':'Common Names', 'rank':'Rank', 'taxonomicStatus':'Status', 'parent':'Parent Name', 'higherClassificationMap':'Parent Taxa', 'occurrences':'Occurrences'};
@@ -137,8 +135,8 @@ async function fillRow(objSpc, objRow, rowIdx) {
         })
         break;
       case 'occurrences': //to-do: break higher-level taxa into child keys for distinct display
-        colObj.innerHTML = `<a href="${explorerUrl}?taxonKey=${key}&view=MAP">${nFmt.format(occ.count)}</a>`;
-        //colObj.innerHTML += `<a href="${explorerUrl}?${getChildKeys(key)}&view=MAP">+</a>`;
+        colObj.innerHTML = `<a href="${exploreUrl}?taxonKey=${key}&view=MAP">${nFmt.format(occ.count)}</a>`;
+        //colObj.innerHTML += `<a href="${exploreUrl}?${getChildKeys(key)}&view=MAP">+</a>`;
         break;
       default:
         colObj.innerHTML = res[colNam] ? res[colNam] : null;
@@ -147,7 +145,7 @@ async function fillRow(objSpc, objRow, rowIdx) {
   });
 }
 
-//These functions are implemented directly within html by ann inline javascript tag
+//These functions are not used - they're duplicated directly within html by an inline javascript tag
 export function showInfo(text=false) {
   if (eleInf) {if (text) eleInf.innerHTML = text; eleInf.style.display = 'block'; info_on = true;}
 }
