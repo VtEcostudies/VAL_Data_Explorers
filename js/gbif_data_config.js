@@ -10,7 +10,7 @@ urlRout = urlRout.splice(0, urlRout.length-1).join('/'); //Note urlRout has lead
 var exploreEnd = '/gbif-explorer';
 var resultsEnd = '/gbif-species-explorer';
 var literatEnd = '/gbif-literature-explorer';
-var literatEnd = '/gbif-publishers';
+var publishEnd = '/gbif-publishers';
 if ('vtatlasoflife.org' == hostUrl || 'localhost' == hostUrl) {
   exploreEnd = '/occurrences.html';
   resultsEnd = '/results.html';
