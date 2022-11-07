@@ -1,5 +1,5 @@
 /*
-const apiColumns = ['key','nubKey','canonicalName','scientificName','vernacularName','rank','taxonomicStatus','synonym','parentKey','parent','occurrences'];
+const apiColumns = ['key','nubKey','canonicalName','scientificName','vernacularName','rank','taxonomicStatus','synonym','parentKey','parent','occurrences','images'];
 */
 
 const thisUrl = new URL(document.URL);
@@ -26,11 +26,25 @@ console.log('gbif_data_config.js | urlPath', urlPath);
 console.log('gbif_data_config.js | urlRout', urlRout);
 console.log('gbif_data_config.js | exploreUrl', exploreUrl);
 console.log('gbif_data_config.js | resultsUrl', resultsUrl);
+var columns = ['canonicalName','vernacularNames','rank','taxonomicStatus','higherClassificationMap','occurrences','images'];
+var columNames = {
+  'key':'GBIF Key',
+  'nubKey':'GBIF Nub Key',
+  'canonicalName':'Scientific Name',
+  'vernacularNames':'Common Names',
+  'rank':'Rank',
+  'taxonomicStatus':'Status',
+  'parent':'Parent Name',
+  'higherClassificationMap':'Parent Taxa',
+  'occurrences':'Occurrences',
+  'images':'Images'
+};
 
 const valConfig = {
   atlasPlace: 'Vermont',
   atlasName: 'Vermont Atlas of Life',
   atlasAbbrev: 'VAL',
+  helpDeskUrl: 'https://vtatlasoflife.freshdesk.com/support/tickets/new',
   thisUrl: thisUrl,
   hostUrl: hostUrl,
   exploreUrl: exploreUrl,
@@ -42,8 +56,8 @@ const valConfig = {
   gadmGid: 'USA.46_1', //'Vermont' GADM administrative bounding region
   datasetKey: '0b1735ff-6a66-454b-8686-cae1cbc732a2', //Species Dataset Key
   publishingOrgKey: 'b6d09100-919d-4026-b35b-22be3dae7156', //VCE key
-  columns: ['canonicalName','vernacularNames','rank','taxonomicStatus','higherClassificationMap','occurrences'],
-  columNames: {'key':'GBIF Key', 'nubKey':'GBIF Nub Key', 'canonicalName':'Scientific Name', 'vernacularNames':'Common Names', 'rank':'Rank', 'taxonomicStatus':'Status', 'parent':'Parent Name', 'higherClassificationMap':'Parent Taxa', 'occurrences':'Occurrences'},
+  columns: columns,
+  columNames: columNames,
   mapSettings: {
     lat: 43.9,
     lng: -72.6,
@@ -93,6 +107,7 @@ const mvaConfig = {
   atlasPlace: 'Marthas Vineyard',
   atlasName: 'Marthas Vineyard Atlas of Life',
   atlasAbbrev: 'MVAL',
+  helpDeskUrl: false,
   thisUrl: thisUrl,
   hostUrl: hostUrl,
   exploreUrl: exploreUrl,
@@ -104,8 +119,8 @@ const mvaConfig = {
   gadmGid: 'USA.22.4_1', //'Dukes County, MA' GADM administrative bounding region
   datasetKey: '298a29ef-a66a-4330-93a1-ea59482e25d9', //Martha's Vineyard Regional Species List Dataset Key
   publishingOrgKey: false, //MVAL is not a GBIF Publisher. Yet.
-  columns: ['canonicalName','vernacularNames','rank','taxonomicStatus','higherClassificationMap','occurrences'],
-  columNames: {'key':'GBIF Key', 'nubKey':'GBIF Nub Key', 'canonicalName':'Scientific Name', 'vernacularNames':'Common Names', 'rank':'Rank', 'taxonomicStatus':'Status', 'parent':'Parent Name', 'higherClassificationMap':'Parent Taxa', 'occurrences':'Occurrences'},
+  columns: columns,
+  columNames: columNames,
   mapSettings: {
     lat: 41.4,
     lng: -70.6,
@@ -156,4 +171,5 @@ const mvaConfig = {
   }
 }
 
-export const dataConfig = mvaConfig;
+export const dataConfig = valConfig;
+//export const dataConfig = mvaConfig;

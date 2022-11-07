@@ -34,6 +34,7 @@ objUrlParams.forEach((val, key) => {
 });
 
 const eleTtl = document.getElementById("species-title"); //the h tag within the title
+const eleHlp = document.getElementById("flag-issue"); //id='flag-issue' element for HelpDesk support
 const eleTxt = document.getElementById("results_search"); if (eleTxt) {eleTxt.value = qParm;}
 const elePag = document.getElementById("page-number"); if (elePag) {elePag.innerText = `Page ${nFmt.format(page)}`;}
 const eleTbl = document.getElementById("species-table");
@@ -48,6 +49,7 @@ async function addHead() {
   let objHed = eleTbl.createTHead();
   let hedRow = objHed.insertRow(0); //just one header objRow
   columns.forEach(async (hedNam, hedIdx) => {
+    console.log('addHead', hedNam, hedIdx);
     let colObj = await hedRow.insertCell(hedIdx);
     colObj.innerHTML = columNames[hedNam];
     if ("canonicalName" == hedNam) {
@@ -88,7 +90,8 @@ async function addTaxaFromArr(sArr) {
 // must be {key: taxonKey}
 async function fillRow(objSpc, objRow, rowIdx) {
   var key = objSpc.nubKey ? objSpc.nubKey : objSpc.key;
-  var res = objSpc; var occ = {count: 'n/a'}; //initialize these to valid objects in case GETs, below, fail
+  var res = objSpc;
+  var occ,img = {count: 'n/a'}; //initialize these to valid objects in case GETs, below, fail
   if (objSpc.taxonKey) { //search by query param taxonKey
     key = objSpc.taxonKey;
     try {
@@ -98,12 +101,9 @@ async function fillRow(objSpc, objRow, rowIdx) {
       //getTaxon failed, so leave it as initialized
     }
   }
-  try {
-    occ = await getOccCount(key);
-  } catch (err) {
-    //getOccCount failed, so leave it as initialized
-  }
-  columns.forEach((colNam, colIdx) => {
+  //try {occ = await getOccCount(key);} catch (err) {/* getOccCount failed, so leave it as initialized */}
+  //try {img = await getImgCount(key);} catch (err) {/* getImgCount failed, so leave it as initialized */}
+  columns.forEach(async (colNam, colIdx) => {
     let colObj = objRow.insertCell(colIdx);
     switch(colNam) {
       case 'canonicalName':
@@ -135,8 +135,17 @@ async function fillRow(objSpc, objRow, rowIdx) {
         })
         break;
       case 'occurrences': //to-do: break higher-level taxa into child keys for distinct display
-        colObj.innerHTML = `<a href="${exploreUrl}?taxonKey=${key}&view=MAP">${nFmt.format(occ.count)}</a>`;
+        try {
+          occ = await getOccCount(key);
+          colObj.innerHTML = `<a href="${exploreUrl}?taxonKey=${key}&view=MAP">${nFmt.format(occ.count)}</a>`;
+        } catch (err) {/* getOccCount failed, so leave it as initialized */}
         //colObj.innerHTML += `<a href="${exploreUrl}?${getChildKeys(key)}&view=MAP">+</a>`;
+        break;
+      case 'images':
+        try {
+          img = await getImgCount(key);
+          colObj.innerHTML = `<a href="${exploreUrl}?taxonKey=${key}&view=GALLERY">${nFmt.format(img.count)}</a>`;
+        } catch (err) {/* getImgCount failed, so leave it as initialized */}
         break;
       default:
         colObj.innerHTML = res[colNam] ? res[colNam] : null;
@@ -200,6 +209,48 @@ async function getOccCount(key) {
   } catch (err) {
     err.query = enc;
     console.log(`getOccCount(${key}) ERROR:`, err);
+    return new Error(err)
+  }
+}
+
+//get an image count from the occurrence API by taxonKey
+//https://api.gbif.org/v1/occurrence/search?gadm_gid=USA.46_1&taxonKey=9510564&limit=0&facet=mediaType
+/* results are like
+offset:0
+limit:0
+endOfRecords:false
+count:217526
+results:[]
+facets[
+  field:"MEDIA_TYPE"
+  counts[...]
+    counts[0].name:"StillImage"
+    counts[0].count:2837
+    counts[1].name:"Sound"
+    counts[1].count:149
+    counts[2].name:"MovingImage"
+    counts[2].count:149
+]
+*/
+async function getImgCount(key) {
+  let reqHost = gbifApi;
+  let reqRoute = "/occurrence/search";
+  let reqFilter = `?advanced=1&limit=0&gadm_gid=${gadmGid}&taxon_key=${key}`
+  let reqFacet = `&facet=mediaType`;
+  let reqLimit = `&limit=0`;
+  let url = reqHost+reqRoute+reqFilter+reqLimit+reqFacet;
+  let enc = encodeURI(url);
+
+  try {
+    let res = await fetch(enc);
+    let json = await res.json();
+    //console.log(`getImgCount(${key}) QUERY:`, enc);
+    //console.log(`getImgCount(${key}) RESULT:`, json);
+    let jret = json.facets[0].counts[0];
+    return jret;
+  } catch (err) {
+    err.query = enc;
+    console.log(`getImgCount(${key}) ERROR:`, err);
     return new Error(err)
   }
 }
@@ -414,4 +465,13 @@ if (eleTbl) { //results are displayed in a table with id="species-table". we nee
 
 if (eleTtl) {
   eleTtl.innerText = `${dataConfig.atlasPlace} Species Explorer`;
+}
+
+if (eleHlp) {
+  if (dataConfig.helpDeskUrl) {
+    eleHlp.style.display = 'inline';
+    eleHlp.href = dataConfig.helpDeskUrl;
+  } else {
+    eleHlp.style.display = 'none';
+  }
 }
