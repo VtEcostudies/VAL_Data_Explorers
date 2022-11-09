@@ -23,3 +23,6 @@
 </section>
 
 <script src="/wp-content/themes/val/js/gbif_lit_widget.js" type="module"></script>
+
+<!-- This, combined with the gbif-data-widget, causes double scrollbars. Remove the footer until we can fix it. -->
+<?php //get_footer(); ?>
