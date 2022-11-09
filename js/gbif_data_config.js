@@ -9,10 +9,13 @@ Define here the views and scope of data available to the
 const thisUrl = new URL(document.URL);
 const hostUrl = thisUrl.host;
 const urlPath = thisUrl.pathname;
-var urlRout = urlPath;
-if (urlRout.endsWith('/')) {urlRout = urlRout.substr(0, urlRout.length - 1);}
-urlRout = urlRout.split('/');
-urlRout = urlRout.splice(0, urlRout.length-1).join('/'); //Note urlRout has leading '/'. Keep it to handle an empty urlRout.
+var urlRouts = urlPath.split('/'); //path contains route and file
+console.log('gbif_data_config.js | urlRouts', urlRouts);
+var urlRout = false;
+if (urlRouts[urlRouts.length-1].includes('.htm')) {urlRout = urlRouts.splice(0, urlRouts.length-1).join('/');}
+else {urlRout = urlRouts.splice(0, urlRouts.length).join('/');}
+//if (urlRout.endsWith('/')) {urlRout = urlRout.substr(0, urlRout.length - 1);}
+//var urlRout = urlRouts.splice(0, urlRouts.length-1).join('/'); //Note urlRout has leading '/'. Keep it to handle an empty urlRout.
 var exploreEnd = '/gbif-explorer'; //occurrences
 var resultsEnd = '/gbif-species-explorer';
 var literatEnd = '/gbif-literature-explorer';
