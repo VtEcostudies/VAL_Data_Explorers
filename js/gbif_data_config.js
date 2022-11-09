@@ -14,17 +14,17 @@ console.log('gbif_data_config.js | urlRouts', urlRouts);
 var urlRout = false;
 if (urlRouts[urlRouts.length-1].includes('.htm')) {urlRout = urlRouts.splice(0, urlRouts.length-1).join('/');}
 else {urlRout = urlRouts.splice(0, urlRouts.length).join('/');}
-//if (urlRout.endsWith('/')) {urlRout = urlRout.substr(0, urlRout.length - 1);}
+if (!urlRout.endsWith('/')) {urlRout += '/';}
 //var urlRout = urlRouts.splice(0, urlRouts.length-1).join('/'); //Note urlRout has leading '/'. Keep it to handle an empty urlRout.
-var exploreEnd = '/gbif-explorer'; //occurrences
-var resultsEnd = '/gbif-species-explorer';
-var literatEnd = '/gbif-literature-explorer';
-var publishEnd = '/gbif-publishers';
+var exploreEnd = 'gbif-explorer'; //occurrences
+var resultsEnd = 'gbif-species-explorer';
+var literatEnd = 'gbif-literature-explorer';
+var publishEnd = 'gbif-publishers';
 if ('vtatlasoflife.org' == hostUrl || 'localhost' == hostUrl) {
-  exploreEnd = '/occurrences.html';
-  resultsEnd = '/results.html';
-  literatEnd = '/literature.html';
-  publishEnd = '/publishers.html';
+  exploreEnd = 'occurrences.html';
+  resultsEnd = 'results.html';
+  literatEnd = 'literature.html';
+  publishEnd = 'publishers.html';
 }
 const exploreUrl = `${thisUrl.protocol}//${hostUrl}${urlRout}${exploreEnd}`;
 const resultsUrl = `${thisUrl.protocol}//${hostUrl}${urlRout}${resultsEnd}`;
