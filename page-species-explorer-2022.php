@@ -127,7 +127,7 @@
             JSON
           </button>
           <a class="btn btn-link" id="flag-issue"
-            href="https://vtatlasoflife.freshdesk.com/support/tickets/new"
+            href=""
             target="_blank"
             title="Flag an issue with VT Species Info"
             >
@@ -151,11 +151,6 @@
       </div>
 
       <div id="species-results">
-  			<table id="species-table" class="table table-striped table-sm">
-        </table>
-  		</div>
-
-  		<div id="species-results">
   			<table id="species-table" class="table table-striped table-sm">
         </table>
   		</div>

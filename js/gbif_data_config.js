@@ -1,13 +1,17 @@
 /*
-const apiColumns = ['key','nubKey','canonicalName','scientificName','vernacularName','rank','taxonomicStatus','synonym','parentKey','parent','occurrences','images'];
+Define here the views and scope of data available to the
+  - GBIF data explorer (gbif_data_widget.js)
+  - GBIF literature explorer (gbif_lit_widget.js)
+  - VAL GBIF species explorer (gbif_species_search.js, gbif_species_results.js)
+  - VAL GBIF species search/autocomplete (gbif_speceies_search.js, gbif_auto_complete.js)
+  - VAL GBIF dashboard stats (gbif_data_stats.js)
 */
-
 const thisUrl = new URL(document.URL);
 const hostUrl = thisUrl.host;
 const urlPath = thisUrl.pathname;
 var urlRout = urlPath.split('/');
 urlRout = urlRout.splice(0, urlRout.length-1).join('/'); //Note urlRout has leading '/'. Keep it to handle an empty urlRout.
-var exploreEnd = '/gbif-explorer';
+var exploreEnd = '/gbif-explorer'; //occurrences
 var resultsEnd = '/gbif-species-explorer';
 var literatEnd = '/gbif-literature-explorer';
 var publishEnd = '/gbif-publishers';
@@ -26,8 +30,9 @@ console.log('gbif_data_config.js | urlPath', urlPath);
 console.log('gbif_data_config.js | urlRout', urlRout);
 console.log('gbif_data_config.js | exploreUrl', exploreUrl);
 console.log('gbif_data_config.js | resultsUrl', resultsUrl);
-var columns = ['canonicalName','vernacularNames','rank','taxonomicStatus','higherClassificationMap','occurrences','images'];
-var columNames = {
+//const apiColumns = ['key','nubKey','canonicalName','scientificName','vernacularName','rank','taxonomicStatus','synonym','parentKey','parent','occurrences','images'];
+const columns = ['canonicalName','vernacularNames','rank','taxonomicStatus','higherClassificationMap','occurrences','images'];
+const columNames = {
   'key':'GBIF Key',
   'nubKey':'GBIF Nub Key',
   'canonicalName':'Scientific Name',
@@ -153,7 +158,8 @@ const mvaConfig = {
           }
         ]
       }
-      // include data having coordinates within an administrative area
+      // Include data having coordinates within an administrative area. Duke's County, MA includes
+      // the Vineyard and the Elizabethans.
 /*
       ,{
         "type": "equals",
@@ -161,7 +167,8 @@ const mvaConfig = {
         "value": "USA.22.4_1"
       }
 */
-      // include data having coordinates within a bounding box
+      // Include data having coordinates within a bounding box. Here we drew a rough box around the
+      // Vineyard out to about 1 mile of surrounding salt water.
       ,{
         "type": "within",
         "key": "geometry",

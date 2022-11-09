@@ -1,5 +1,5 @@
 /*
-  REACT EVENT SEARCH SCRIPTS
+  GBIF REACT EVENT SEARCH SCRIPTS
 */
 
 import { dataConfig } from './gbif_data_config.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_widget.js"></script>
