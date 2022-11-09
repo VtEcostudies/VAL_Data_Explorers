@@ -163,7 +163,7 @@ function datasetStats(reqQuery) {
 */
 function speciesStats(reqQuery) {
   var speciesOffset = 0;//20000;
-  var speciesLimit = 30000;//10000;
+  var speciesLimit = 1199999;//30000 for VT;
   var xmlhttp = new XMLHttpRequest();
   var reqHost = "https://api.gbif.org/v1";
   var reqRoute = "/occurrence/search";

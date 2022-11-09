@@ -181,7 +181,7 @@ const mvaConfig = {
 }
 
 const fmaConfig = {
-  atlasPlace: 'Chicago',
+  atlasPlace: 'Field Museum',
   atlasName: 'Field Museum Atlas',
   atlasAbbrev: 'FMA',
   helpDeskUrl: false,
@@ -194,7 +194,7 @@ const fmaConfig = {
   gbifPortal: false,
   gbifApi: "https://api.gbif.org/v1", //this should not change at all
   gadmGid: '', // World GADM administrative bounding region?
-  datasetKey: null, //Species Dataset Key
+  datasetKey: '', //Species Dataset Key
   publishingOrgKey: '7b8aff00-a9f8-11d8-944b-b8a03c50a862', //FMA publ key
   columns: columns,
   columNames: columNames,
@@ -206,7 +206,7 @@ const fmaConfig = {
   rootPredicate: {
     type: 'or',
     predicates: [
-      // then include data for publishing_org=7b8aff00-a9f8-11d8-944b-b8a03c50a862
+      // include data for publishing_org=7b8aff00-a9f8-11d8-944b-b8a03c50a862
       {
         "type": "equals",
         "key": "publishingOrg",
@@ -216,6 +216,6 @@ const fmaConfig = {
   }
 }
 
-export const dataConfig = fmaConfig;
-//export const dataConfig = valConfig;
+export const dataConfig = valConfig;
+//export const dataConfig = fmaConfig;
 //export const dataConfig = mvaConfig;
