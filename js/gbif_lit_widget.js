@@ -62,7 +62,7 @@ var literature = {
           {
             type: 'in',
             key: 'publishingOrganizationKey',
-            values: dataConfig.publishingOrgKeys
+            values: [dataConfig.publishingOrgKey]
           }
         ]
       }

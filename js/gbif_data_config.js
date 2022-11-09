@@ -180,5 +180,42 @@ const mvaConfig = {
   }
 }
 
-export const dataConfig = valConfig;
+const fmaConfig = {
+  atlasPlace: 'Chicago',
+  atlasName: 'Field Museum Atlas',
+  atlasAbbrev: 'FMA',
+  helpDeskUrl: false,
+  thisUrl: thisUrl,
+  hostUrl: hostUrl,
+  exploreUrl: exploreUrl,
+  resultsUrl: resultsUrl,
+  literatUrl: literatUrl,
+  publishUrl: publishUrl,
+  gbifPortal: false,
+  gbifApi: "https://api.gbif.org/v1", //this should not change at all
+  gadmGid: '', // World GADM administrative bounding region?
+  datasetKey: null, //Species Dataset Key
+  publishingOrgKey: '7b8aff00-a9f8-11d8-944b-b8a03c50a862', //FMA publ key
+  columns: columns,
+  columNames: columNames,
+  mapSettings: {
+    lat: 41.885,
+    lng: -87.636,
+    zoom: 2
+  },
+  rootPredicate: {
+    type: 'or',
+    predicates: [
+      // then include data for publishing_org=7b8aff00-a9f8-11d8-944b-b8a03c50a862
+      {
+        "type": "equals",
+        "key": "publishingOrg",
+        "value": "7b8aff00-a9f8-11d8-944b-b8a03c50a862"
+      }
+    ]
+  }
+}
+
+export const dataConfig = fmaConfig;
+//export const dataConfig = valConfig;
 //export const dataConfig = mvaConfig;
