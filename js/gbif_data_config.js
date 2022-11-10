@@ -69,6 +69,7 @@ const config = {
     gadmGid: 'USA.46_1', //'Vermont' GADM administrative bounding region
     datasetKey: '0b1735ff-6a66-454b-8686-cae1cbc732a2', //Species Dataset Key
     publishingOrgKey: 'b6d09100-919d-4026-b35b-22be3dae7156', //VCE key
+    occurrenceFilter: '&gadm_gid=USA.46_1',
     columns: columns,
     columNames: columNames,
     mapSettings: {
@@ -132,6 +133,7 @@ const config = {
     gadmGid: 'USA.22.4_1', //'Dukes County, MA' GADM administrative bounding region
     datasetKey: '298a29ef-a66a-4330-93a1-ea59482e25d9', //Martha's Vineyard Regional Species List Dataset Key
     publishingOrgKey: false, //MVAL is not a GBIF Publisher. Yet.
+    occurrenceFilter: '&gadm_gid=USA.22.4_1',
     columns: columns,
     columNames: columNames,
     mapSettings: {
@@ -200,8 +202,9 @@ const config = {
     gbifPortal: false,
     gbifApi: "https://api.gbif.org/v1", //this should not change at all
     gadmGid: '', // World GADM administrative bounding region?
-    datasetKey: '', //Species Dataset Key
+    datasetKey: 'ad8da44f-646f-4244-a6d0-5d1085ec6984', //Species Dataset Key
     publishingOrgKey: '7b8aff00-a9f8-11d8-944b-b8a03c50a862', //FMA publ key
+    occurrenceFilter: '&publishing_org=7b8aff00-a9f8-11d8-944b-b8a03c50a862',
     columns: columns,
     columNames: columNames,
     mapSettings: {

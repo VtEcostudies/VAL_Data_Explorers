@@ -192,11 +192,11 @@ async function getTaxon(key) {
   }
 }
 
-//get an occurrence count from the occurrence API by taxonKey
+//get an occurrence count from the occurrence API by taxonKey occurenceFilter
 async function getOccCount(key) {
   let reqHost = gbifApi;
   let reqRoute = "/occurrence/search";
-  let reqFilter = `?advanced=1&limit=0&gadm_gid=${gadmGid}&taxon_key=${key}`
+  let reqFilter = `?advanced=1&limit=0&${dataConfig.occurrenceFilter}&taxon_key=${key}`
   let url = reqHost+reqRoute+reqFilter;
   let enc = encodeURI(url);
 
@@ -213,29 +213,33 @@ async function getOccCount(key) {
   }
 }
 
-//get an image count from the occurrence API by taxonKey
-//https://api.gbif.org/v1/occurrence/search?gadm_gid=USA.46_1&taxonKey=9510564&limit=0&facet=mediaType
-/* results are like
-offset:0
-limit:0
-endOfRecords:false
-count:217526
-results:[]
-facets[
-  field:"MEDIA_TYPE"
-  counts[...]
-    counts[0].name:"StillImage"
-    counts[0].count:2837
-    counts[1].name:"Sound"
-    counts[1].count:149
-    counts[2].name:"MovingImage"
-    counts[2].count:149
-]
+/*
+  Get an image count from the occurrence API by taxonKey and occurrenceFilter
+  https://api.gbif.org/v1/occurrence/search?gadm_gid=USA.46_1&taxonKey=9510564&limit=0&facet=mediaType
+  results are like
+  {
+    offset: 0,
+    limit: 0,
+    endOfRecords: false,
+    count: 217526.
+    results: [],
+    facets [
+      field: "MEDIA_TYPE",
+      counts [
+        counts[0].name:"StillImage"
+        counts[0].count:2837
+        counts[1].name:"Sound"
+        counts[1].count:149
+        counts[2].name:"MovingImage"
+        counts[2].count:149
+      ]
+    ]
+  }
 */
 async function getImgCount(key) {
   let reqHost = gbifApi;
   let reqRoute = "/occurrence/search";
-  let reqFilter = `?advanced=1&limit=0&gadm_gid=${gadmGid}&taxon_key=${key}`
+  let reqFilter = `?advanced=1&limit=0&${dataConfig.occurrenceFilter}&taxon_key=${key}`
   let reqFacet = `&facet=mediaType`;
   let reqLimit = `&limit=0`;
   let url = reqHost+reqRoute+reqFilter+reqLimit+reqFacet;
