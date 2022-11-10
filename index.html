@@ -13,9 +13,45 @@
 
   <section class="hero">
 
+		<h2 id="home-title">Atlas of Life</h2>
+
   	<div class="content">
 
-  		<h2 id="home-title">Atlas of Life</h2>
+      <div class="hero-stats-wrap">
+
+  			<a id="stats-records" class="hero-stats-item" href="occurrences.html?view=MAP">
+  				<i class="stats-icon far fa-globe-americas"></i>
+  				<div class="stats">
+  					<span id="count-occurrences" class="stats-count"><i class="far fa-compass"></i></span>
+  					<span class="stats-desc">occurrences</span>
+  				</div>
+  			</a>
+
+  			<a id="stats-datasets" class="hero-stats-item" href="occurrences.html?view=DATASETS">
+  				<i class="stats-icon fas fa-trees"></i>
+  				<div class="stats">
+  					<span id="count-datasets" class="stats-count"><i class="far fa-compass"></i></span>
+  					<span class="stats-desc">datasets</span>
+  				</div>
+  			</a>
+
+  			<a id="stats-species" class="hero-stats-item" href="results.html?rank=SPECIES">
+  				<i class="stats-icon fas fa-trees"></i>
+  				<div class="stats">
+  					<span id="count-species" class="stats-count"><i class="far fa-compass"></i></span>
+  					<span class="stats-desc">species</span>
+  				</div>
+  			</a>
+
+  			<a id="stats-citations" class="hero-stats-item" href="literature.html">
+  				<i class="stats-icon fas fa-trees"></i>
+  				<div class="stats">
+  					<span id="count-citations" class="stats-count"><i class="far fa-compass"></i></span>
+  					<span class="stats-desc">citations</span>
+  				</div>
+  			</a>
+
+  		</div> <!-- end stats-wrap -->
 
   		<form id="searchform" onsubmit="return false;" >
 
@@ -43,8 +79,7 @@
 
   </section>
 
-
-<body>
+<!--
 <div>
   Occurrences: <a id="count-occurrences" href="occurrences.html?view=MAP">0</a>
 </div><div>
@@ -54,7 +89,6 @@
 </div><div>
   Citations: <a id="count-citations" href="literature.html">0</a>
 </div>
-<!--
 <div>
   Publishers: <a id="count-publishers" href="publishers.html">0</a>
 </div><div>
