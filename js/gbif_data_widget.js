@@ -30,7 +30,7 @@ var routes = userConfig.routes || {
 };
 
 //sometimes the widget inserts basename into path (eg. on page-reload). detect host and use relevant path.
-if ('localhost' == dataConfig.hostUrl) {
+if ('vtatlasoflife.org' == dataConfig.hostUrl || 'localhost' == dataConfig.hostUrl) {
   routes.basename = '/';
 } else {
   routes.basename = '/gbif-explorer';

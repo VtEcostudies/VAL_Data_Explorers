@@ -17,7 +17,6 @@ var urlRout = false;
 if (urlRouts[urlRouts.length-1].includes('.htm')) {urlRout = urlRouts.splice(0, urlRouts.length-1).join('/');}
 else {urlRout = urlRouts.splice(0, urlRouts.length).join('/');}
 if (!urlRout.endsWith('/')) {urlRout += '/';}
-//var urlRout = urlRouts.splice(0, urlRouts.length-1).join('/'); //Note urlRout has leading '/'. Keep it to handle an empty urlRout.
 var exploreEnd = 'gbif-explorer'; //occurrences
 var resultsEnd = 'gbif-species-explorer';
 var literatEnd = 'gbif-literature-explorer';
