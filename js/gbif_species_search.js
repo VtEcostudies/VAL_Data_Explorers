@@ -3,6 +3,7 @@ import { dataConfig } from './gbif_data_config.js'; //in html must declare this 
 const gbifPortal = dataConfig.gbifPortal; //'https://hp-vtatlasoflife.gbif.org'; // "https://hp-vtatlasoflife.gbif-staging.org";
 const gbifApi = dataConfig.gbifApi; //"https://api.gbif.org/v1";
 const datasetKey = dataConfig.datasetKey; //'0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
+const speciesFilter = dataConfig.speciesFilter; //generalize species filter to be anything allowable in species API
 const exploreUrl = dataConfig.exploreUrl;
 const resultsUrl = dataConfig.resultsUrl;
 
@@ -32,10 +33,11 @@ export async function speciesSearch(searchTerm="", offset=0, limit=20, otherParm
 
   let reqHost = gbifApi;
   let reqRoute = "/species/search";
-  let reqQuery = `?q=${searchTerm}`;
-  let reqFilter = `&datasetKey=${datasetKey}${otherParms}`;
+  let reqQuery = searchTerm?`?q=${searchTerm}&`:'?';
+  //let reqFilter = `&datasetKey=${datasetKey}${otherParms}`;
+  let reqFilter = speciesFilter;
   let reqSize = `&offset=${offset}&limit=${limit}`;
-  let url = reqHost+reqRoute+reqQuery+reqFilter+reqSize;
+  let url = reqHost+reqRoute+reqQuery+reqFilter+otherParms+reqSize;
   let enc = encodeURI(url);
 
   console.log(`speciesSearch(${searchTerm})`, enc);

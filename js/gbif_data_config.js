@@ -68,7 +68,9 @@ const config = {
     gbifApi: "https://api.gbif.org/v1", //this should not change at all
     gadmGid: 'USA.46_1', //'Vermont' GADM administrative bounding region
     datasetKey: '0b1735ff-6a66-454b-8686-cae1cbc732a2', //Species Dataset Key
+    speciesFilter: 'datasetKey=0b1735ff-6a66-454b-8686-cae1cbc732a2', //this replaces the above in speciesSearch
     publishingOrgKey: 'b6d09100-919d-4026-b35b-22be3dae7156', //VCE key
+    occurrenceDatasetKey: '', //New idea from eButterfly config NOT implemented yet
     occurrenceFilter: 'gadm_gid=USA.46_1',
     columns: columns,
     columNames: columNames,
@@ -132,7 +134,9 @@ const config = {
     gbifApi: "https://api.gbif.org/v1", //this should not change at all
     gadmGid: 'USA.22.4_1', //'Dukes County, MA' GADM administrative bounding region
     datasetKey: '298a29ef-a66a-4330-93a1-ea59482e25d9', //Martha's Vineyard Regional Species List Dataset Key
+    speciesFilter: 'datasetKey=298a29ef-a66a-4330-93a1-ea59482e25d9', //this replaces the above in speciesSearch
     publishingOrgKey: false, //MVAL is not a GBIF Publisher. Yet.
+    occurrenceDatasetKey: '', //New idea from eButterfly config NOT implemented yet
     occurrenceFilter: 'geometry=POLYGON((-70.88477 41.33702,-70.82729 41.20741,-70.69115 41.31884,-70.4219 41.3302,-70.41887 41.41874,-70.59434 41.51395,-70.88477 41.33702))',
     columns: columns,
     columNames: columNames,
@@ -203,7 +207,9 @@ const config = {
     gbifApi: "https://api.gbif.org/v1", //this should not change at all
     gadmGid: '', // World GADM administrative bounding region?
     datasetKey: 'ad8da44f-646f-4244-a6d0-5d1085ec6984', //Species Dataset Key
+    speciesFilter: 'datasetKey=ad8da44f-646f-4244-a6d0-5d1085ec6984', //this replaces the above in speciesSearch
     publishingOrgKey: '7b8aff00-a9f8-11d8-944b-b8a03c50a862', //FMA publ key
+    occurrenceDatasetKey: '', //New idea from eButterfly config NOT implemented yet
     occurrenceFilter: 'publishing_org=7b8aff00-a9f8-11d8-944b-b8a03c50a862',
     columns: columns,
     columNames: columNames,
@@ -221,6 +227,54 @@ const config = {
           "key": "publishingOrg",
           "value": "7b8aff00-a9f8-11d8-944b-b8a03c50a862"
         }
+      ]
+    }
+  },
+
+  ebu: { //eButterfly worldwide demo
+    atlasPlace: 'eButterfly',
+    atlasName: 'eButterfly Atlas',
+    atlasAbbrev: 'eBA',
+    helpDeskUrl: false,
+    thisUrl: thisUrl,
+    hostUrl: hostUrl,
+    exploreUrl: exploreUrl,
+    resultsUrl: resultsUrl,
+    literatUrl: literatUrl,
+    publishUrl: publishUrl,
+    gbifPortal: false,
+    gbifApi: "https://api.gbif.org/v1", //this should not change at all
+    gadmGid: '', //leave blank if N/A
+    datasetKey: '', //Species Dataset Key
+    speciesFilter: 'higherTaxonKey=6953&higherTaxonKey=5473&higherTaxonKey=7017&higherTaxonKey=9417&higherTaxonKey=5481&higherTaxonKey=1933999', //Filter to use if not speciesDaatasetKey
+    publishingOrgKey: '', //leave blank if N/A
+    occurrenceDatasetKey: 'cf3bdc30-370c-48d3-8fff-b587a39d72d6', //New idea from eButterfly config NOT implemented yet
+    occurrenceFilter: '', //leave blank if scope is world - this is used in speciesExplorer for each taxonKey - it can be geographic limit or a publishingOrg
+    columns: columns,
+    columNames: columNames,
+    mapSettings: {
+      lat: 41.885,
+      lng: -87.636,
+      zoom: 2
+    },
+    rootPredicate: {
+      type: 'or', //currently the only supported type
+      predicates: [
+        /* include data for taxonKeys in superFamily Papilionoidea, which can't be used on its own,
+         so include all families:
+          Hesperiidae: https://www.gbif.org/species/6953
+          Lycaenidae: https://www.gbif.org/species/5473
+          Nymphalidae: https://www.gbif.org/species/7017
+          Papilionidae: https://www.gbif.org/species/9417
+          Pieridae: https://www.gbif.org/species/5481
+          Riodinidae: https://www.gbif.org/species/1933999
+       */
+        {"type": "equals","key": "taxonKey","value": "6953"},
+        {"type": "equals","key": "taxonKey","value": "5473"},
+        {"type": "equals","key": "taxonKey","value": "7017"},
+        {"type": "equals","key": "taxonKey","value": "9417"},
+        {"type": "equals","key": "taxonKey","value": "5481"},
+        {"type": "equals","key": "taxonKey","value": "1933999"}
       ]
     }
   }
