@@ -57,7 +57,7 @@ async function addHead() {
     if ("canonicalName" == hedNam) {
       colObj.innerHTML = `
         ${columNames[hedNam]}
-        <a href="#" onclick="toggleInfo('Click Scientific Name to list its child taxa.');">
+        <a href="#" onclick="toggleInfo('Click taxon name to view its profile. Click tree icon to list its child taxa.');">
           <i class="fa fa-info-circle"></i>
         </a>`;
     }
@@ -110,16 +110,17 @@ async function fillRow(objSpc, objRow, rowIdx) {
       case 'canonicalName':
         let name = res[colNam] ? res[colNam] : res['scientificName'];
         //colObj.innerHTML = `<a href="${resultsUrl}?q=${name}">${name}</a>`;
-        colObj.innerHTML = `<a href="${resultsUrl}?q=&higherTaxonKey=${res['key']}&higherTaxonName=${name}&higherTaxonRank=${res['rank']}">${name}</a>`;
+        colObj.innerHTML += `<a title="Wikipedia: ${name}" href="https://en.wikipedia.org/wiki/${name}">${name}</a>`;
+        colObj.innerHTML += `<a title="List child taxa" href="${resultsUrl}?q=&higherTaxonKey=${res['key']}&higherTaxonName=${name}&higherTaxonRank=${res['rank']}"><i class="fa-solid fa-code-branch"></i></a>`
         //colObj.innerHTML = `<a href="${resultsUrl}?higherTaxonKey=${key}&higherTaxonName=${name}&higherTaxonRank=${res['rank']}">${name}</a>`;
-        colObj.title = `List child taxa of ${name}`;
+        //colObj.title = `Click '${name}' to view its profile. Click tree icon to list its child taxa.`;
         break;
       case 'vernacularNames':
         let vnArr = res[colNam]; //array of vernacular columNames
         if (!vnArr) break;
         vnArr.forEach((ele, idx) => {
-          //colObj.innerHTML += `<a href="${resultsUrl}?q=${ele.vernacularName}">${ele.vernacularName}</a>`;
-          colObj.innerHTML += `<a href="https://en.wikipedia.org/wiki/${ele.vernacularName}">${ele.vernacularName}</a>`;
+          //colObj.innerHTML += `<a href="${resultsUrl}?q=${ele.vernacularName}">${ele.vernacularName}</a>`; //original - load self with just common name
+          colObj.innerHTML += `<a href="https://en.wikipedia.org/wiki/${ele.vernacularName}">${ele.vernacularName}</a>`; //modified - wikipedia link common name
           if (idx < Object.keys(vnArr).length-1) {colObj.innerHTML += ', ';}
         })
         break;
@@ -136,8 +137,8 @@ async function fillRow(objSpc, objRow, rowIdx) {
         let tree = res[colNam]; //object of upper taxa like {123456:Name,234567:Name,...}
         if (!tree) break;
         Object.keys(tree).forEach((key, idx) => {
-          //colObj.innerHTML += `<a href="${resultsUrl}?q=${tree[key]}">${tree[key]}</a>`;
-          colObj.innerHTML += `<a href="https://en.wikipedia.org/wiki/${tree[key]}">${tree[key]}</a>`; //wikipedia link, instead
+          //colObj.innerHTML += `<a href="${resultsUrl}?q=${tree[key]}">${tree[key]}</a>`; //original - load self with just parent taxon
+          colObj.innerHTML += `<a href="https://en.wikipedia.org/wiki/${tree[key]}">${tree[key]}</a>`; //modified - wikipedia link parent taxon
           if (idx < Object.keys(tree).length-1) {colObj.innerHTML += ', ';}
         })
         break;

@@ -93,6 +93,9 @@ Before deployment:
   border-radius: 50%;
   background-color: black;
 }
+.fa-code-branch {
+  margin-left: 5px;
+}
 
 /* lines 28 - 52 in style.css */
 /*** all displays ***/
