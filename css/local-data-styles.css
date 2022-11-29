@@ -24,6 +24,10 @@ Before deployment:
     padding: 0px 0px;
     width: 105px;
 }
+#compare-to {
+    padding: 0px 0px;
+    width: 80px;
+}
 #page-size {
   padding: 0px 0px;
   width: 80px;

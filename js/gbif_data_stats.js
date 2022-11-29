@@ -3,6 +3,8 @@ import { dataConfig } from './gbif_data_config.js'; //in html must declare this 
 const datasetKey = dataConfig.datasetKey; //'0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
 const qrys = predicateToQueries(dataConfig.rootPredicate); //['?state_province=Vermont&hasCoordinate=false', '?gadmGid=USA.46_1'];
 
+console.dir(qrys);
+
 //parse rootPredicate into an array of http query parameters for combined and iterative calls to API here
 export function predicateToQueries(rootPredicate=[]) {
   let qrys = [];

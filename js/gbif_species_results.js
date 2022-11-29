@@ -20,14 +20,15 @@ var qParm = objUrlParams.get('q');
 var offset = objUrlParams.get('offset'); offset = Number(offset) ? Number(offset) : 0;
 var limit = objUrlParams.get('limit'); limit = Number(limit) ? Number(limit) : 20;
 var rank =  objUrlParams.get('rank'); rank = rank ? rank.toUpperCase() : 'ALL';
-var count = 0; //this is set after loading data
+var qField =  objUrlParams.get('qField'); qField = qField ? qField.toUpperCase() : 'ALL';
+var count = 0; //this is set elsewhere after loading data. initialize here.
 var page = offset / limit + 1;
-console.log('Query param q:', qParm, 'offset:', offset, 'limit:', limit, 'page:', page);
+console.log('Query param q:', qParm, 'offset:', offset, 'limit:', limit, 'page:', page, 'qField:', qField, 'Other:', other);
 
 //get other query params (there are many, and they are necessary. eg. higherTaxonRank)
 var other = ''; var objOther = {};
 objUrlParams.forEach((val, key) => {
-  if ('taxonKey'!=key && 'q'!=key && 'offset'!=key && 'limit'!=key) {
+  if ('taxonKey'!=key && 'q'!=key && 'offset'!=key && 'limit'!=key && 'qField'!=key) {
     other += `&${key}=${val}`;
     objOther[key] = val;
   }
@@ -40,6 +41,7 @@ const elePag = document.getElementById("page-number"); if (elePag) {elePag.inner
 const eleTbl = document.getElementById("species-table");
 const eleLbl = document.getElementById("search-value");
 const eleRnk = document.getElementById("taxon-rank"); if (eleRnk) {eleRnk.value =  rank;}
+const eleCto = document.getElementById("compare-to"); if (eleCto) {eleCto.value =  qField;}
 const eleSiz = document.getElementById("page-size"); if (eleSiz) {eleSiz.value =  limit;}
 const eleDwn = document.getElementById("download-progress"); if (eleDwn) {eleDwn.style.display = 'none';}
 const eleOvr = document.getElementById("download-overlay"); if (eleOvr) {eleOvr.style.display = 'none';}
@@ -101,8 +103,7 @@ async function fillRow(objSpc, objRow, rowIdx) {
       //getTaxon failed, so leave it as initialized
     }
   }
-  //try {occ = await getOccCount(key);} catch (err) {/* getOccCount failed, so leave it as initialized */}
-  //try {img = await getImgCount(key);} catch (err) {/* getImgCount failed, so leave it as initialized */}
+  //console.log('gbif_species_results::fillRow','canonicalName:', objSpc.canonicalName, 'key:', objSpc.key, 'nubKey:', objSpc.nubKey, 'combinedKey:', key);
   columns.forEach(async (colNam, colIdx) => {
     let colObj = objRow.insertCell(colIdx);
     switch(colNam) {
@@ -110,13 +111,15 @@ async function fillRow(objSpc, objRow, rowIdx) {
         let name = res[colNam] ? res[colNam] : res['scientificName'];
         //colObj.innerHTML = `<a href="${resultsUrl}?q=${name}">${name}</a>`;
         colObj.innerHTML = `<a href="${resultsUrl}?q=&higherTaxonKey=${res['key']}&higherTaxonName=${name}&higherTaxonRank=${res['rank']}">${name}</a>`;
+        //colObj.innerHTML = `<a href="${resultsUrl}?higherTaxonKey=${key}&higherTaxonName=${name}&higherTaxonRank=${res['rank']}">${name}</a>`;
         colObj.title = `List child taxa of ${name}`;
         break;
       case 'vernacularNames':
         let vnArr = res[colNam]; //array of vernacular columNames
         if (!vnArr) break;
         vnArr.forEach((ele, idx) => {
-          colObj.innerHTML += `<a href="${resultsUrl}?q=${ele.vernacularName}">${ele.vernacularName}</a>`;
+          //colObj.innerHTML += `<a href="${resultsUrl}?q=${ele.vernacularName}">${ele.vernacularName}</a>`;
+          colObj.innerHTML += `<a href="https://en.wikipedia.org/wiki/${ele.vernacularName}">${ele.vernacularName}</a>`;
           if (idx < Object.keys(vnArr).length-1) {colObj.innerHTML += ', ';}
         })
         break;
@@ -124,13 +127,17 @@ async function fillRow(objSpc, objRow, rowIdx) {
         colObj.innerHTML = res[colNam] ? `<a href="${resultsUrl}?q=${res[colNam]}">${res[colNam]}</a>` : null;
         break;
       case 'key': case 'nubKey': case 'parentKey':
-        colObj.innerHTML = res[colNam] ? `<a href="${resultsUrl}?taxonKey=${res[colNam]}">${res[colNam]}</a>` : null;
+        //colObj.innerHTML = res[colNam] ? `<a href="${resultsUrl}?taxonKey=${res[colNam]}">${res[colNam]}</a>` : null;
+        let tNam = res.canonicalName ? res.canonicalName : res.scientificName;
+        colObj.innerHTML = `<a href="${resultsUrl}?q=&higherTaxonKey=${res[colNam]}&higherTaxonName=${tNam}&higherTaxonRank=${res['rank']}">${res[colNam]}</a>`;
+        colObj.title = `List child taxa of taxon '${tNam}' with key ${res[colNam]}`;
         break;
       case 'higherClassificationMap':
         let tree = res[colNam]; //object of upper taxa like {123456:Name,234567:Name,...}
         if (!tree) break;
         Object.keys(tree).forEach((key, idx) => {
-          colObj.innerHTML += `<a href="${resultsUrl}?q=${tree[key]}">${tree[key]}</a>`;
+          //colObj.innerHTML += `<a href="${resultsUrl}?q=${tree[key]}">${tree[key]}</a>`;
+          colObj.innerHTML += `<a href="https://en.wikipedia.org/wiki/${tree[key]}">${tree[key]}</a>`; //wikipedia link, instead
           if (idx < Object.keys(tree).length-1) {colObj.innerHTML += ', ';}
         })
         break;
@@ -169,14 +176,19 @@ function getChildKeys(key) {
     return `taxonKey=1&taxonKey=100&taxonKey=1000`;
 }
 
-//get a GBIF taxon from the species API by taxonKey
-// return a single object with taxon keys like canonicalName
+/*
+  Get a GBIF taxon from the species API by taxonKey
+  return a single object for a single GBIF taxonKey.
+  This endpoint provides different values than the
+  /species/search endpoint. dataSetKey is moot here,
+  and we don't get vernacularNames.
+  eg.
+*/
 async function getTaxon(key) {
   let reqHost = gbifApi;
   let reqRoute = "/species/";
   let reqValue = key;
-  let reqFilter = `?datasetKey=${datasetKey}&advanced=1${other}`;
-  let url = reqHost+reqRoute+reqValue+reqFilter;
+  let url = reqHost+reqRoute+reqValue;
   let enc = encodeURI(url);
 
   try {
@@ -282,12 +294,13 @@ export async function getDatasetInfo(datasetKey) {
   }
 }
 
-export function SamePage(newParm=qParm, newLimit=limit, newOffset=offset, newOther=other) {
+export function SamePage(newParm=qParm, newLimit=limit, newOffset=offset, newQField=qField, newOther=other) {
   qParm = newParm;
   limit = newLimit;
   offset = newOffset;
+  qField = newQField;
   other = newOther;
-  window.location.assign(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}${other}`);
+  window.location.assign(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}&qField=${qField}${other}`);
 }
 export function PrevPage() {
   if (offset > 0) {
@@ -319,13 +332,13 @@ if (document.getElementById("results_search")) {
     document.getElementById("results_search").addEventListener("keypress", function(e) {
       if (e.which == 13) {
         let newParm = document.getElementById("results_search").value;
-        SamePage(newParm, limit, 0, ""); //new search - remove otherParms, go to page 0, but keep user-defined limit
+        SamePage(newParm, limit, 0, qField, ""); //new search - remove otherParms, go to page 0, but keep user-defined limit
       }
     });}
 if (document.getElementById("results_search_button")) {
     document.getElementById("results_search_button").addEventListener("mouseup", function(e) {
       let newParm = document.getElementById("results_search").value;
-      SamePage(newParm, limit, 0, ""); //new search - remove otherParms, go to page 0, but keep user-defined limit
+      SamePage(newParm, limit, 0, qField, ""); //new search - remove otherParms, go to page 0, but keep user-defined limit
     });}
 if (document.getElementById("taxon-rank")) {
     document.getElementById("taxon-rank").addEventListener("change", function(e) {
@@ -338,7 +351,14 @@ if (document.getElementById("taxon-rank")) {
         delete objOther.rank;
       }
       Object.keys(objOther).forEach(key => {newOther += `&${key}=${objOther[key]}`;}) //rebuild 'other' list from 'other' object
-      SamePage(qParm, limit, 0, newOther);
+      SamePage(qParm, limit, 0, qField, newOther);
+    });}
+if (document.getElementById("compare-to")) {
+    document.getElementById("compare-to").addEventListener("change", function(e) {
+      let newCompare = document.getElementById("compare-to").value;
+      console.log('compare-to change to', newCompare);
+      if ("ALL" == newCompare) {newCompare = '';}
+      SamePage(qParm, limit, 0, newCompare);
     });}
 if (document.getElementById("page-size")) {
     document.getElementById("page-size").addEventListener("change", function(e) {
@@ -372,11 +392,11 @@ if (document.getElementById("download-csv")) {
     });}
 
 //using search term and other query parameters, download all species data by page and concatenate into a single array of objects
-async function getAllDataPages(q=qParm, l=limit, o=other) {
+async function getAllDataPages(q=qParm, lim=limit, qf=qField, oth=other) {
   var res = []; var page = {}; var off = 0;
   eleDwn.style.display = 'block'; eleOvr.style.display = 'block';
   do {
-    page = await speciesSearch(q, off, l, o);
+    page = await speciesSearch(q, off, lim, qf, oth);
     res = res.concat(page.results);
     console.log('getAllDataPages', res.length, page.results.length, page.count);
     off += limit;
@@ -443,7 +463,7 @@ if (eleTbl) { //results are displayed in a table with id="species-table". we nee
     if (!qParm) {qParm = "";}
     if ("" === qParm && !other) {other='&rank=KINGDOM'; objOther={'rank':'KINGDOM'}; eleRnk.value='KINGDOM';}
     try {
-      let spcs = await speciesSearch(qParm, offset, limit, other);
+      let spcs = await speciesSearch(qParm, offset, limit, qField, other);
       count = spcs.count;
       await addTaxaFromArr(spcs.results);
       await addHead();

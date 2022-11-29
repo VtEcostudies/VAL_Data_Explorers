@@ -25,7 +25,7 @@ console.log('Results URL:', resultsUrl);
 
   NOTE: otherParms must be in the form '&key=value&key=value&...'
 */
-export async function speciesSearch(searchTerm="", offset=0, limit=20, otherParms='') {
+export async function speciesSearch(searchTerm="", offset=0, limit=20, qField='', otherParms='') {
 
   let s = searchTerm.split("&"); //allow searchTerm inline query params delmited by &
   for (var i=1;i<s.length;i++) {otherParms += "&" + s[i];}
@@ -36,8 +36,9 @@ export async function speciesSearch(searchTerm="", offset=0, limit=20, otherParm
   let reqQuery = searchTerm?`?q=${searchTerm}&`:'?';
   //let reqFilter = `&datasetKey=${datasetKey}${otherParms}`;
   let reqFilter = speciesFilter;
+  let reqQfield = `&qField=${qField}`; //compare the searchTerm to just this field (SCIENTIFIC, VERNACULAR, DESCRIPTION)
   let reqSize = `&offset=${offset}&limit=${limit}`;
-  let url = reqHost+reqRoute+reqQuery+reqFilter+otherParms+reqSize;
+  let url = reqHost+reqRoute+reqQuery+reqFilter+reqQfield+otherParms+reqSize;
   let enc = encodeURI(url);
 
   console.log(`speciesSearch(${searchTerm})`, enc);

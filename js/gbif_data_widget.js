@@ -3,6 +3,7 @@
 */
 
 import { dataConfig } from './gbif_data_config.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_widget.js"></script>
+import { townsBasemap } from './gbif_vt_town_tile.js';
 
 var widgetLocale = 'en';
 
@@ -77,6 +78,18 @@ var maps = {
     MERCATOR: ['NATURAL', 'SATELLITE', 'BRIGHT', 'DARK'],
     PLATE_CAREE: ['NATURAL', 'BRIGHT', 'DARK']
   },
+  addMapStyles: function ({ mapComponents }) { // Add your custom style
+    return {
+      MERCATOR_TOWNS: {
+        component: mapComponents.OpenlayersMap,
+        labelKey: 'Towns', // the label displayed in the layer selector
+        mapConfig: {
+          basemapStyle: townsBasemap, //try a local var from local file-include!? `http://the_place_you_host_your_tilejson.com/townsBasemap.json`,
+          projection: 'EPSG_3857'
+        }
+      }
+    }
+  }
 }
 
 ReactDOM.render(

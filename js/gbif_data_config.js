@@ -39,8 +39,8 @@ console.log('gbif_data_config.js | resultsUrl', resultsUrl);
 //const apiColumns = ['key','nubKey','canonicalName','scientificName','vernacularName','rank','taxonomicStatus','synonym','parentKey','parent','occurrences','images'];
 const columns = ['canonicalName','vernacularNames','rank','taxonomicStatus','higherClassificationMap','occurrences','images'];
 const columNames = {
-  'key':'GBIF Key',
-  'nubKey':'GBIF Nub Key',
+  'key':'Set Key',
+  'nubKey':'Nub Key',
   'canonicalName':'Scientific Name',
   'vernacularNames':'Common Names',
   'rank':'Rank',
