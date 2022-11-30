@@ -37,17 +37,18 @@ console.log('gbif_data_config.js | urlRout', urlRout);
 console.log('gbif_data_config.js | exploreUrl', exploreUrl);
 console.log('gbif_data_config.js | resultsUrl', resultsUrl);
 //const allColumns = ['key','nubKey','canonicalName','scientificName','vernacularName','rank','taxonomicStatus','synonym','parentKey','parent','occurrences','images','childTaxa'];
-const columns = ['canonicalName','childTaxa','vernacularNames','rank','taxonomicStatus','parentTaxa','occurrences','images']; //these are the columns that will be shown
+const columns = ['canonicalName','vernacularNames','rank','taxonomicStatus','childTaxa','parentTaxa','occurrences','images']; //these are the columns that will be shown
 const columNames = {
   'key':'Set Key', //as-in 'dataSet Key'
   'nubKey':'Nub Key',
-  'canonicalName':'Scientific Name',
+  'scientificName': 'Scientific Name',
+  'canonicalName':'Name',
   'childTaxa': 'Child Taxa',
   'vernacularNames':'Common Names',
   'rank':'Rank',
   'taxonomicStatus':'Status',
   'parent':'Parent Name',
-  'parentTaxa': 'Taxa Tree',
+  'parentTaxa': 'Parent Taxa',
   'higherClassificationMap':'Parent Taxa',
   'occurrences':'Occurrences',
   'images':'Images'
