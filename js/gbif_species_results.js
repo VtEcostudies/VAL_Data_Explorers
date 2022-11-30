@@ -7,8 +7,8 @@ const datasetKey = dataConfig.datasetKey; //'0b1735ff-6a66-454b-8686-cae1cbc732a
 const gadmGid = dataConfig.gadmGid; //'USA.46_1';
 const exploreUrl = dataConfig.exploreUrl;
 const resultsUrl = dataConfig.resultsUrl;
-const columns = dataConfig.columns; //['canonicalName','vernacularNames','rank','taxonomicStatus','higherClassificationMap','occurrences'];
-const columNames = dataConfig.columNames; //{'key':'GBIF Key', 'nubKey':'GBIF Nub Key', 'canonicalName':'Scientific Name', 'vernacularNames':'Common Names', 'rank':'Rank', 'taxonomicStatus':'Status', 'parent':'Parent Name', 'higherClassificationMap':'Parent Taxa', 'occurrences':'Occurrences'};
+const columns = dataConfig.columns;
+const columNames = dataConfig.columNames;
 const nFmt = new Intl.NumberFormat(); //use this to format numbers by locale... automagically
 const objUrlParams = new URLSearchParams(window.location.search);
 
@@ -48,6 +48,22 @@ const eleDwn = document.getElementById("download-progress"); if (eleDwn) {eleDwn
 const eleOvr = document.getElementById("download-overlay"); if (eleOvr) {eleOvr.style.display = 'none';}
 //const eleInf = document.getElementById("information-overlay"); if (eleInf) {eleInf.style.display = 'none';}
 
+const modalDiv = document.createElement("div");
+modalDiv.id = "divModal";
+modalDiv.className = "modal-div";
+modalDiv.onclick = function() {modalDiv.style.display = "none";}
+document.body.appendChild(modalDiv);
+const modalSpn = document.createElement("span");
+modalSpn.className = "modal-close";
+modalSpn.innerHTML = "&times";
+const modalCap = document.createElement("div");
+modalCap.id = "capModal";
+modalDiv.appendChild(modalCap);
+const modalImg = document.createElement("img")
+modalImg.id = "imgModal";
+modalImg.className = "modal-content";
+modalDiv.appendChild(modalImg);
+  
 async function addHead() {
   let objHed = eleTbl.createTHead();
   let hedRow = objHed.insertRow(0); //just one header objRow
@@ -161,11 +177,22 @@ async function fillRow(objSpc, objRow, rowIdx) {
         } catch (err) {/* getOccCount failed, so leave it as initialized */}
         //colObj.innerHTML += `<a href="${exploreUrl}?${getChildKeys(key)}&view=MAP">+</a>`;
         break;
-      case 'images':
+      case 'iconImage':
         try {
           wik = await getWikiPage(name);
-          colObj.innerHTML += `<img src="${wik.thumbnail.source}" alt="${name}" width="30" height="30">`;
+          let iconImg = document.createElement("img");
+          //iconImg.src = wik.originalimage.source;
+          iconImg.src = wik.thumbnail.source;
+          iconImg.alt = name;
+          iconImg.className = "icon-image";
+          iconImg.width = "30"; 
+          iconImg.height = "30";
+          iconImg.onclick = function() {modalDiv.style.display = "block"; modalImg.src = wik.originalimage.source; modalCap.innerHTML = this.alt;}
+          colObj.appendChild(iconImg);
+          //colObj.innerHTML += `<img src="${wik.thumbnail.source}" alt="${name}" width="50" height="50">`;
         } catch(err) {/* console errors in getWikiPage */}
+        break;
+      case 'images':
         try {
           img = await getImgCount(key);
           colObj.innerHTML += `<a href="${exploreUrl}?taxonKey=${key}&view=GALLERY">${nFmt.format(img.count)}</a>`;

@@ -36,8 +36,8 @@ console.log('gbif_data_config.js | urlPath', urlPath);
 console.log('gbif_data_config.js | urlRout', urlRout);
 console.log('gbif_data_config.js | exploreUrl', exploreUrl);
 console.log('gbif_data_config.js | resultsUrl', resultsUrl);
-//const allColumns = ['key','nubKey','canonicalName','scientificName','vernacularName','rank','taxonomicStatus','synonym','parentKey','parent','occurrences','images','childTaxa'];
-const columns = ['canonicalName','vernacularNames','rank','taxonomicStatus','childTaxa','parentTaxa','occurrences','images']; //these are the columns that will be shown
+//const allColumns = ['key','nubKey','canonicalName','scientificName','vernacularName','rank','taxonomicStatus','synonym','parentKey','parent','occurrences','images','childTaxa','iconImage'];
+const columns = ['canonicalName','vernacularNames','rank','taxonomicStatus','childTaxa','parentTaxa','iconImage','occurrences','images']; //these are the columns that will be shown
 const columNames = {
   'key':'Set Key', //as-in 'dataSet Key'
   'nubKey':'Nub Key',
@@ -50,6 +50,7 @@ const columNames = {
   'parent':'Parent Name',
   'parentTaxa': 'Parent Taxa',
   'higherClassificationMap':'Parent Taxa',
+  'iconImage': '',
   'occurrences':'Occurrences',
   'images':'Images'
 };

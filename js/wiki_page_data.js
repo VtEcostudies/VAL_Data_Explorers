@@ -17,7 +17,7 @@ export async function getWikiPage(searchTerm=false) {
         let res = await fetch(enc);
         let json = await res.json();
         json.query = enc;
-        console.log(`getWikiPage(${searchTerm}) RESULT:`, json);
+        //console.log(`getWikiPage(${searchTerm}) RESULT:`, json);
         return json;
     } catch (err) {
         err.query = enc;
