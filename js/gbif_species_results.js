@@ -143,6 +143,15 @@ async function fillRow(objSpc, objRow, rowIdx) {
           if (idx < Object.keys(tree).length-1) {colObj.innerHTML += ', ';}
         })
         break;
+      case 'parentTaxa':
+        if (res.kingdom) {colObj.innerHTML += `<a title="Species Explorer: Kingdom ${res.kingdom}" href="${resultsUrl}?q=${res.kindom}">${res.kingdom}</a>`;}
+        if (res.phylum) {colObj.innerHTML += `, <a title="Species Explorer: ${res.phylum}" href="${resultsUrl}?q=${res.phylum}">${res.phylum}</a>`;}
+        if (res.class) {colObj.innerHTML += `, <a title="Species Explorer: ${res.class}" href="${resultsUrl}?q=${res.class}">${res.class}</a>`;}
+        if (res.order) {colObj.innerHTML += `, <a title="Species Explorer: ${res.order}" href="${resultsUrl}?q=${res.order}">${res.order}</a>`;}
+        if (res.family) {colObj.innerHTML += `, <a title="Species Explorer: ${res.family}" href="${resultsUrl}?q=${res.family}">${res.family}</a>`;}
+        if (res.genus) {colObj.innerHTML += `, <a title="Species Explorer: ${res.genus}" href="${resultsUrl}?q=${res.genus}">${res.genus}</a>`;}
+        if (res.species) {colObj.innerHTML += `, <a title="Species Explorer: ${res.species}}" href="${resultsUrl}?q=${res.species}">${res.species}</a>`;}
+        break;
       case 'occurrences': //to-do: break higher-level taxa into child keys for distinct display
         try {
           occ = await getOccCount(key);
