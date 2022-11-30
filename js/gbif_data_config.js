@@ -36,12 +36,13 @@ console.log('gbif_data_config.js | urlPath', urlPath);
 console.log('gbif_data_config.js | urlRout', urlRout);
 console.log('gbif_data_config.js | exploreUrl', exploreUrl);
 console.log('gbif_data_config.js | resultsUrl', resultsUrl);
-//const apiColumns = ['key','nubKey','canonicalName','scientificName','vernacularName','rank','taxonomicStatus','synonym','parentKey','parent','occurrences','images'];
-const columns = ['canonicalName','vernacularNames','rank','taxonomicStatus','higherClassificationMap','occurrences','images'];
+//const allColumns = ['key','nubKey','canonicalName','scientificName','vernacularName','rank','taxonomicStatus','synonym','parentKey','parent','occurrences','images','childTaxa'];
+const columns = ['canonicalName','childTaxa','vernacularNames','rank','taxonomicStatus','higherClassificationMap','occurrences','images']; //these are the columns that will be shown
 const columNames = {
-  'key':'Set Key',
+  'key':'Set Key', //as-in 'dataSet Key'
   'nubKey':'Nub Key',
   'canonicalName':'Scientific Name',
+  'childTaxa': 'Child Taxa',
   'vernacularNames':'Common Names',
   'rank':'Rank',
   'taxonomicStatus':'Status',
