@@ -1,5 +1,6 @@
 import { dataConfig } from './gbif_data_config.js';
 import { speciesSearch } from './gbif_species_search.js'; //NOTE: importing just a function includes the entire module
+import { getWikiPage } from './wiki_page_data.js'
 
 const gbifApi = dataConfig.gbifApi; //"https://api.gbif.org/v1";
 const datasetKey = dataConfig.datasetKey; //'0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
@@ -94,6 +95,7 @@ async function fillRow(objSpc, objRow, rowIdx) {
   var key = objSpc.nubKey ? objSpc.nubKey : objSpc.key;
   var res = objSpc;
   var occ,img = {count: 'n/a'}; //initialize these to valid objects in case GETs, below, fail
+  var wik = {}; //wikipedia page
   if (objSpc.taxonKey) { //search by query param taxonKey
     key = objSpc.taxonKey;
     try {
@@ -161,8 +163,12 @@ async function fillRow(objSpc, objRow, rowIdx) {
         break;
       case 'images':
         try {
+          wik = await getWikiPage(name);
+          colObj.innerHTML += `<img src="${wik.thumbnail.source}" alt="${name}" width="30" height="30">`;
+        } catch(err) {/* console errors in getWikiPage */}
+        try {
           img = await getImgCount(key);
-          colObj.innerHTML = `<a href="${exploreUrl}?taxonKey=${key}&view=GALLERY">${nFmt.format(img.count)}</a>`;
+          colObj.innerHTML += `<a href="${exploreUrl}?taxonKey=${key}&view=GALLERY">${nFmt.format(img.count)}</a>`;
         } catch (err) {/* getImgCount failed, so leave it as initialized */}
         break;
       case 'taxonomicStatus':
