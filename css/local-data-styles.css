@@ -61,7 +61,8 @@ Before deployment:
   transform: translate(-50%, -50%);
   z-index: 1200;
 }
-.download-progress{
+.download-progress {
+  display: none;
   position: relative;
   background-color: green;
   color: white;
