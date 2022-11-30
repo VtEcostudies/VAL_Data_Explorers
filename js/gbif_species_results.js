@@ -156,6 +156,13 @@ async function fillRow(objSpc, objRow, rowIdx) {
           colObj.innerHTML = `<a href="${exploreUrl}?taxonKey=${key}&view=GALLERY">${nFmt.format(img.count)}</a>`;
         } catch (err) {/* getImgCount failed, so leave it as initialized */}
         break;
+      case 'taxonomicStatus':
+        if (res.accepted) {
+          colObj.innerHTML += `<a title="Species Explorer ACCEPTED name: ${res.accepted}" href="${resultsUrl}?q=${res.accepted}">${res[colNam]}</a>`;
+        } else {
+          colObj.innerHTML = res[colNam] ? res[colNam] : null;
+        }
+        break;
       default:
         colObj.innerHTML = res[colNam] ? res[colNam] : null;
         break;
