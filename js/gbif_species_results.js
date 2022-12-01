@@ -21,6 +21,7 @@ var qParm = objUrlParams.get('q');
 var offset = objUrlParams.get('offset'); offset = Number(offset) ? Number(offset) : 0;
 var limit = objUrlParams.get('limit'); limit = Number(limit) ? Number(limit) : 20;
 var rank =  objUrlParams.get('rank'); rank = rank ? rank.toUpperCase() : 'ALL';
+var status =  objUrlParams.get('status'); status = status ? status.toUpperCase() : 'ALL';
 var qField =  objUrlParams.get('qField'); qField = qField ? qField.toUpperCase() : 'ALL';
 var count = 0; //this is set elsewhere after loading data. initialize here.
 var page = offset / limit + 1;
@@ -42,6 +43,7 @@ const elePag = document.getElementById("page-number"); if (elePag) {elePag.inner
 const eleTbl = document.getElementById("species-table");
 const eleLbl = document.getElementById("search-value");
 const eleRnk = document.getElementById("taxon-rank"); if (eleRnk) {eleRnk.value =  rank;}
+const eleSts = document.getElementById("taxon-status"); if (eleSts) {eleSts.value =  status;}
 const eleCto = document.getElementById("compare-to"); if (eleCto) {eleCto.value =  qField;}
 const eleSiz = document.getElementById("page-size"); if (eleSiz) {eleSiz.value =  limit;}
 const eleDwn = document.getElementById("download-progress"); if (eleDwn) {eleDwn.style.display = 'none';}
@@ -404,14 +406,27 @@ if (document.getElementById("taxon-rank")) {
       Object.keys(objOther).forEach(key => {newOther += `&${key}=${objOther[key]}`;}) //rebuild 'other' list from 'other' object
       SamePage(qParm, limit, 0, qField, newOther);
     });}
-if (document.getElementById("compare-to")) {
-    document.getElementById("compare-to").addEventListener("change", function(e) {
-      let newCompare = document.getElementById("compare-to").value;
-      console.log('compare-to change to', newCompare);
-      if ("ALL" == newCompare) {newCompare = '';}
-      SamePage(qParm, limit, 0, newCompare);
+if (document.getElementById("taxon-status")) {
+    document.getElementById("taxon-status").addEventListener("change", function(e) {
+      let newStatus = document.getElementById("taxon-status").value;
+      console.log('taxon-status change to', newStatus);
+      var newOther = "";
+      if ("ALL" != newStatus) { //now we have to search the extant 'other' args for 'status' and replace it...
+        objOther.status = newStatus; //just assign it in the object version of 'other' - this adds or replaces 'status'
+      } else {
+        delete objOther.status;
+      }
+      Object.keys(objOther).forEach(key => {newOther += `&${key}=${objOther[key]}`;}) //rebuild 'other' list from 'other' object
+      SamePage(qParm, limit, 0, qField, newOther);
     });}
-if (document.getElementById("page-size")) {
+if (document.getElementById("compare-to")) {
+  document.getElementById("compare-to").addEventListener("change", function(e) {
+    let newCompare = document.getElementById("compare-to").value;
+    console.log('compare-to change to', newCompare);
+    if ("ALL" == newCompare) {newCompare = '';}
+    SamePage(qParm, limit, 0, newCompare);
+  });}
+  if (document.getElementById("page-size")) {
     document.getElementById("page-size").addEventListener("change", function(e) {
       let newLimit = document.getElementById("page-size").value;
       console.log('page-size change to', newLimit);

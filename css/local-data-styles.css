@@ -21,12 +21,16 @@ Before deployment:
 #search-term {margin-top:8px;}
 .pagination li {cursor:pointer;}
 #taxon-rank {
-    padding: 0px 0px;
-    width: 105px;
+  padding: 0px 0px;
+  width: 105px;
+}
+#taxon-status {
+  padding: 0px 0px;
+  width: 90px;
 }
 #compare-to {
-    padding: 0px 0px;
-    width: 80px;
+  padding: 0px 0px;
+  width: 80px;
 }
 #page-size {
   padding: 0px 0px;
@@ -40,6 +44,10 @@ Before deployment:
 }
 .page-list {
   line-height: 12px;
+}
+#download-csv, #download-json, #flag-issue {
+  padding: 2px;
+  margin: 0px;
 }
 #download-overlay {
   position: fixed;

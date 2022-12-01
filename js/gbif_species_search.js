@@ -123,13 +123,13 @@ export async function speciesMatchLoadExplorer(searchValue=null) {
   if (mRes.usageKey) { //successful match API results always have usageKey (aka nubKey?)
     if (frame) {frame.scrollIntoView(); frame.src = `${gbifPortal}/occurrence/search/?taxonKey=${mRes.result.usageKey}&view=MAP`;}
     else {
-      await window.location.assign(`${exploreUrl}?taxonKey=${mRes.result.usageKey}&view=MAP`);
+      window.location.assign(`${exploreUrl}?taxonKey=${mRes.result.usageKey}&view=MAP`);
       if (react) react.scrollIntoView();
     }
   } else { //send raw text for search
     if (frame) {frame.scrollIntoView(); frame.src = `${gbifPortal}/occurrence/search/?q=${searchValue}&view=MAP`;}
     else {
-      await window.location.assign(`${exploreUrl}?q=${searchValue}&view=MAP`);
+      window.location.assign(`${exploreUrl}?q=${searchValue}&view=MAP`);
       if (react) react.scrollIntoView();
     }
   }
