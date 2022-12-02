@@ -272,15 +272,68 @@ const config = {
           Pieridae: https://www.gbif.org/species/5481
           Riodinidae: https://www.gbif.org/species/1933999
        */
-        {"type": "equals","key": "taxonKey","value": "6953"},
-        {"type": "equals","key": "taxonKey","value": "5473"},
-        {"type": "equals","key": "taxonKey","value": "7017"},
-        {"type": "equals","key": "taxonKey","value": "9417"},
-        {"type": "equals","key": "taxonKey","value": "5481"},
-        {"type": "equals","key": "taxonKey","value": "1933999"}
+        {"type":"equals", "key":"taxonKey", "value":"6953"},
+        {"type":"equals", "key":"taxonKey", "value":"5473"},
+        {"type":"equals", "key":"taxonKey", "value":"7017"},
+        {"type":"equals", "key":"taxonKey", "value":"9417"},
+        {"type":"equals", "key":"taxonKey", "value":"5481"},
+        {"type":"equals", "key":"taxonKey", "value":"1933999"}
       ]
     }
-  }
+  },
+  vtb: { //VT Checklist of Butterflies
+    atlasPlace: 'Vermont Butterfly',
+    atlasName: 'VT Checklist of Butterflies',
+    atlasAbbrev: 'VTB',
+    helpDeskUrl: false,
+    thisUrl: thisUrl,
+    hostUrl: hostUrl,
+    exploreUrl: exploreUrl,
+    resultsUrl: resultsUrl,
+    literatUrl: literatUrl,
+    publishUrl: publishUrl,
+    gbifPortal: false,
+    gbifApi: "https://api.gbif.org/v1", //this should not change at all
+    gadmGid: '', //leave blank if N/A
+    datasetKey: '73eb16f0-4b06-4347-8069-459bc2d96ddb', //Species Dataset Key
+    speciesFilter: 'datasetKey=73eb16f0-4b06-4347-8069-459bc2d96ddb', //Filter to use for species
+    publishingOrgKey: 'b6d09100-919d-4026-b35b-22be3dae7156', //VCE key
+    occurrenceFilter: 'gadm_gid=USA.46_1', //leave blank if scope is world - this is used in speciesExplorer for each taxonKey - it can be geographic limit or a publishingOrg
+    columns: ['key','nubKey','canonicalName','vernacularNames','rank','taxonomicStatus','childTaxa','parentTaxa','iconImage','occurrences','images'], //these are the columns that will be shown    columNames: columNames,
+    columNames: columNames,
+    mapSettings: {
+      lat: 43.9,
+      lng: -72.6,
+      zoom: 7.75
+    },
+    rootPredicate: {
+      type: 'or', //currently the only supported type
+      predicates: [
+        {
+          "type": "and",
+          "predicates": [
+            {
+              "type": "equals",
+              "key": "gadmGid",
+              "value": "USA.46_1"
+            },
+            {
+              "type": "in",
+              "key": "taxonKey",
+              "values": [
+                "6953",
+                "5473",
+                "7017",
+                "9417",
+                "5481",
+                "1933999"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
 }
 
 export const dataConfig = config[siteConfig.siteName];
