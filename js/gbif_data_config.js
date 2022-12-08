@@ -14,30 +14,37 @@ const urlPath = thisUrl.pathname;
 var urlRouts = urlPath.split('/'); //path contains route and file
 console.log('gbif_data_config.js | urlRouts', urlRouts);
 //WordPress use routes to pages, defined by the user. See eg. page-species-explorer-2022.php. etc.
+var baseRoute = '/'; //Default. VAL WordPress has no baseRoute beyond host. Endpoints are routes mapped to pages withing WordPress.
 var exploreEnd = 'gbif-explorer'; //occurrences
 var resultsEnd = 'gbif-species-explorer';
 var literatEnd = 'gbif-literature-explorer';
 var publishEnd = 'gbif-publishers';
-if ('vtatlasoflife.org' == hostUrl || 'localhost' == hostUrl) { //test sites use html
+if ('vtatlasoflife.org' == hostUrl || 'localhost' == hostUrl) { //test sites use html for endpoints and has site-specific routing
+  baseRoute = urlRouts.splice(0, urlRouts.length-1).join('/'); //remove the html file from the route and use what's left to build URLs for page links in code
   exploreEnd = 'occurrences.html';
   resultsEnd = 'results.html';
   literatEnd = 'literature.html';
   publishEnd = 'publishers.html';
 }
+/*
 var urlRout = '';
 if (urlRouts[urlRouts.length-1].includes('.htm')) {urlRout = urlRouts.splice(0, urlRouts.length-1).join('/');}
 else if (urlRouts[urlRouts.length-1].includes('gbif-'))  {urlRout = urlRouts.splice(0, urlRouts.length-1).join('/');}
 else {urlRout = urlRouts.splice(0, urlRouts.length).join('/');}
 if (!urlRout.endsWith('/')) {urlRout += '/';}
-const exploreUrl = `${thisUrl.protocol}//${hostUrl}${urlRout}${exploreEnd}`;
-const resultsUrl = `${thisUrl.protocol}//${hostUrl}${urlRout}${resultsEnd}`;
-const literatUrl = `${thisUrl.protocol}//${hostUrl}${urlRout}${literatEnd}`;
-const publishUrl = `${thisUrl.protocol}//${hostUrl}${urlRout}${publishEnd}`;
+*/
+if (!baseRoute.endsWith('/')) {baseRoute += '/';}
+const exploreUrl = `${thisUrl.protocol}//${hostUrl}${baseRoute}${exploreEnd}`;
+const resultsUrl = `${thisUrl.protocol}//${hostUrl}${baseRoute}${resultsEnd}`;
+const literatUrl = `${thisUrl.protocol}//${hostUrl}${baseRoute}${literatEnd}`;
+const publishUrl = `${thisUrl.protocol}//${hostUrl}${baseRoute}${publishEnd}`;
 console.log('gbif_data_config.js | hostUrl', hostUrl);
 console.log('gbif_data_config.js | urlPath', urlPath);
-console.log('gbif_data_config.js | urlRout', urlRout);
+console.log('gbif_data_config.js | baseRoute', baseRoute);
 console.log('gbif_data_config.js | exploreUrl', exploreUrl);
 console.log('gbif_data_config.js | resultsUrl', resultsUrl);
+console.log('gbif_data_config.js | literatUrl', literatUrl);
+console.log('gbif_data_config.js | publishUrl', publishUrl);
 //const allColumns = ['key','nubKey','canonicalName','scientificName','vernacularName','rank','taxonomicStatus','synonym','parentKey','parent','occurrences','images','childTaxa','iconImage'];
 const columns = ['canonicalName','vernacularNames','rank','taxonomicStatus','childTaxa','parentTaxa','iconImage','occurrences','images']; //these are the columns that will be shown
 const columNames = {

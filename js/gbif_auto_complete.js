@@ -1,6 +1,6 @@
 import { dataConfig } from './gbif_data_config.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_widget.js"></script>
 
-const datasetKey = dataConfig.datasetKey; //'0b1735ff-6a66-454b-8686-cae1cbc732a2';
+const speciesDatasetKey = dataConfig.speciesDatasetKey; //'0b1735ff-6a66-454b-8686-cae1cbc732a2';
 const filterVermont = true;
 var inputElementId = null; //the Id of the text input to have autoComplete. only put one on a page, multiple is not tested.
 var listElementId = 'gbif_autocomplete_list'; //the Id of the datalist attached to the input (required)
@@ -130,7 +130,7 @@ function gbifAutoComplete(event) {
             }
         };
         var api_url = "https://api.gbif.org/v1/species/suggest?q=" + input.value;
-        if (filterVermont) {api_url = api_url + `&datasetKey=${datasetKey}&advanced=1`;}
+        if (filterVermont) {api_url = api_url + `&datasetKey=${speciesDatasetKey}&advanced=1`;}
         if (document.getElementById('api_query')) {document.getElementById('api_query').innerHTML=api_url;}
         //console.log(`GBIF Species-suggest API query: ${api_url}`);
         window.gbifXHR.open("GET", api_url, true);
