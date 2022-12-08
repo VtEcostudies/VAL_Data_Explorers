@@ -4,7 +4,7 @@ const wikiApi = 'https://en.wikipedia.org/api/rest_v1/page/summary/';
 
 export async function getWikiPage(searchTerm=false) {
 
-    if (!searchTerm) {return {};}
+    if (!searchTerm) {console.log(`getWikiPage(${searchTerm}). Search Term is empty.`); return {};}
 
     let reqHost = wikiApi;
     let reqRoute = searchTerm;

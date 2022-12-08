@@ -13,20 +13,22 @@ const hostUrl = thisUrl.host;
 const urlPath = thisUrl.pathname;
 var urlRouts = urlPath.split('/'); //path contains route and file
 console.log('gbif_data_config.js | urlRouts', urlRouts);
-var urlRout = false;
-if (urlRouts[urlRouts.length-1].includes('.htm')) {urlRout = urlRouts.splice(0, urlRouts.length-1).join('/');}
-else {urlRout = urlRouts.splice(0, urlRouts.length).join('/');}
-if (!urlRout.endsWith('/')) {urlRout += '/';}
+//WordPress use routes to pages, defined by the user. See eg. page-species-explorer-2022.php. etc.
 var exploreEnd = 'gbif-explorer'; //occurrences
 var resultsEnd = 'gbif-species-explorer';
 var literatEnd = 'gbif-literature-explorer';
 var publishEnd = 'gbif-publishers';
-if ('vtatlasoflife.org' == hostUrl || 'localhost' == hostUrl) {
+if ('vtatlasoflife.org' == hostUrl || 'localhost' == hostUrl) { //test sites use html
   exploreEnd = 'occurrences.html';
   resultsEnd = 'results.html';
   literatEnd = 'literature.html';
   publishEnd = 'publishers.html';
 }
+var urlRout = '';
+if (urlRouts[urlRouts.length-1].includes('.htm')) {urlRout = urlRouts.splice(0, urlRouts.length-1).join('/');}
+else if (urlRouts[urlRouts.length-1].includes('gbif-'))  {urlRout = urlRouts.splice(0, urlRouts.length-1).join('/');}
+else {urlRout = urlRouts.splice(0, urlRouts.length).join('/');}
+if (!urlRout.endsWith('/')) {urlRout += '/';}
 const exploreUrl = `${thisUrl.protocol}//${hostUrl}${urlRout}${exploreEnd}`;
 const resultsUrl = `${thisUrl.protocol}//${hostUrl}${urlRout}${resultsEnd}`;
 const literatUrl = `${thisUrl.protocol}//${hostUrl}${urlRout}${literatEnd}`;
@@ -70,8 +72,8 @@ const config = {
     gbifPortal: 'https://hp-vtatlasoflife.gbif.org',
     gbifApi: "https://api.gbif.org/v1", //this should not change at all
     gadmGid: 'USA.46_1', //'Vermont' GADM administrative bounding region
-    datasetKey: '0b1735ff-6a66-454b-8686-cae1cbc732a2', //Species Dataset Key
-    speciesFilter: 'datasetKey=0b1735ff-6a66-454b-8686-cae1cbc732a2', //this replaces the above in speciesSearch
+    speciesDatasetKey: '0b1735ff-6a66-454b-8686-cae1cbc732a2', //Species Dataset Key
+    speciesFilter: 'datasetKey=0b1735ff-6a66-454b-8686-cae1cbc732a2', //this replaces the above in speciesSearch so it can be something else
     publishingOrgKey: 'b6d09100-919d-4026-b35b-22be3dae7156', //VCE key
     occurrenceDatasetKey: '', //New idea from eButterfly config NOT implemented yet
     occurrenceFilter: 'gadm_gid=USA.46_1',
@@ -136,7 +138,7 @@ const config = {
     gbifPortal: false,
     gbifApi: "https://api.gbif.org/v1", //this should not change at all
     gadmGid: 'USA.22.4_1', //'Dukes County, MA' GADM administrative bounding region
-    datasetKey: '298a29ef-a66a-4330-93a1-ea59482e25d9', //Martha's Vineyard Regional Species List Dataset Key
+    speciesDatasetKey: '298a29ef-a66a-4330-93a1-ea59482e25d9', //Martha's Vineyard Regional Species List Dataset Key
     speciesFilter: 'datasetKey=298a29ef-a66a-4330-93a1-ea59482e25d9', //this replaces the above in speciesSearch
     publishingOrgKey: false, //MVAL is not a GBIF Publisher. Yet.
     occurrenceDatasetKey: '', //New idea from eButterfly config NOT implemented yet
@@ -209,7 +211,7 @@ const config = {
     gbifPortal: false,
     gbifApi: "https://api.gbif.org/v1", //this should not change at all
     gadmGid: '', // World GADM administrative bounding region?
-    datasetKey: 'ad8da44f-646f-4244-a6d0-5d1085ec6984', //Species Dataset Key
+    speciesDatasetKey: 'ad8da44f-646f-4244-a6d0-5d1085ec6984', //Species Dataset Key
     speciesFilter: 'datasetKey=ad8da44f-646f-4244-a6d0-5d1085ec6984', //this replaces the above in speciesSearch
     publishingOrgKey: '7b8aff00-a9f8-11d8-944b-b8a03c50a862', //FMA publ key
     occurrenceDatasetKey: '', //New idea from eButterfly config NOT implemented yet
@@ -248,7 +250,7 @@ const config = {
     gbifPortal: false,
     gbifApi: "https://api.gbif.org/v1", //this should not change at all
     gadmGid: '', //leave blank if N/A
-    datasetKey: '', //Species Dataset Key
+    speciesDatasetKey: '', //Species Dataset Key
     speciesFilter: 'higherTaxonKey=6953&higherTaxonKey=5473&higherTaxonKey=7017&higherTaxonKey=9417&higherTaxonKey=5481&higherTaxonKey=1933999', //Filter to use if not speciesDaatasetKey
     publishingOrgKey: '', //leave blank if N/A
     occurrenceDatasetKey: 'cf3bdc30-370c-48d3-8fff-b587a39d72d6', //New idea from eButterfly config NOT implemented yet
@@ -295,7 +297,7 @@ const config = {
     gbifPortal: false,
     gbifApi: "https://api.gbif.org/v1", //this should not change at all
     gadmGid: '', //leave blank if N/A
-    datasetKey: '73eb16f0-4b06-4347-8069-459bc2d96ddb', //Species Dataset Key
+    speciesDatasetKey: '73eb16f0-4b06-4347-8069-459bc2d96ddb', //Species Dataset Key
     speciesFilter: 'datasetKey=73eb16f0-4b06-4347-8069-459bc2d96ddb', //Filter to use for species
     publishingOrgKey: 'b6d09100-919d-4026-b35b-22be3dae7156', //VCE key
     occurrenceFilter: 'gadm_gid=USA.46_1', //leave blank if scope is world - this is used in speciesExplorer for each taxonKey - it can be geographic limit or a publishingOrg

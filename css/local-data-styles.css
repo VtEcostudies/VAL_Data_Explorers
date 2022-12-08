@@ -107,6 +107,7 @@ Before deployment:
 }
 
 .icon-image {
+  min-width: 30px;
   cursor: pointer;
 }
 

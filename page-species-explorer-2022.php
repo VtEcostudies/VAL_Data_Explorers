@@ -70,13 +70,13 @@
 
   	<div class="container species-display">
 
-			<div class="row">
+      <div class="row">
 
-        <div class="col-lg-4 col-md-6 col-xs-12" id="search-term">
+    		<div class="col-lg-3 col-md-6 col-xs-12" id="search-term">
     			<label id="search-value"></label>
     		</div>
 
-        <div class="col-lg-2 col-md-6 col-xs-6">
+        <div class="col-lg-4 col-md-6 col-xs-6">
           <ul class="pagination">
             <li id="rank-list" class="page-item page-list">
               <label id="select-label">Filter by Rank</label>
@@ -93,6 +93,27 @@
                 <option value="VARIETY">Variety</option>
               </select>
             </li>
+            <li id="compare-list" class="page-item page-list">
+              <label id="select-label">Status</label>
+              <select id="taxon-status" class="page-link" title="Filter Search Results by Taxonomic Status">
+                <option value="ALL">All</option>
+                <option value="ACCEPTED">Accepted</option>
+                <option value="SYNONYM">Synonym</option>
+                <option value="DOUBTFUL">Doubtful</option>
+                <option value="HOMOTYPIC_SYNONYM">Homotypic Synonym</option>
+                <option value="HETEROTYPIC_SYNONYM">Heterotypic Synonym</option>
+                <option value="PROPARTE_SYNONYM">Proparte Synonnym</option>
+              </select>
+            </li>
+            <li id="compare-list" class="page-item page-list">
+              <label id="select-label">Compare To</label>
+              <select id="compare-to" class="page-link" title="Compare Search Term To">
+                <option value="ALL">All</option>
+                <option value="SCIENTIFIC">Scientific Name</option>
+                <option value="VERNACULAR">Common Name</option>
+                <option value="DESCRIPTION">Description</option>
+              </select>
+            </li>
             <li id="page-list" class="page-item page-list">
               <label id="select-label">Recs/page</label>
               <select id="page-size" class="page-link" title="Number of Records to Show per Page - Also Applies to Download Page-Size">
@@ -107,7 +128,7 @@
           </ul>
         </div>
 
-        <div class="col-lg-3 col-md6 col-xs-12">
+        <div class="col-lg-3 col-md-6 col-xs-12">
           <ul class="pagination">
             <li id="page-first" class="page-item"><a class="page-link">First</a></li>
             <li id="page-prev" class="page-item"><a class="page-link">Prev</a></li>
@@ -117,7 +138,7 @@
           </ul>
         </div>
 
-        <div class="col-lg-3 col-md-6 col-xs-12" id="species-download">
+        <div class="col-lg-2 col-md-4 col-xs-12" id="species-download">
           <button class="btn btn-link" id="download-csv" type="submit" title="Download CSV">
             <i class="fa fa-download" aria-hidden="true"></i>
             CSV
@@ -130,7 +151,7 @@
             href=""
             target="_blank"
             title="Flag an issue with VT Species Info"
-            >
+            > 
             <i class="fa-solid fa-flag" aria-hidden="true"></i>
           </a>
         </div>
@@ -151,7 +172,7 @@
       </div>
 
       <div id="species-results">
-  			<table id="species-table" class="table table-striped table-sm">
+  			<table id="species-table" class="table table-striped table-responsive table-sm">
         </table>
   		</div>
 

@@ -28,8 +28,8 @@ console.log('Results URL:', resultsUrl);
 export async function speciesSearch(searchTerm="", offset=0, limit=20, qField='', otherParms='') {
 
   let s = searchTerm.split("&"); //allow searchTerm inline query params delmited by &
-  for (var i=1;i<s.length;i++) {otherParms += "&" + s[i];}
-  searchTerm = s[0];
+  for (var i=1; i<s.length; i++) {otherParms += "&" + s[i];}
+  searchTerm = s[0]; //arbitrarily assign the q= search param to the first term in the list
 
   let reqHost = gbifApi;
   let reqRoute = "/species/search";

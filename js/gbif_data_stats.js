@@ -1,8 +1,10 @@
-import { dataConfig } from './gbif_data_config.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_widget.js"></script>
+import { dataConfig } from './gbif_data_config.js';
+import { speciesSearch } from './gbif_species_search.js';
 
-const datasetKey = dataConfig.datasetKey; //'0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
+const speciesDatasetKey = dataConfig.speciesDatasetKey; //'0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
 const qrys = predicateToQueries(dataConfig.rootPredicate); //['?state_province=Vermont&hasCoordinate=false', '?gadmGid=USA.46_1'];
 
+console.log('gbif_data_stats.js | rootPredicate converted to http query parameters:');
 console.dir(qrys);
 
 //parse rootPredicate into an array of http query parameters for combined and iterative calls to API here
@@ -43,7 +45,6 @@ export function predicateToQueries(rootPredicate=[]) {
   }
   return qrys;
 }
-//console.dir(qrys);
 
 var begEvent = new Event('xhttpBeg');
 var endEvent = new Event('xhttpEnd');
@@ -64,7 +65,7 @@ function occStats(reqQuery) {
     var reqRoute = "/occurrence/search";
     //var reqQuery = "?state_province=Vermont";
     var reqLimit = "&limit=0";
-    var reqAll=reqHost+reqRoute+reqQuery+reqLimit;
+    var reqAll = reqHost+reqRoute+reqQuery+reqLimit;
     var elem = document.getElementById("count-occurrences");
 
     document.dispatchEvent(begEvent);
@@ -115,9 +116,9 @@ function datasetStats(reqQuery) {
   var reqHost = "https://api.gbif.org/v1";
   var reqRoute = "/occurrence/search";
   //var reqQuery = "?state_province=Vermont"
-  var reqFacet="&facet=datasetKey&facetMincount=1&datasetKey.facetLimit=10000";
-  var reqLimit="&limit=0";
-  var reqAll=reqHost+reqRoute+reqQuery+reqFacet+reqLimit
+  var reqFacet = "&facet=datasetKey&facetMincount=1&datasetKey.facetLimit=10000";
+  var reqLimit = "&limit=0";
+  var reqAll = reqHost+reqRoute+reqQuery+reqFacet+reqLimit;
   var elem = document.getElementById("count-datasets");
 
   document.dispatchEvent(begEvent);
@@ -163,16 +164,16 @@ function datasetStats(reqQuery) {
   this is now called for each value in global array 'qrys', but here's example query:
   https://api.gbif.org/v1/occurrence/search?state_province=Vermont&limit=0&facet=scientificName&facetMincount=1&scientificName.facetOffset=0&scientificName.facetLimit=30000
 */
-function speciesStats(reqQuery) {
-  var speciesOffset = 0;//20000;
-  var speciesLimit = 1199999;//30000 for VT;
+function speciesOccStats(reqQuery) {
+  var speciesOffset = 0;;
+  var speciesLimit = 1199999; //1.2M is hard limit on facets. This won't work for large scope root predicates having more than 1.19M unique names.
   var xmlhttp = new XMLHttpRequest();
   var reqHost = "https://api.gbif.org/v1";
   var reqRoute = "/occurrence/search";
   //var reqQuery = "?state_province=Vermont"
-  var reqFacet=`&facet=scientificName&facetMincount=1&scientificName.facetOffset=${speciesOffset}&scientificName.facetLimit=${speciesLimit}`;
-  var reqLimit="&limit=0";
-  var reqAll=reqHost+reqRoute+reqQuery+reqFacet+reqLimit;
+  var reqFacet = `&facet=scientificName&facetMincount=1&scientificName.facetOffset=${speciesOffset}&scientificName.facetLimit=${speciesLimit}`;
+  var reqLimit = "&limit=0";
+  var reqAll = reqHost+reqRoute+reqQuery+reqFacet+reqLimit;
   var elem = document.getElementById("count-species");
 
   document.dispatchEvent(begEvent);
@@ -215,6 +216,23 @@ function speciesStats(reqQuery) {
 }
 
 /*
+  Get a count of accepted species and set speciesCount html element value
+  Using speciesSearch, count rank=SPECIES & status=ACCEPTED
+*/
+async function speciesStats(reqQuery="") {
+  reqQuery += '&rank=SPECIES&status=ACCEPTED';
+  let spcs = await speciesSearch(reqQuery, 0, 0);
+  let lmId = 'count-species';
+  let elem = document.getElementById(lmId);
+  console.log(`gbif_data_stats.js::speciesStats(${reqQuery})|`, spcs);
+  if (elem) {
+    elem.innerHTML = nFmt.format(spcs.count);
+  } else {
+    console.log(`HTML element id="${lmId}" NOT found.`)
+  }
+}
+
+/*
   this is now called for each value in global array 'qrys', but here's example query:
   https://api.gbif.org/v1/occurrence/search?state_province=Vermont&limit=0&facet=publishingOrg&facetMincount=1&publishingOrg.facetLimit=1000
 
@@ -226,9 +244,9 @@ function publisherOccStats(reqQuery) {
   var reqHost = "https://api.gbif.org/v1";
   var reqRoute = "/occurrence/search";
   //var reqQuery = "?state_province=Vermont"
-  var reqFacet="&facet=publishingOrg&facetMincount=1&publishingOrg.facetLimit=1000";
-  var reqLimit="&limit=0";
-  var reqAll=reqHost+reqRoute+reqQuery+reqFacet+reqLimit;
+  var reqFacet = "&facet=publishingOrg&facetMincount=1&publishingOrg.facetLimit=1000";
+  var reqLimit = "&limit=0";
+  var reqAll = reqHost+reqRoute+reqQuery+reqFacet+reqLimit;
   var elem = document.getElementById("count-publishers");
 
   document.dispatchEvent(begEvent);
@@ -357,12 +375,10 @@ function addListeners() {
           });
       }
 
-      /*
-        Respond to mouse click on Species Stats button
-      */
+      /* Respond to mouse click on Species Stats button */
       if (document.getElementById("stats-species")) {
           document.getElementById("stats-species").addEventListener("mouseup", function(e) {
-              window.location.assign(`${dataConfig.resultsUrl}?rank=SPECIES`)
+              window.location.assign(`${dataConfig.resultsUrl}?rank=SPECIES&status=ACCEPTED`)
           });
       }
 
@@ -375,6 +391,7 @@ function addListeners() {
           });
       }
 
+      /* Respond to mouse click on Publisher Stats button */
       if (document.getElementById("stats-publishers")) {
           document.getElementById("stats-publishers").addEventListener("mouseup", function(e) {
               window.open(
@@ -386,6 +403,7 @@ function addListeners() {
           });
       }
 
+      /* Respond to mouse click on Citations Stats button */
       if (document.getElementById("stats-citations")) {
           document.getElementById("stats-citations").addEventListener("mouseup", function(e) {
               window.open(
@@ -395,6 +413,7 @@ function addListeners() {
           });
       }
 
+      /* Respond to mouse click on Species Accounts Stats button */
       if (document.getElementById("stats-sp-accounts")) {
           document.getElementById("stats-sp-accounts").addEventListener("mouseup", function(e) {
               console.log('stats-sp-accounts got mouseup', e);
@@ -431,12 +450,13 @@ function setContext() {
 
 setContext();
 qrys.forEach(qry => {
-  console.log('**************Data Stats NOW QUERYING:', qry);
-  speciesStats(qry);
+  console.log('gbif_data_stats.js NOW QUERYING:', qry);
+  if (!dataConfig.speciesFilter) speciesOccStats(qry); //backup query of all unique scientificNames from occurrences
   occStats(qry);
   datasetStats(qry);
-  //publisherOccStats(qry);
+  if (!dataConfig.publishingOrKey) publisherOccStats(qry); //backup query of 
 })
+if (dataConfig.speciesFilter) {speciesStats();}
 if (dataConfig.publishingOrgKey) {publisherStats(dataConfig.publishingOrgKey);}
 otherStats(); //attempt to do this within WP user access so it can be easily edited
 addListeners();
