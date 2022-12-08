@@ -368,49 +368,42 @@ function addListeners() {
       /* Respond to mouse click on Occurrence Stats button */
       if (document.getElementById("stats-records")) {
           document.getElementById("stats-records").addEventListener("mouseup", function(e) {
-              //console.log('stats-records got mouseup', e);
-              var frame = document.getElementById("gbif_frame")
-              if (frame) {frame.scrollIntoView(); frame.src = `${gbifHost}/occurrence/search/?view=MAP`;}
-              else {window.location.assign(`${dataConfig.explorerUrl}?view=MAP`)}
+            window.location.assign(`${dataConfig.explorerUrl}?view=MAP`);
           });
       }
 
       /* Respond to mouse click on Species Stats button */
       if (document.getElementById("stats-species")) {
+          //document.getElementById("stats-species").href = `${dataConfig.resultsUrl}?rank=SPECIES&status=ACCEPTED`;
           document.getElementById("stats-species").addEventListener("mouseup", function(e) {
-              window.location.assign(`${dataConfig.resultsUrl}?rank=SPECIES&status=ACCEPTED`)
+              window.location.assign(`${dataConfig.resultsUrl}`);
           });
       }
 
       /* Respond to mouse click on Datasets Stats button */
       if (document.getElementById("stats-datasets")) {
           document.getElementById("stats-datasets").addEventListener("mouseup", function(e) {
-              var frame = document.getElementById("gbif_frame")
-              if (frame) {frame.scrollIntoView(); frame.src = `${gbifHost}/occurrence/search/?view=DATASETS`;}
-              else {window.location.assign(`${dataConfig.explorerUrl}?view=DATASETS`)}
-          });
-      }
-
-      /* Respond to mouse click on Publisher Stats button */
-      if (document.getElementById("stats-publishers")) {
-          document.getElementById("stats-publishers").addEventListener("mouseup", function(e) {
-              window.open(
-                //"https://www.gbif.org/publisher/search?q=vermont"
-                //`https://api.gbif.org/v1/occurrence/search?gadmGid=${dataConfig.gadmGid}&limit=0&facet=publishingOrg&facetMincount=1&publishingOrg.facetLimit=1000`
-                `https://api.gbif.org/v1/literature/search?contentType=literature&publishingOrganizationKey=${dataConfig.publishingOrgKey}`
-                , "_blank"
-              );
+            window.location.assign(`${dataConfig.explorerUrl}?view=DATASETS`);
           });
       }
 
       /* Respond to mouse click on Citations Stats button */
       if (document.getElementById("stats-citations")) {
           document.getElementById("stats-citations").addEventListener("mouseup", function(e) {
-              window.open(
+            /*
+            window.open(
               `https://www.gbif.org/resource/search?contentType=literature&publishingOrganizationKey=${dataConfig.publishingOrgKey}`
               , "_blank"
               );
-          });
+            */
+            });
+      }
+
+      /* Respond to mouse click on Publisher Stats button */
+      if (document.getElementById("stats-publishers")) {
+        document.getElementById("stats-publishers").addEventListener("mouseup", function(e) {
+          window.location.assign(`${dataConfig.publishUrl}`);
+        });
       }
 
       /* Respond to mouse click on Species Accounts Stats button */
