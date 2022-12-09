@@ -32,7 +32,23 @@
 
 			</a>
 
-			<a id="stats-species" class="hero-stats-item" href="<?php site_url(); ?>gbif-species-explorer?q=">
+			<a id="stats-datasets" class="hero-stats-item" href="<?php site_url(); ?>gbif-explorer?view=DATASETS">
+
+				<i class="stats-icon fa-regular fa-address-card"></i>
+
+				<div class="stats">
+
+					<span id="count-datasets" class="stats-count">
+						<i class="far fa-compass"></i>
+					</span>
+
+					<span class="stats-desc">datasets</span>
+
+				</div>
+
+			</a>
+
+			<a id="stats-species" class="hero-stats-item" href="<?php site_url(); ?>gbif-species-explorer">
 
 				<i class="stats-icon fas fa-trees"></i>
 
@@ -43,6 +59,22 @@
 					</span>
 
 					<span class="stats-desc">species</span>
+
+				</div>
+
+			</a>
+
+			<a id="stats-citations" class="hero-stats-item" href="<?php site_url(); ?>gbif-literature">
+
+				<i class="stats-icon  fa-light fa-books"></i>
+
+				<div class="stats">
+
+					<span id="count-citations" class="stats-count">
+						<i class="far fa-compass"></i>
+					</span>
+
+					<span class="stats-desc">citations</span>
 
 				</div>
 

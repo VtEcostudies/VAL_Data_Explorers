@@ -414,6 +414,10 @@ function addListeners() {
       }
 }
 
+/*
+  There are 2 sets of html elements to manipulate on the home page, 
+  counts and links. We set the counts' values and the links' hrefs.
+*/
 function setContext() {
   let homeTitle = document.getElementById("home-title")
   let countOccs = document.getElementById("count-occurrences");
@@ -421,23 +425,28 @@ function setContext() {
   let countSpcs = document.getElementById("count-species");
   let countCite = document.getElementById("count-citations");
   let countPubl = document.getElementById("count-publishers");
+  let linkOccs = document.getElementById("stats-records");
+  let linkDset = document.getElementById("stats-datasets");
+  let linkSpcs = document.getElementById("stats-species");
+  let linkCite = document.getElementById("stats-citations");
+  let linkPubl = document.getElementById("stats-publishers");
   if (homeTitle) {
     homeTitle.innerText = dataConfig.atlasName;
   }
-  if (countOccs) {
-    countOccs.href = dataConfig.exploreUrl + '?view=MAP';
+  if (linkOccs) {
+    linkOccs.href = dataConfig.exploreUrl + '?view=MAP';
   }
-  if (countDset) {
-    countDset.href = dataConfig.exploreUrl + '?view=DATASETS';
+  if (linkDset) {
+    linkDset.href = dataConfig.exploreUrl + '?view=DATASETS';
   }
-  if (countSpcs) {
-    countSpcs.href = dataConfig.resultsUrl + '?rank=SPECIES';
+  if (linkSpcs) {
+    linkSpcs.href = dataConfig.resultsUrl + '?rank=SPECIES&status=ACCEPTED';
   }
-  if (countCite) {
-    countCite.href = dataConfig.literatUrl;
+  if (linkCite) {
+    linkCite.href = dataConfig.literatUrl;
   }
-  if (countPubl) {
-    countPubl.href = dataConfig.publishUrl;
+  if (linkPubl) {
+    linkPubl.href = dataConfig.publishUrl;
   }
 }
 

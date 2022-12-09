@@ -27,7 +27,7 @@
 
 			</a>
 
-			<a id="stats-species" class="hero-stats-item" href="<?php site_url(); ?>gbif-explorer?view=GALLERY">
+			<a id="stats-species" class="hero-stats-item" href="<?php site_url(); ?>gbif-species-explorer">
 
 				<i class="stats-icon fas fa-trees"></i>
 
