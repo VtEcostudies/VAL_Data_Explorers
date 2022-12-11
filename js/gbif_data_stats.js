@@ -440,7 +440,7 @@ function setContext() {
     linkDset.href = dataConfig.exploreUrl + '?view=DATASETS';
   }
   if (linkSpcs) {
-    linkSpcs.href = dataConfig.resultsUrl + '?rank=SPECIES&status=ACCEPTED';
+    linkSpcs.href = dataConfig.resultsUrl; // + '?rank=SPECIES&status=ACCEPTED'; //production site shows KINGDOMs for blank search
   }
   if (linkCite) {
     linkCite.href = dataConfig.literatUrl;

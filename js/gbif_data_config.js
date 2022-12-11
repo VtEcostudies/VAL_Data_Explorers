@@ -17,7 +17,7 @@ console.log('gbif_data_config.js | urlRouts', urlRouts);
 var baseRoute = '/'; //Default. VAL WordPress has no baseRoute beyond host. Endpoints are routes mapped to pages withing WordPress.
 var exploreEnd = 'gbif-explorer'; //occurrences
 var resultsEnd = 'gbif-species-explorer';
-var literatEnd = 'gbif-literature-explorer';
+var literatEnd = 'gbif-literature';
 var publishEnd = 'gbif-publishers';
 if ('vtatlasoflife.org' == hostUrl || 'localhost' == hostUrl) { //test sites use html for endpoints and has site-specific routing
   baseRoute = urlRouts.splice(0, urlRouts.length-1).join('/'); //remove the html file from the route and use what's left to build URLs for page links in code
