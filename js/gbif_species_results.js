@@ -3,7 +3,7 @@ import { speciesSearch } from './gbif_species_search.js'; //NOTE: importing just
 import { getWikiPage } from './wiki_page_data.js'
 
 const gbifApi = dataConfig.gbifApi; //"https://api.gbif.org/v1";
-const datasetKey = dataConfig.datasetKey; //'0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
+const speciesDatasetKey = dataConfig.speciesDatasetKey; //'0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
 const gadmGid = dataConfig.gadmGid; //'USA.46_1';
 const exploreUrl = dataConfig.exploreUrl;
 const resultsUrl = dataConfig.resultsUrl;
@@ -313,9 +313,10 @@ async function getImgCount(key) {
   try {
     let res = await fetch(enc);
     let json = await res.json();
-    //console.log(`getImgCount(${key}) QUERY:`, enc);
-    //console.log(`getImgCount(${key}) RESULT:`, json);
+    console.log(`getImgCount(${key}) QUERY:`, enc);
+    console.log(`getImgCount(${key}) RESULT:`, json);
     let jret = json.facets[0].counts[0];
+    jret = typeof jret === 'object' ? jret : {count:0};
     return jret;
   } catch (err) {
     err.query = enc;
@@ -324,25 +325,25 @@ async function getImgCount(key) {
   }
 }
 
-//get dataset info for datasetKey
-export async function getDatasetInfo(datasetKey) {
+//get dataset info for speciesDatasetKey
+export async function getDatasetInfo(speciesDatasetKey) {
 
   let reqHost = gbifApi;
-  let reqRoute = `/dataset/${datasetKey}`;
+  let reqRoute = `/dataset/${speciesDatasetKey}`;
   let url = reqHost+reqRoute;
   let enc = encodeURI(url);
 
-  console.log(`getDatasetInfo(${datasetKey})`, enc);
+  console.log(`getDatasetInfo(${speciesDatasetKey})`, enc);
 
   try {
     let res = await fetch(enc);
     let json = await res.json();
     json.query = enc;
-    //console.log(`getDatasetInfo(${datasetKey}) RESULT:`, json);
+    //console.log(`getDatasetInfo(${speciesDatasetKey}) RESULT:`, json);
     return json;
   } catch (err) {
     err.query = enc;
-    console.log(`getDatasetInfo(${datasetKey}) ERROR:`, err);
+    console.log(`getDatasetInfo(${speciesDatasetKey}) ERROR:`, err);
     throw new Error(err)
   }
 }
@@ -477,7 +478,7 @@ async function getAllDataPages(q=qParm, lim=limit, qf=qField, oth=other) {
 //Download qParm full-result set as csv (type==0) or json (type==1)
 async function getDownloadData(type=0) {
   let spc = await getAllDataPages(); //returns just an array of taxa, not a decorated object
-  let dsi = await getDatasetInfo(datasetKey); //returns a single object
+  let dsi = await getDatasetInfo(speciesDatasetKey); //returns a single object
   var name = `VAL_taxa`; //download file name
   if (qParm) {name += `_${qParm}`;} //add search term to download file name
   Object.keys(objOther).forEach(key => {name += `_${objOther[key]}`;}) //add query params to download file name

@@ -323,11 +323,8 @@ export async function publisherStats(publOrgKey=false) {
 }
 
 function otherStats() {
-  var elemCitations = document.getElementById("count-citations");
   var elemSpAccounts = document.getElementById("count-species_accounts");
-  var citeCount = 0;
   var spAcCount = 0;
-  if (elemCitations) {elemCitations.innerHTML = nFmt.format(citeCount);} //numeral(citeCount).format('0,0');}
   if(elemSpAccounts) {
     //elemSpAccounts.innerHTML = nFmt.format(spAcCount); //numeral(spAcCount).format('0,0');
     elemSpAccounts.innerHTML = "(coming soon)";
@@ -443,7 +440,7 @@ function setContext() {
     linkSpcs.href = dataConfig.resultsUrl; // + '?rank=SPECIES&status=ACCEPTED'; //production site shows KINGDOMs for blank search
   }
   if (linkCite) {
-    linkCite.href = dataConfig.literatUrl;
+    //linkCite.href = dataConfig.literatUrl; //this is now defined manually in WordPress
   }
   if (linkPubl) {
     linkPubl.href = dataConfig.publishUrl;
@@ -459,6 +456,6 @@ qrys.forEach(qry => {
   if (!dataConfig.publishingOrKey) publisherOccStats(qry); //backup query of 
 })
 if (dataConfig.speciesFilter) {speciesStats();}
-if (dataConfig.publishingOrgKey) {publisherStats(dataConfig.publishingOrgKey);}
+//if (dataConfig.publishingOrgKey) {publisherStats(dataConfig.publishingOrgKey);} //this is done manually new in WordPress
 otherStats(); //attempt to do this within WP user access so it can be easily edited
 addListeners();

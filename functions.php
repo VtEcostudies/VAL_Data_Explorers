@@ -40,20 +40,8 @@ add_action( 'wp_enqueue_scripts', 'scripts' );
 
 // add scripts for GBIF Data Explorer
 function data_explorer_js() {
-  //i think we don't need this bootstrap include anymore
-  //wp_enqueue_script( 'val-bootstrap', 'https://vtatlasoflife.org/js/bootstrap.js');
   //this is still used by gbif-data-explorer.js
   wp_enqueue_script( 'val-numeral', '//cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js');
-
-  // react and gbif components and VAL's implementation
-  //wp_enqueue_script( 'gbif-react', 'https://unpkg.com/react@16/umd/react.production.min.js');
-  //wp_enqueue_script( 'gbif-react-dom', 'https://unpkg.com/react-dom@16/umd/react-dom.production.min.js', array('gbif-react') );
-
-  //wp_enqueue_style('mapbox-gl', 'https://cdnjs.cloudflare.com/ajax/libs/mapbox-gl/2.1.1/mapbox-gl.min.css');
-  //wp_enqueue_style('open-layers', 'https://cdnjs.cloudflare.com/ajax/libs/openlayers/6.1.1/ol.min.css');
-
-  //wp_enqueue_script( 'gbif-react-comp', 'https://react-components.gbif.org/lib/gbif-react-components.js');
-  //wp_enqueue_script( 'gbif-data-widget', 'https://val.vtecostudies.org/wp-content/themes/val/js/gbif_data_widget.js');
 }
 add_action( 'wp_enqueue_scripts', 'data_explorer_js' );
 
@@ -63,10 +51,10 @@ function admin_acf_styles() {
 }
 add_action( 'admin_enqueue_scripts', 'admin_acf_styles' );
 
-function jason_loomis_dedicated_stylesheet() {
+function gbif_explorer_dedicated_stylesheet() {
     wp_enqueue_style('dadra-style', get_stylesheet_directory_uri().'/css/gbif-data-styles.css');
 }
-add_action('wp_enqueue_scripts', 'jason_loomis_dedicated_stylesheet');
+add_action('wp_enqueue_scripts', 'gbif_explorer_dedicated_stylesheet');
 
 // acf options page settings
 if(function_exists('acf_add_options_page')) {

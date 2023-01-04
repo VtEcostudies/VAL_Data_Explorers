@@ -64,14 +64,21 @@
 
 			</a>
 
-			<a id="stats-citations" class="hero-stats-item" href="<?php site_url(); ?>gbif-literature">
+			<a id="stats-citations" class="hero-stats-item" href="<?php the_field('citations-link'); ?>">
+			<!--
+			<a id="stats-citations" class="hero-stats-item" href="https://val.vtecostudies.org/about/publications/">
+			-->
 
 				<i class="stats-icon  fa-light fa-books"></i>
 
 				<div class="stats">
 
 					<span id="count-citations" class="stats-count">
-						<i class="far fa-compass"></i>
+						<!--
+							Use this if we return to an automated API value
+							<i class="far fa-compass"></i>
+						-->
+						<?php the_field('citations-count'); ?>
 					</span>
 
 					<span class="stats-desc">citations</span>
