@@ -48,8 +48,8 @@ console.log('gbif_data_config.js | publishUrl', publishUrl);
 //const allColumns = ['key','nubKey','canonicalName','scientificName','vernacularName','rank','taxonomicStatus','synonym','parentKey','parent','occurrences','images','childTaxa','iconImage'];
 const columns = ['scientificName','key','nubKey','vernacularNames','rank','taxonomicStatus','childTaxa','parentTaxa','iconImage','occurrences','images']; //these are the columns that will be shown
 const columNames = {
-  'key':'Set Key', //as-in 'dataSet Key'
-  'nubKey':'Nub Key',
+  'key':'Dataset Key',
+  'nubKey':'Backbone Key',
   'scientificName': 'Scientific Name',
   'canonicalName':'Name',
   'childTaxa': 'Child Taxa',
