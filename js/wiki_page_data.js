@@ -11,7 +11,7 @@ export async function getWikiPage(searchTerm=false) {
     let url = reqHost+reqRoute;
     let enc = encodeURI(url);
 
-    console.log(`getWikiPage(${searchTerm})`, enc);
+    //console.log(`getWikiPage(${searchTerm})`, enc);
 
     try {
         let res = await fetch(enc);

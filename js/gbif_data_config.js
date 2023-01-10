@@ -46,7 +46,7 @@ console.log('gbif_data_config.js | resultsUrl', resultsUrl);
 console.log('gbif_data_config.js | literatUrl', literatUrl);
 console.log('gbif_data_config.js | publishUrl', publishUrl);
 //const allColumns = ['key','nubKey','canonicalName','scientificName','vernacularName','rank','taxonomicStatus','synonym','parentKey','parent','occurrences','images','childTaxa','iconImage'];
-const columns = ['canonicalName','vernacularNames','rank','taxonomicStatus','childTaxa','parentTaxa','iconImage','occurrences','images']; //these are the columns that will be shown
+const columns = ['scientificName','key','nubKey','vernacularNames','rank','taxonomicStatus','childTaxa','parentTaxa','iconImage','occurrences','images']; //these are the columns that will be shown
 const columNames = {
   'key':'Set Key', //as-in 'dataSet Key'
   'nubKey':'Nub Key',
@@ -346,3 +346,46 @@ const config = {
 }
 
 export const dataConfig = config[siteConfig.siteName];
+
+//parse rootPredicate into an array of http query parameters for combined and iterative calls to API here
+export function predicateToQueries(rootPredicate=dataConfig.rootPredicate) {
+  let qrys = [];
+  if ('or' == rootPredicate.type.toLowerCase()) {
+    for (var topIdx=0; topIdx<rootPredicate.predicates.length;topIdx++) {
+      let topEle = rootPredicate.predicates[topIdx];
+      //alert(`rootPredicate | ${JSON.stringify(topEle)} | ${topIdx}`);
+      if (topEle.predicates) { //nested predicate object
+        //let qry = '?';
+        let qry = '';
+        for (var subIdx=0; subIdx<topEle.predicates.length; subIdx++) {
+          let subEle = topEle.predicates[subIdx];
+          //alert(`subPredicate | ${JSON.stringify(subEle)} | ${subIdx}`);
+          if ('or' == topEle.type.toLowerCase()) {
+            if ('in' == subEle.type.toLowerCase()) {
+              for (var valIdx=0; valIdx<subEle.values.length; valIdx++) {
+                //qrys.push(`?${subEle.key}=${subEle.values[valIdx]}`); //add multiple '?' query array-elements for sub-predicates' sub-values
+                qrys.push(`${subEle.key}=${subEle.values[valIdx]}`); //add multiple '?' query array-elements for sub-predicates' sub-values
+              }
+            } else {
+              //qrys.push(`?${subEle.key}=${subEle.value}`); //add multiple '?' query array-elements for sub-predicates
+              qrys.push(`${subEle.key}=${subEle.value}`); //add multiple '?' query array-elements for sub-predicates
+            }
+          } else if ('and' == topEle.type.toLowerCase()) {
+            if ('in' == subEle.type.toLowerCase()) {
+              for (var valIdx=0; valIdx<subEle.values.length; valIdx++) {
+                qry += `${subEle.key}=${subEle.values[valIdx]}&`; //string sub-predicates' values together as '&' values in one query
+              }
+            } else {
+              qry += `${subEle.key}=${subEle.value}&`; //string sub-predicates together as '&' values in one query
+            }
+          }
+        }
+        if ('?' != qry) {qrys.push(qry);} //add single '?' query array-element for 'and' sub-predicate
+      } else {
+        //qrys.push(`?${topEle.key}=${topEle.value}`);
+        qrys.push(`${topEle.key}=${topEle.value}`);
+      }
+    }
+  }
+  return qrys;
+}

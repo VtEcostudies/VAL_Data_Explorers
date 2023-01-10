@@ -1,6 +1,7 @@
 import { dataConfig } from './gbif_data_config.js';
 import { speciesSearch } from './gbif_species_search.js'; //NOTE: importing just a function includes the entire module
-import { getWikiPage } from './wiki_page_data.js'
+import { getWikiPage } from './wiki_page_data.js';
+import { predicateToQueries } from './gbif_data_config.js';
 
 const gbifApi = dataConfig.gbifApi; //"https://api.gbif.org/v1";
 const speciesDatasetKey = dataConfig.speciesDatasetKey; //'0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
@@ -50,6 +51,7 @@ const eleDwn = document.getElementById("download-progress"); if (eleDwn) {eleDwn
 const eleOvr = document.getElementById("download-overlay"); if (eleOvr) {eleOvr.style.display = 'none';}
 //const eleInf = document.getElementById("information-overlay"); if (eleInf) {eleInf.style.display = 'none';}
 
+//create DOM elements for modal image overlay (eg. shown when clicking wikiPedia image thumbnail)
 const modalDiv = document.createElement("div");
 modalDiv.id = "divModal";
 modalDiv.className = "modal-div";
@@ -134,6 +136,9 @@ async function fillRow(objSpc, objRow, rowIdx) {
         //colObj.innerHTML = `<a href="${resultsUrl}?higherTaxonKey=${key}&higherTaxonName=${name}&higherTaxonRank=${res['rank']}">${name}</a>`; //child taxa of name
         //colObj.title = `Click '${name}' to view its profile. Click tree icon to list its child taxa.`; //apply title directly to sub-elements
         break;
+      case 'scientificName': //show scientificName but link by canonicalName
+        colObj.innerHTML += `<a title="Wikipedia: ${name}" href="https://en.wikipedia.org/wiki/${name}">${res.scientificName}</a>`; //wikipedia link to name
+        break;
       case 'childTaxa':
         colObj.innerHTML += `<a title="List child taxa of ${name}" href="${resultsUrl}?q=&higherTaxonKey=${res.key}&higherTaxonName=${name}&higherTaxonRank=${res.rank}"><i class="fa-solid fa-code-branch"></i></a>`
         break;
@@ -151,8 +156,10 @@ async function fillRow(objSpc, objRow, rowIdx) {
         break;
       case 'key': case 'nubKey': case 'parentKey':
         //colObj.innerHTML = res[colNam] ? `<a href="${resultsUrl}?taxonKey=${res[colNam]}">${res[colNam]}</a>` : null;
-        colObj.innerHTML = `<a href="${resultsUrl}?q=&higherTaxonKey=${res[colNam]}&higherTaxonName=${name}&higherTaxonRank=${res['rank']}">${res[colNam]}</a>`;
-        colObj.title = `List child taxa of '${name}' with key ${res[colNam]}`;
+        //colObj.innerHTML = `<a href="${resultsUrl}?q=&higherTaxonKey=${res[colNam]}&higherTaxonName=${name}&higherTaxonRank=${res['rank']}">${res[colNam]}</a>`;
+        //colObj.title = `List child taxa of '${name}' with key ${res[colNam]}`;
+        colObj.innerHTML = res[colNam] ? `<a href="https://www.gbif.org/species/${res[colNam]}">${res[colNam]}</a>` : null;
+        colObj.title = `View '${name}' with key ${res[colNam]} on GBIF`;
         break;
       case 'higherClassificationMap':
         let tree = res[colNam]; //object of upper taxa like {123456:Name,234567:Name,...}
@@ -174,7 +181,7 @@ async function fillRow(objSpc, objRow, rowIdx) {
         break;
       case 'occurrences': //to-do: break higher-level taxa into child keys for distinct display
         try {
-          occ = await getOccCount(key);
+          occ = await getOccCounts(key);
           colObj.innerHTML = `<a href="${exploreUrl}?taxonKey=${key}&view=MAP">${nFmt.format(occ.count)}</a>`;
         } catch (err) {/* getOccCount failed, so leave it as initialized */}
         //colObj.innerHTML += `<a href="${exploreUrl}?${getChildKeys(key)}&view=MAP">+</a>`;
@@ -182,16 +189,18 @@ async function fillRow(objSpc, objRow, rowIdx) {
       case 'iconImage':
         try {
           wik = await getWikiPage(name);
-          let iconImg = document.createElement("img");
-          //iconImg.src = wik.originalimage.source;
-          iconImg.src = wik.thumbnail.source;
-          iconImg.alt = name;
-          iconImg.className = "icon-image";
-          iconImg.width = "30"; 
-          iconImg.height = "30";
-          iconImg.onclick = function() {modalDiv.style.display = "block"; modalImg.src = wik.originalimage.source; modalCap.innerHTML = this.alt;}
-          colObj.appendChild(iconImg);
-          //colObj.innerHTML += `<img src="${wik.thumbnail.source}" alt="${name}" width="50" height="50">`;
+          if (wik.thumbnail) {
+            let iconImg = document.createElement("img");
+            //iconImg.src = wik.originalimage.source;
+            iconImg.src = wik.thumbnail.source;
+            iconImg.alt = name;
+            iconImg.className = "icon-image";
+            iconImg.width = "30"; 
+            iconImg.height = "30";
+            iconImg.onclick = function() {modalDiv.style.display = "block"; modalImg.src = wik.originalimage.source; modalCap.innerHTML = this.alt;}
+            colObj.appendChild(iconImg);
+            //colObj.innerHTML += `<img src="${wik.thumbnail.source}" alt="${name}" width="50" height="50">`;
+          }
         } catch(err) {/* console errors in getWikiPage */}
         break;
       case 'images':
@@ -257,11 +266,29 @@ async function getTaxon(key) {
   }
 }
 
+async function getOccCounts(key) {
+  let qrys = predicateToQueries();
+  var occs = 0;
+
+  try {
+    //await qrys.forEach(async qry => {
+    for (var i=0; i<qrys.length; i++) { //again, this is how to wait for a synchronous loop. batshit crazy.
+      let occ = await getOccCount(key, qrys[i]);
+      occs += occ.count;
+      //console.log(`getOccCounts RESULT`, qrys[i], occ, occs);
+    }
+    return {"count":occs}
+  } catch (err) {
+    console.log(`getOccCounts ERROR`, err);
+    throw new Error(err)
+  }
+}
+
 //get an occurrence count from the occurrence API by taxonKey occurenceFilter
-async function getOccCount(key) {
+async function getOccCount(key, filter = dataConfig.occurrenceFilter) {
   let reqHost = gbifApi;
   let reqRoute = "/occurrence/search";
-  let reqFilter = `?advanced=1&limit=0&${dataConfig.occurrenceFilter}&taxon_key=${key}`
+  let reqFilter = `?advanced=1&limit=0&${filter}&taxon_key=${key}`
   let url = reqHost+reqRoute+reqFilter;
   let enc = encodeURI(url);
 
@@ -270,6 +297,8 @@ async function getOccCount(key) {
     let json = await res.json();
     //console.log(`getOccCount(${key}) QUERY:`, enc);
     //console.log(`getOccCount(${key}) RESULT:`, json);
+    //if (typeof json.count === 'undefined' || json.count === null) {console.log(`getOccCount(${key}) RESULT:`, json);}
+    json.query = enc;
     return json;
   } catch (err) {
     err.query = enc;
@@ -313,8 +342,8 @@ async function getImgCount(key) {
   try {
     let res = await fetch(enc);
     let json = await res.json();
-    console.log(`getImgCount(${key}) QUERY:`, enc);
-    console.log(`getImgCount(${key}) RESULT:`, json);
+    //console.log(`getImgCount(${key}) QUERY:`, enc);
+    //console.log(`getImgCount(${key}) RESULT:`, json);
     let jret = json.facets[0].counts[0];
     jret = typeof jret === 'object' ? jret : {count:0};
     return jret;
@@ -460,18 +489,45 @@ if (document.getElementById("download-csv")) {
 
 //using search term and other query parameters, download all species data by page and concatenate into a single array of objects
 async function getAllDataPages(q=qParm, lim=limit, qf=qField, oth=other) {
-  var res = []; var page = {}; var off = 0;
+  var res = []; var page = {}; var off = 0; var fatalError = 0;
   eleDwn.style.display = 'block'; eleOvr.style.display = 'block';
   do {
-    page = await speciesSearch(q, off, lim, qf, oth);
-    res = res.concat(page.results);
-    console.log('getAllDataPages', res.length, page.results.length, page.count);
-    off += limit;
-    eleDwn.innerHTML = `Downloading... progress ${off}/${page.count}`;
-  }
-  while (!page.endOfRecords);
+    try {
+      page = await speciesSearch(q, off, lim, qf, oth);
+      //await page.results.forEach(async oSpc => {
+      for (var i=0; i<page.results.length; i++) { //blocking for-loop
+        let oSpc = page.results[i];
+        let key = oSpc.nubKey ? oSpc.nubKey : oSpc.key;
+        //console.log(`getAllDataPages | add occurrence counts`, oSpc);
+        delete oSpc.habitats;
+        delete oSpc.nomenclaturalStatus;
+        delete oSpc.threatStatuses;
+        delete oSpc.descriptions;
+        delete oSpc.higherClassificationMap;
+        let aVns = oSpc.vernacularNames.slice(); //must copy arrays by value
+        delete oSpc.vernacularNames;
+        let tVns = '';
+        await aVns.forEach(async oVn => {
+          tVns += `${oVn.vernacularName}|`;
+        })
+        oSpc.vernaculars = tVns;
+        if (dataConfig.downloadOccurrenceCounts) { //this can be very slow
+          let occ = await getOccCounts(key);
+          oSpc.vtOccurrences = occ.count;
+        }
+      }//)
+      res = res.concat(page.results);
+      console.log('getAllDataPages', res.length, page.results.length, page.count);
+      off += limit;
+      eleDwn.innerHTML = `Downloading... progress ${off}/${page.count}`;
+    } catch(err) {
+      fatalError = 1;
+      console.log(err);
+      eleDwn.innerHTML = `Fatal error: <p>${err}</p><p><a href="">Reload page to start over.</a></p>`;
+    }
+  } while (!page.endOfRecords && !fatalError);
   console.log('getAllDataPages | result size', res.length);
-  eleDwn.style.display = 'none'; eleOvr.style.display = 'none';
+  if (!fatalError) {eleDwn.style.display = 'none'; eleOvr.style.display = 'none';}
   return res;
 }
 

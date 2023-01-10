@@ -1,50 +1,12 @@
 import { dataConfig } from './gbif_data_config.js';
 import { speciesSearch } from './gbif_species_search.js';
+import { predicateToQueries } from './gbif_data_config.js';
 
 const speciesDatasetKey = dataConfig.speciesDatasetKey; //'0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
-const qrys = predicateToQueries(dataConfig.rootPredicate); //['?state_province=Vermont&hasCoordinate=false', '?gadmGid=USA.46_1'];
+const qrys = predicateToQueries(); //['?state_province=Vermont&hasCoordinate=false', '?gadmGid=USA.46_1'];
 
 console.log('gbif_data_stats.js | rootPredicate converted to http query parameters:');
 console.dir(qrys);
-
-//parse rootPredicate into an array of http query parameters for combined and iterative calls to API here
-export function predicateToQueries(rootPredicate=[]) {
-  let qrys = [];
-  if ('or' == rootPredicate.type.toLowerCase()) {
-    for (var topIdx=0; topIdx<rootPredicate.predicates.length;topIdx++) {
-      let topEle = rootPredicate.predicates[topIdx];
-      //alert(`rootPredicate | ${JSON.stringify(topEle)} | ${topIdx}`);
-      if (topEle.predicates) { //nested predicate object
-        let qry = '?';
-        for (var subIdx=0; subIdx<topEle.predicates.length; subIdx++) {
-          let subEle = topEle.predicates[subIdx];
-          //alert(`subPredicate | ${JSON.stringify(subEle)} | ${subIdx}`);
-          if ('or' == topEle.type.toLowerCase()) {
-            if ('in' == subEle.type.toLowerCase()) {
-              for (var valIdx=0; valIdx<subEle.values.length; valIdx++) {
-                qrys.push(`?${subEle.key}=${subEle.values[valIdx]}`); //add multiple '?' query array-elements for sub-predicates' sub-values
-              }
-            } else {
-              qrys.push(`?${subEle.key}=${subEle.value}`); //add multiple '?' query array-elements for sub-predicates
-            }
-          } else if ('and' == topEle.type.toLowerCase()) {
-            if ('in' == subEle.type.toLowerCase()) {
-              for (var valIdx=0; valIdx<subEle.values.length; valIdx++) {
-                qry += `${subEle.key}=${subEle.values[valIdx]}&`; //string sub-predicates' values together as '&' values in one query
-              }
-            } else {
-              qry += `${subEle.key}=${subEle.value}&`; //string sub-predicates together as '&' values in one query
-            }
-          }
-        }
-        if ('?' != qry) {qrys.push(qry);} //add single '?' query array-element for 'and' sub-predicate
-      } else {
-        qrys.push(`?${topEle.key}=${topEle.value}`);
-      }
-    }
-  }
-  return qrys;
-}
 
 var begEvent = new Event('xhttpBeg');
 var endEvent = new Event('xhttpEnd');
@@ -64,6 +26,7 @@ function occStats(reqQuery) {
     var reqHost = "https://api.gbif.org/v1";
     var reqRoute = "/occurrence/search";
     //var reqQuery = "?state_province=Vermont";
+    reqQuery = `?${reqQuery}`;
     var reqLimit = "&limit=0";
     var reqAll = reqHost+reqRoute+reqQuery+reqLimit;
     var elem = document.getElementById("count-occurrences");
@@ -115,7 +78,8 @@ function datasetStats(reqQuery) {
   var xmlhttp = new XMLHttpRequest();
   var reqHost = "https://api.gbif.org/v1";
   var reqRoute = "/occurrence/search";
-  //var reqQuery = "?state_province=Vermont"
+  //var reqQuery = "?state_province=Vermont";
+  reqQuery = `?${reqQuery}`;
   var reqFacet = "&facet=datasetKey&facetMincount=1&datasetKey.facetLimit=10000";
   var reqLimit = "&limit=0";
   var reqAll = reqHost+reqRoute+reqQuery+reqFacet+reqLimit;
@@ -171,6 +135,7 @@ function speciesOccStats(reqQuery) {
   var reqHost = "https://api.gbif.org/v1";
   var reqRoute = "/occurrence/search";
   //var reqQuery = "?state_province=Vermont"
+  reqQuery = `?${reqQuery}`;
   var reqFacet = `&facet=scientificName&facetMincount=1&scientificName.facetOffset=${speciesOffset}&scientificName.facetLimit=${speciesLimit}`;
   var reqLimit = "&limit=0";
   var reqAll = reqHost+reqRoute+reqQuery+reqFacet+reqLimit;
@@ -220,7 +185,7 @@ function speciesOccStats(reqQuery) {
   Using speciesSearch, count rank=SPECIES & status=ACCEPTED
 */
 async function speciesStats(reqQuery="") {
-  reqQuery += '&rank=SPECIES&status=ACCEPTED';
+  reqQuery += `&rank=SPECIES&status=ACCEPTED`;
   let spcs = await speciesSearch(reqQuery, 0, 0);
   let lmId = 'count-species';
   let elem = document.getElementById(lmId);
@@ -244,6 +209,7 @@ function publisherOccStats(reqQuery) {
   var reqHost = "https://api.gbif.org/v1";
   var reqRoute = "/occurrence/search";
   //var reqQuery = "?state_province=Vermont"
+  reqQuery = `?${reqQuery}`;
   var reqFacet = "&facet=publishingOrg&facetMincount=1&publishingOrg.facetLimit=1000";
   var reqLimit = "&limit=0";
   var reqAll = reqHost+reqRoute+reqQuery+reqFacet+reqLimit;
