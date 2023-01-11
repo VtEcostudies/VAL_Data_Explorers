@@ -26,6 +26,7 @@ var status =  objUrlParams.get('status'); status = status ? status.toUpperCase()
 var qField =  objUrlParams.get('qField'); qField = qField ? qField.toUpperCase() : 'ALL';
 var count = 0; //this is set elsewhere after loading data. initialize here.
 var page = offset / limit + 1;
+var gOccCnts = {};
 console.log('Query param q:', qParm, 'offset:', offset, 'limit:', limit, 'page:', page, 'qField:', qField, 'Other:', other);
 
 //get other query params (there are many, and they are necessary. eg. higherTaxonRank)
@@ -92,26 +93,26 @@ async function putErrorOnScreen(err) {
 }
 
 // Create table row for each taxonKey, then fill row of cells
-async function addTaxaByKeys() {
+async function addTaxaByKeys(occs) {
   tKeys.forEach(async (key, rowIdx) => {
     let objRow = eleTbl.insertRow(rowIdx);
-    await fillRow({taxonKey: key}, objRow, rowIdx);
+    await fillRow({taxonKey: key}, objRow, rowIdx, occs);
   })
 }
 
 // Create table row for each array element, then fill row of cells
-async function addTaxaFromArr(sArr) {
+async function addTaxaFromArr(sArr, occs) {
   sArr.forEach(async (objSpc, rowIdx) => {
     let objRow = eleTbl.insertRow(rowIdx);
     //let taxKey = objSpc.nubKey ? objSpc.nubKey : objSpc.key;
     //console.log(`get_species_results::addTaxaFromArr | key:${sObj.key} | nubKey:${sObj.nubKey} | result:${taxKey}`);
-    await fillRow(objSpc, objRow, rowIdx);
+    await fillRow(objSpc, objRow, rowIdx, occs);
   })
 }
 
 // Fill a row of cells for a taxon object retrieved from species search, or other. At minimum, objSpc
 // must be {key: taxonKey}
-async function fillRow(objSpc, objRow, rowIdx) {
+async function fillRow(objSpc, objRow, rowIdx, occs) {
   var key = objSpc.nubKey ? objSpc.nubKey : objSpc.key;
   var res = objSpc;
   var occ,img = {count: 'n/a'}; //initialize these to valid objects in case GETs, below, fail
@@ -180,10 +181,13 @@ async function fillRow(objSpc, objRow, rowIdx) {
         if (res.species) {colObj.innerHTML += `, <a title="Species Explorer: Species ${res.species}" href="${resultsUrl}?q=${res.species}">${res.species}</a>`;}
         break;
       case 'occurrences': //to-do: break higher-level taxa into child keys for distinct display
+        colObj.innerHTML = `<a href="${exploreUrl}?taxonKey=${key}&view=MAP">${nFmt.format(occs[key]?occs[key]:0)}</a>`;
+        /*
         try {
-          occ = await getOccCounts(key);
+          occ = await getOccCountsByKey(key);
           colObj.innerHTML = `<a href="${exploreUrl}?taxonKey=${key}&view=MAP">${nFmt.format(occ.count)}</a>`;
-        } catch (err) {/* getOccCount failed, so leave it as initialized */}
+        } catch (err) {}
+        */
         //colObj.innerHTML += `<a href="${exploreUrl}?${getChildKeys(key)}&view=MAP">+</a>`;
         break;
       case 'iconImage':
@@ -266,26 +270,32 @@ async function getTaxon(key) {
   }
 }
 
-async function getOccCounts(key) {
+/*
+  This is deprecated in favor of getAggOccCounts.
+ */
+async function getOccCountsByKey(key) {
   let qrys = predicateToQueries();
   var occs = 0;
 
   try {
     //await qrys.forEach(async qry => {
     for (var i=0; i<qrys.length; i++) { //again, this is how to wait for a synchronous loop. batshit crazy.
-      let occ = await getOccCount(key, qrys[i]);
+      let occ = await getOccCountByKey(key, qrys[i]);
       occs += occ.count;
-      //console.log(`getOccCounts RESULT`, qrys[i], occ, occs);
+      //console.log(`getOccCountsByKey RESULT`, qrys[i], occ, occs);
     }
     return {"count":occs}
   } catch (err) {
-    console.log(`getOccCounts ERROR`, err);
+    console.log(`getOccCountsByKey ERROR`, err);
     throw new Error(err)
   }
 }
 
-//get an occurrence count from the occurrence API by taxonKey occurenceFilter
-async function getOccCount(key, filter = dataConfig.occurrenceFilter) {
+/*
+  This is deprecated in favor of getAggOccCount.
+  get an occurrence count from the occurrence API by taxonKey occurrenceFilter
+  */
+async function getOccCountByKey(key, filter = dataConfig.occurrenceFilter) {
   let reqHost = gbifApi;
   let reqRoute = "/occurrence/search";
   let reqFilter = `?advanced=1&limit=0&${filter}&taxon_key=${key}`
@@ -295,14 +305,68 @@ async function getOccCount(key, filter = dataConfig.occurrenceFilter) {
   try {
     let res = await fetch(enc);
     let json = await res.json();
-    //console.log(`getOccCount(${key}) QUERY:`, enc);
-    //console.log(`getOccCount(${key}) RESULT:`, json);
-    //if (typeof json.count === 'undefined' || json.count === null) {console.log(`getOccCount(${key}) RESULT:`, json);}
+    //console.log(`getOccCountByKey(${key}) QUERY:`, enc);
+    //console.log(`getOccCountByKey(${key}) RESULT:`, json);
     json.query = enc;
     return json;
   } catch (err) {
     err.query = enc;
-    console.log(`getOccCount(${key}) ERROR:`, err);
+    console.log(`getOccCountByKey(${key}) ERROR:`, err);
+    return new Error(err)
+  }
+}
+
+async function getAggOccCounts(occCnts = {}) {
+  let qrys = predicateToQueries();
+
+  try {
+    //await qrys.forEach(async qry => { //this fails to wait
+    for (var i=0; i<qrys.length; i++) { //necessary: wait for a synchronous loop
+      let qry = qrys[i]
+      let aoc = await getAggOccCount(qry);
+      for await (const [key,val] of Object.entries(aoc)) {
+        if (occCnts[key]) {occCnts[key] += Number(val);}
+        else {occCnts[key] = Number(val);}
+      }
+      console.log(`getAggOccCounts RESULT`, qry, aoc, occCnts);
+    }//)
+    gOccCnts = occCnts; //assign result to global for use by downloads
+    return occCnts;
+  } catch (err) {
+    console.log(`getAggOccCounts ERROR`, err);
+    throw new Error(err)
+  }
+}
+
+/*
+  Get occurrence-counts aggregated by facet taxonKey for a filter query.
+  Return an object like {taxonKey:count, taxonKey:count, ...}
+  https://api.gbif.org/v1/occurrence/search?gadmGid=USA.46_1&limit=0&taxonKey=5&facet=taxonKey&facetLimit=100000
+  https://api.gbif.org/v1/occurrence/search?stateProvince=vermont&hasCoordinate=false&limit=0&taxonKey=5&facet=taxonKey&facetLimit=100000
+  IMPORTANT NOTE: It appears that this approach returns occurrence counts for nubKeys. Everywhere that uses these must do the same.
+*/
+async function getAggOccCount(filter = dataConfig.occurrenceFilter) {
+  let reqHost = gbifApi;
+  let reqRoute = "/occurrence/search";
+  let reqFilter = `?limit=0&${filter}&facet=taxonKey&facetLimit=1199999`
+  let url = reqHost+reqRoute+reqFilter;
+  let enc = encodeURI(url);
+
+  try {
+    let res = await fetch(enc);
+    let json = await res.json();
+    //console.log(`getAggOccCount(${key}) QUERY:`, enc);
+    //console.log(`getAggOccCount(${key}) RESULT:`, json);
+    let aCount = json.facets[0].counts; //array of occurrence-counts by taxonKey
+    let oCount = {};
+    for (var i=0; i<aCount.length; i++) { //put array into object like {taxonKey:count, taxonKey:count, ...}
+      oCount[aCount[i].name]=Number(aCount[i].count);
+    }
+    oCount.query = enc;
+    return oCount;
+  } catch (err) {
+    err.query = enc;
+    console.log(`getAggOccCount(${filter}) ERROR:`, err);
     return new Error(err)
   }
 }
@@ -494,9 +558,9 @@ async function getAllDataPages(q=qParm, lim=limit, qf=qField, oth=other) {
   do {
     try {
       page = await speciesSearch(q, off, lim, qf, oth);
-      //await page.results.forEach(async oSpc => {
-      for (var i=0; i<page.results.length; i++) { //blocking for-loop
-        let oSpc = page.results[i];
+      await page.results.forEach(async oSpc => {
+      //for (var i=0; i<page.results.length; i++) { //blocking for-loop
+        //let oSpc = page.results[i];
         let key = oSpc.nubKey ? oSpc.nubKey : oSpc.key;
         //console.log(`getAllDataPages | add occurrence counts`, oSpc);
         delete oSpc.habitats;
@@ -507,27 +571,32 @@ async function getAllDataPages(q=qParm, lim=limit, qf=qField, oth=other) {
         let aVns = oSpc.vernacularNames.slice(); //must copy arrays by value
         delete oSpc.vernacularNames;
         let tVns = '';
-        await aVns.forEach(async oVn => {
+        await aVns.forEach(async oVn => { //put array of vernacularNames into pipe-delimited string
           tVns += `${oVn.vernacularName}|`;
         })
         oSpc.vernaculars = tVns;
-        if (dataConfig.downloadOccurrenceCounts) { //this can be very slow
-          let occ = await getOccCounts(key);
-          oSpc.vtOccurrences = occ.count;
-        }
-      }//)
+      })
       res = res.concat(page.results);
       console.log('getAllDataPages', res.length, page.results.length, page.count);
       off += limit;
-      eleDwn.innerHTML = `Downloading... progress ${off}/${page.count}`;
+      eleDwn.innerHTML = `<p>Downloading... progress ${off}/${page.count}</p><p><a href="">Abort</a></p>`;
     } catch(err) {
       fatalError = 1;
       console.log(err);
-      eleDwn.innerHTML = `Fatal error: <p>${err}</p><p><a href="">Reload page to start over.</a></p>`;
+      eleDwn.innerHTML = `Fatal error: <p>${err}</p><p><a href="">Reload page to try again.</a></p>`;
     }
   } while (!page.endOfRecords && !fatalError);
   console.log('getAllDataPages | result size', res.length);
-  if (!fatalError) {eleDwn.style.display = 'none'; eleOvr.style.display = 'none';}
+  if (!fatalError) {
+    //if (dataConfig.downloadOccurrenceCounts) {
+     for (var i=0; i<res.length; i++) {
+      let oSpc = res[i];
+      let key = oSpc.nubKey ? oSpc.nubKey : oSpc.key;
+      oSpc.vtOccurrences = gOccCnts[key] ? gOccCnts[key] : 0;
+     }
+    //}
+    eleDwn.style.display = 'none'; eleOvr.style.display = 'none';
+  }
   return res;
 }
 
@@ -573,7 +642,8 @@ function jsonToCsv(json) {
 
 if (eleTbl) { //results are displayed in a table with id="species-table". we need that to begin.
   if (tKeys.length) {
-    await addTaxaByKeys();
+    let occs = await getAggOccCounts();
+    await addTaxaByKeys(occs);
     await addHead();
     if (eleLbl) {
       eleLbl.innerHTML = "Showing results for taxon keys: ";
@@ -586,9 +656,10 @@ if (eleTbl) { //results are displayed in a table with id="species-table". we nee
     if (!qParm) {qParm = "";}
     if ("" === qParm && !other) {other='&rank=KINGDOM'; objOther={'rank':'KINGDOM'}; eleRnk.value='KINGDOM';}
     try {
+      let occs = await getAggOccCounts();
       let spcs = await speciesSearch(qParm, offset, limit, qField, other);
       count = spcs.count;
-      await addTaxaFromArr(spcs.results);
+      await addTaxaFromArr(spcs.results, occs);
       await addHead();
       let finish = (offset+limit)>count ? count : offset+limit;
       if (eleLbl) {
