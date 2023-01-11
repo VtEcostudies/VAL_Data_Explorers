@@ -592,7 +592,7 @@ async function getAllDataPages(q=qParm, lim=limit, qf=qField, oth=other) {
      for (var i=0; i<res.length; i++) {
       let oSpc = res[i];
       let key = oSpc.nubKey ? oSpc.nubKey : oSpc.key;
-      oSpc.vtOccurrences = gOccCnts[key] ? gOccCnts[key] : 0;
+      oSpc[`${dataConfig.atlasAbbrev}-Occurrences`] = gOccCnts[key] ? gOccCnts[key] : 0;
      }
     //}
     eleDwn.style.display = 'none'; eleOvr.style.display = 'none';
@@ -604,7 +604,7 @@ async function getAllDataPages(q=qParm, lim=limit, qf=qField, oth=other) {
 async function getDownloadData(type=0) {
   let spc = await getAllDataPages(); //returns just an array of taxa, not a decorated object
   let dsi = await getDatasetInfo(speciesDatasetKey); //returns a single object
-  var name = `VAL_taxa`; //download file name
+  var name = `${dataConfig.atlasAbbrev}_taxa`; //download file name
   if (qParm) {name += `_${qParm}`;} //add search term to download file name
   Object.keys(objOther).forEach(key => {name += `_${objOther[key]}`;}) //add query params to download file name
   if (type) { //json-download
