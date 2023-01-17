@@ -181,7 +181,11 @@ async function fillRow(objSpc, objRow, rowIdx, occs) {
         if (res.species) {colObj.innerHTML += `, <a title="Species Explorer: Species ${res.species}" href="${resultsUrl}?q=${res.species}">${res.species}</a>`;}
         break;
       case 'occurrences': //to-do: break higher-level taxa into child keys for distinct display
-        colObj.innerHTML = `<a href="${exploreUrl}?taxonKey=${key}&view=MAP">${nFmt.format(occs[key]?occs[key]:0)}</a>`;
+        occs.then(occs => {
+          colObj.innerHTML = `<a href="${exploreUrl}?taxonKey=${key}&view=MAP">${nFmt.format(occs[key]?occs[key]:0)}</a>`;
+        }).catch(err => {
+          console.log(`ERROR in occurrence counts:`, err);
+        })
         /*
         try {
           occ = await getOccCountsByKey(key);
@@ -330,11 +334,12 @@ async function getAggOccCounts(occCnts = {}) {
       }
       console.log(`getAggOccCounts RESULT`, qry, aoc, occCnts);
     }//)
-    gOccCnts = occCnts; //assign result to global for use by downloads
+    //gOccCnts = occCnts; //assign result to global for use by downloads
     return occCnts;
   } catch (err) {
     console.log(`getAggOccCounts ERROR`, err);
-    throw new Error(err)
+    //throw new Error(err)
+    return new Error(err);
   }
 }
 
@@ -592,7 +597,11 @@ async function getAllDataPages(q=qParm, lim=limit, qf=qField, oth=other) {
      for (var i=0; i<res.length; i++) {
       let oSpc = res[i];
       let key = oSpc.nubKey ? oSpc.nubKey : oSpc.key;
-      oSpc[`${dataConfig.atlasAbbrev}-Occurrences`] = gOccCnts[key] ? gOccCnts[key] : 0;
+      gOccCnts.then(occCnts => { //
+        oSpc[`${dataConfig.atlasAbbrev}-Occurrences`] = occCnts[key] ? occCnts[key] : 0;
+      }).catch(err => {
+        console.log(`Unable to retrieve occurrence counts.`);
+      })
      }
     //}
     eleDwn.style.display = 'none'; eleOvr.style.display = 'none';
@@ -642,8 +651,9 @@ function jsonToCsv(json) {
 
 if (eleTbl) { //results are displayed in a table with id="species-table". we need that to begin.
   if (tKeys.length) {
-    let occs = await getAggOccCounts();
-    await addTaxaByKeys(occs);
+    gOccCnts = getAggOccCounts(); //returns a promise. handle that downstream with occs.then(occs => {}).
+    console.log(`getAccOccCounts return:`, gOccCnts); //this returns 'Promise { <state>: "pending" }'
+    await addTaxaByKeys(gOccCnts);
     await addHead();
     if (eleLbl) {
       eleLbl.innerHTML = "Showing results for taxon keys: ";
@@ -656,10 +666,11 @@ if (eleTbl) { //results are displayed in a table with id="species-table". we nee
     if (!qParm) {qParm = "";}
     if ("" === qParm && !other) {other='&rank=KINGDOM'; objOther={'rank':'KINGDOM'}; eleRnk.value='KINGDOM';}
     try {
-      let occs = await getAggOccCounts();
+      gOccCnts = getAggOccCounts(); //returns a promise. handle that downstream with occs.then(occs => {}).
+      console.log(`getAccOccCounts return:`, gOccCnts); //this returns 'Promise { <state>: "pending" }'
       let spcs = await speciesSearch(qParm, offset, limit, qField, other);
       count = spcs.count;
-      await addTaxaFromArr(spcs.results, occs);
+      await addTaxaFromArr(spcs.results, gOccCnts);
       await addHead();
       let finish = (offset+limit)>count ? count : offset+limit;
       if (eleLbl) {
