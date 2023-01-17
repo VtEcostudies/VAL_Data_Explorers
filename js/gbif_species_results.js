@@ -181,6 +181,7 @@ async function fillRow(objSpc, objRow, rowIdx, occs) {
         if (res.species) {colObj.innerHTML += `, <a title="Species Explorer: Species ${res.species}" href="${resultsUrl}?q=${res.species}">${res.species}</a>`;}
         break;
       case 'occurrences': //to-do: break higher-level taxa into child keys for distinct display
+        colObj.innerHTML = `<i class="fa fa-spinner fa-spin" style="font-size:18px"></i>`;
         occs.then(occs => {
           colObj.innerHTML = `<a href="${exploreUrl}?taxonKey=${key}&view=MAP">${nFmt.format(occs[key]?occs[key]:0)}</a>`;
         }).catch(err => {
@@ -195,8 +196,10 @@ async function fillRow(objSpc, objRow, rowIdx, occs) {
         //colObj.innerHTML += `<a href="${exploreUrl}?${getChildKeys(key)}&view=MAP">+</a>`;
         break;
       case 'iconImage':
+        colObj.innerHTML = `<i class="fa fa-spinner fa-spin" style="font-size:18px"></i>`;
         try {
           wik = await getWikiPage(name);
+          colObj.innerHTML = '';
           if (wik.thumbnail) {
             let iconImg = document.createElement("img");
             //iconImg.src = wik.originalimage.source;
@@ -212,9 +215,10 @@ async function fillRow(objSpc, objRow, rowIdx, occs) {
         } catch(err) {/* console errors in getWikiPage */}
         break;
       case 'images':
+        colObj.innerHTML = `<i class="fa fa-spinner fa-spin" style="font-size:18px"></i>`;
         try {
           img = await getImgCount(key);
-          colObj.innerHTML += `<a href="${exploreUrl}?taxonKey=${key}&view=GALLERY">${nFmt.format(img.count)}</a>`;
+          colObj.innerHTML = `<a href="${exploreUrl}?taxonKey=${key}&view=GALLERY">${nFmt.format(img.count)}</a>`;
         } catch (err) {/* getImgCount failed, so leave it as initialized */}
         break;
       case 'taxonomicStatus':
@@ -324,7 +328,7 @@ async function getAggOccCounts(occCnts = {}) {
   let qrys = predicateToQueries();
 
   try {
-    //await qrys.forEach(async qry => { //this fails to wait
+    //await qrys.forEach(async qry => { //this fails to wait and we get all zeros displayed...
     for (var i=0; i<qrys.length; i++) { //necessary: wait for a synchronous loop
       let qry = qrys[i]
       let aoc = await getAggOccCount(qry);
@@ -334,7 +338,6 @@ async function getAggOccCounts(occCnts = {}) {
       }
       console.log(`getAggOccCounts RESULT`, qry, aoc, occCnts);
     }//)
-    //gOccCnts = occCnts; //assign result to global for use by downloads
     return occCnts;
   } catch (err) {
     console.log(`getAggOccCounts ERROR`, err);
