@@ -10,6 +10,7 @@ const exploreUrl = dataConfig.exploreUrl;
 const resultsUrl = dataConfig.resultsUrl;
 const columns = dataConfig.columns;
 const columNames = dataConfig.columNames;
+var columnIds = {};
 const nFmt = new Intl.NumberFormat(); //use this to format numbers by locale... automagically
 const objUrlParams = new URLSearchParams(window.location.search);
 
@@ -88,6 +89,7 @@ async function addHead() {
   let hedRow = objHed.insertRow(0); //just one header objRow
   columns.forEach(async (hedNam, hedIdx) => {
     console.log('addHead', hedNam, hedIdx);
+    columnIds[hedNam]=hedIdx; //make an object having names as keys and index as values, for use by dataTables to enable/disable sorting
     let colObj = await hedRow.insertCell(hedIdx);
     colObj.innerHTML = columNames[hedNam];
     if ("canonicalName" == hedNam) {
@@ -744,15 +746,17 @@ if (eleHlp) {
 }
 
 function setDataTable() {
+  let hideCols = [columnIds['childTaxa'], columnIds['iconImage'], columnIds['images']]; //images, iconImage, childTaxa
+  console.log(`setDataTable | hide volumnIds`, hideCols, 'of Columns', columnIds)
   $('#species-table').DataTable({
     responsive: true,
-    order: [7, 'desc'],
+    order: [columnIds['occurrences'], 'desc'],
     paging: false,
     searching: false,
     columnDefs: [
-      { orderable: false, targets: 4 }, //child taxa
-      { orderable: false, targets: 6 }, //iconImage
-      { orderable: false, targets: 8 }  //imageCount
+      { orderable: false, targets: columnIds['childTaxa'] }, //childTaxa
+      { orderable: false, targets: columnIds['iconImage'] }, //iconImage
+      { orderable: false, targets: columnIds['images'] }  //images (imageCount)
     ]
 /*
     lengthMenu: [
