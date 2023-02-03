@@ -15,10 +15,15 @@ export async function getWikiPage(searchTerm=false) {
 
     try {
         let res = await fetch(enc);
-        let json = await res.json();
-        json.query = enc;
-        //console.log(`getWikiPage(${searchTerm}) RESULT:`, json);
-        return json;
+        //console.log(`getWikiPage(${searchTerm}) RAW RESULT:`, res);
+        if (res.status < 300) {
+            let json = await res.json();
+            json.query = enc;
+            //console.log(`getWikiPage(${searchTerm}) JSON RESULT:`, json);
+            return json;
+        } else {
+            //console.log(`getWikiPage(${searchTerm}) BAD RESULT:`, res.status);
+        }
     } catch (err) {
         err.query = enc;
         console.log(`getWikiPage(${searchTerm}) ERROR:`, err);

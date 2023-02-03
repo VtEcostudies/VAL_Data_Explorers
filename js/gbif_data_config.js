@@ -46,7 +46,7 @@ console.log('gbif_data_config.js | resultsUrl', resultsUrl);
 console.log('gbif_data_config.js | literatUrl', literatUrl);
 console.log('gbif_data_config.js | publishUrl', publishUrl);
 //const allColumns = ['key','nubKey','canonicalName','scientificName','vernacularName','rank','taxonomicStatus','synonym','parentKey','parent','occurrences','images','childTaxa','iconImage'];
-const columns = ['scientificName','vernacularNames','rank','taxonomicStatus','childTaxa','parentTaxa','iconImage','occurrences','images']; //these are the columns that will be shown
+const columns = ['key', 'nubKey', 'scientificName','vernacularNames','rank','taxonomicStatus','childTaxa','parentTaxa','iconImage','occurrences','images']; //these are the columns that will be shown
 const columNames = {
   'key':'Dataset Key',
   'nubKey':'Backbone Key',

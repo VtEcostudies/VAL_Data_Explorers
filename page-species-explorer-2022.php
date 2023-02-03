@@ -172,6 +172,7 @@
       </div>
 
       <div id="species-results">
+        <i class="fa fa-spinner fa-spin" style="font-size:30px"></i>
   			<table id="species-table" class="table table-striped table-responsive table-sm">
         </table>
   		</div>

@@ -68,6 +68,20 @@ const modalImg = document.createElement("img")
 modalImg.id = "imgModal";
 modalImg.className = "modal-content";
 modalDiv.appendChild(modalImg);
+
+var waitRow; var waitObj;
+
+async function addTableWait() {
+  waitRow = eleTbl.insertRow(0);
+  waitObj = waitRow.insertCell(0);
+  waitObj.style = 'text-align: center;';
+  waitObj.innerHTML = `<i class="fa fa-spinner fa-spin" style="font-size:60px;"></i>`;
+}
+
+function remTableWait() {
+  waitObj.remove();
+  waitRow.remove();
+}
   
 async function addHead() {
   let objHed = eleTbl.createTHead();
@@ -185,6 +199,7 @@ async function fillRow(objSpc, objRow, rowIdx, occs) {
         occs.then(occs => {
           colObj.innerHTML = `<a href="${exploreUrl}?taxonKey=${key}&view=MAP">${nFmt.format(occs[key]?occs[key]:0)}</a>`;
         }).catch(err => {
+          colObj.innerHTML = '';
           console.log(`ERROR in occurrence counts:`, err);
         })
         /*
@@ -652,10 +667,28 @@ function jsonToCsv(json) {
   return csv;
 }
 
+const Storage = sessionStorage; //localStorage;
+
+//wrap retrieval of occ counts in async function to return a promise, which elsewhere waits for data...?
+async function storedOccCnts() {
+  let sOccCnts;
+  if (Storage.getItem('occCnts')) {
+    sOccCnts = JSON.parse(Storage.getItem('occCnts'));
+    console.log(`Storage.getItem('occCnts') returned`, sOccCnts);
+  } else {
+    sOccCnts = getAggOccCounts(); //returns a promise. handle that downstream with occs.then(occs => {}).
+    console.log(`getAccOccCounts returned`, sOccCnts); //this returns 'Promise { <state>: "pending" }'
+    sOccCnts.then(occCnts => { //convert promise to data object...
+      Storage.setItem('occCnts', JSON.stringify(occCnts));
+    });
+  }
+  return sOccCnts; //return a JSON data object from async function wraps the object in a promise. the caller should await or .then() it.
+}
+
 if (eleTbl) { //results are displayed in a table with id="species-table". we need that to begin.
   if (tKeys.length) {
-    gOccCnts = getAggOccCounts(); //returns a promise. handle that downstream with occs.then(occs => {}).
-    console.log(`getAccOccCounts return:`, gOccCnts); //this returns 'Promise { <state>: "pending" }'
+    addTableWait();
+    gOccCnts = storedOccCnts();
     await addTaxaByKeys(gOccCnts);
     await addHead();
     if (eleLbl) {
@@ -665,12 +698,13 @@ if (eleTbl) { //results are displayed in a table with id="species-table". we nee
         if (idx < tKeys.length-1) {eleLbl.innerHTML += ', ';}
       })
     }
+    remTableWait();
   } else { //important: include q="" to show ALL species result
     if (!qParm) {qParm = "";}
     if ("" === qParm && !other) {other='&rank=KINGDOM'; objOther={'rank':'KINGDOM'}; eleRnk.value='KINGDOM';}
     try {
-      gOccCnts = getAggOccCounts(); //returns a promise. handle that downstream with occs.then(occs => {}).
-      console.log(`getAccOccCounts return:`, gOccCnts); //this returns 'Promise { <state>: "pending" }'
+      addTableWait();
+      gOccCnts = storedOccCnts();
       let spcs = await speciesSearch(qParm, offset, limit, qField, other);
       count = spcs.count;
       await addTaxaFromArr(spcs.results, gOccCnts);
@@ -687,6 +721,7 @@ if (eleTbl) { //results are displayed in a table with id="species-table". we nee
           if (idx < Object.keys(objOther).length-1) {eleLbl.innerHTML += ' and ';}
         });
       }
+      remTableWait();
     } catch (err) {
       putErrorOnScreen(err);
     }
@@ -707,3 +742,28 @@ if (eleHlp) {
     eleHlp.style.display = 'none';
   }
 }
+
+function setDataTable() {
+  $('#species-table').DataTable({
+    responsive: true,
+    order: [7, 'desc'],
+    paging: false,
+    searching: false,
+    columnDefs: [
+      { orderable: false, targets: 4 }, //child taxa
+      { orderable: false, targets: 6 }, //iconImage
+      { orderable: false, targets: 8 }  //imageCount
+    ]
+/*
+    lengthMenu: [
+      [10, 20, 50, 100, 500, -1],
+      [10, 20, 50, 100, 500, 'All'],
+    ],
+    pageLength: limit
+*/
+  });
+}
+
+$('#species-table').ready(function () {
+  gOccCnts.then(() => {setDataTable()})
+});
