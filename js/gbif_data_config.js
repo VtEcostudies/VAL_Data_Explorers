@@ -244,7 +244,7 @@ const config = {
     }
   },
 
-  ebu: { //eButterfly worldwide demo
+  ebu: { //eButterfly datasets demo
     atlasPlace: 'eButterfly',
     atlasName: 'eButterfly Atlas',
     atlasAbbrev: 'eBA',
@@ -258,8 +258,49 @@ const config = {
     gbifPortal: false,
     gbifApi: "https://api.gbif.org/v1", //this should not change at all
     gadmGid: '', //leave blank if N/A
-    speciesDatasetKey: '', //Species Dataset Key
-    speciesFilter: 'higherTaxonKey=6953&higherTaxonKey=5473&higherTaxonKey=7017&higherTaxonKey=9417&higherTaxonKey=5481&higherTaxonKey=1933999', //Filter to use if not speciesDaatasetKey
+    speciesDatasetKey: 'afff5f4d-742e-4db0-b750-6766306f3a0a', //Species Dataset Key
+    speciesFilter: 'datasetKey=afff5f4d-742e-4db0-b750-6766306f3a0a',
+    //speciesFilter: 'higherTaxonKey=6953&higherTaxonKey=5473&higherTaxonKey=7017&higherTaxonKey=9417&higherTaxonKey=5481&higherTaxonKey=1933999', //Filter to use if not speciesDaatasetKey
+    publishingOrgKey: '', //leave blank if N/A
+    occurrenceDatasetKey: 'cf3bdc30-370c-48d3-8fff-b587a39d72d6', //New idea from eButterfly config NOT implemented yet
+    occurrenceFilter: '', //leave blank if scope is world - this is used in speciesExplorer for each taxonKey - it can be geographic limit or a publishingOrg
+    columns: columns,
+    columNames: columNames,
+    mapSettings: {
+      lat: 41.885,
+      lng: -87.636,
+      zoom: 2
+    },
+    rootPredicate: {
+      type: 'or',
+      predicates: [
+        // include data for 
+        {
+          "type": "equals",
+          "key": "datasetKey",
+          "value": "cf3bdc30-370c-48d3-8fff-b587a39d72d6"
+        }
+      ]
+    }
+  },
+
+  ebw: { //eButterfly Worldwide demo
+    atlasPlace: 'eButterfly',
+    atlasName: 'eButterfly Atlas',
+    atlasAbbrev: 'eBA',
+    helpDeskUrl: false,
+    thisUrl: thisUrl,
+    hostUrl: hostUrl,
+    exploreUrl: exploreUrl,
+    resultsUrl: resultsUrl,
+    literatUrl: literatUrl,
+    publishUrl: publishUrl,
+    gbifPortal: false,
+    gbifApi: "https://api.gbif.org/v1", //this should not change at all
+    gadmGid: '', //leave blank if N/A
+    speciesDatasetKey: 'afff5f4d-742e-4db0-b750-6766306f3a0a', //Species Dataset Key
+    speciesFilter: 'datasetKey=afff5f4d-742e-4db0-b750-6766306f3a0a',
+    //speciesFilter: 'higherTaxonKey=6953&higherTaxonKey=5473&higherTaxonKey=7017&higherTaxonKey=9417&higherTaxonKey=5481&higherTaxonKey=1933999', //Filter to use if not speciesDaatasetKey
     publishingOrgKey: '', //leave blank if N/A
     occurrenceDatasetKey: 'cf3bdc30-370c-48d3-8fff-b587a39d72d6', //New idea from eButterfly config NOT implemented yet
     occurrenceFilter: '', //leave blank if scope is world - this is used in speciesExplorer for each taxonKey - it can be geographic limit or a publishingOrg
@@ -291,6 +332,7 @@ const config = {
       ]
     }
   },
+
   vtb: { //VT Checklist of Butterflies
     atlasPlace: 'Vermont Butterfly',
     atlasName: 'VT Checklist of Butterflies',
