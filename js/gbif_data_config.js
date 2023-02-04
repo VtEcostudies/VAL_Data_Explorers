@@ -285,9 +285,9 @@ const config = {
   },
 
   ebw: { //eButterfly Worldwide demo
-    atlasPlace: 'eButterfly',
-    atlasName: 'eButterfly Atlas',
-    atlasAbbrev: 'eBA',
+    atlasPlace: 'eButterfly World',
+    atlasName: 'eButterfly Atlas World Wide',
+    atlasAbbrev: 'eBW',
     helpDeskUrl: false,
     thisUrl: thisUrl,
     hostUrl: hostUrl,
@@ -298,11 +298,10 @@ const config = {
     gbifPortal: false,
     gbifApi: "https://api.gbif.org/v1", //this should not change at all
     gadmGid: '', //leave blank if N/A
-    speciesDatasetKey: 'afff5f4d-742e-4db0-b750-6766306f3a0a', //Species Dataset Key
-    speciesFilter: 'datasetKey=afff5f4d-742e-4db0-b750-6766306f3a0a',
-    //speciesFilter: 'higherTaxonKey=6953&higherTaxonKey=5473&higherTaxonKey=7017&higherTaxonKey=9417&higherTaxonKey=5481&higherTaxonKey=1933999', //Filter to use if not speciesDaatasetKey
+    speciesDatasetKey: 'f9d29a0f-b64f-40ee-8061-471a3c15a0fc', //Species Dataset Key
+    speciesFilter: 'datasetKey=f9d29a0f-b64f-40ee-8061-471a3c15a0fc',
     publishingOrgKey: '', //leave blank if N/A
-    occurrenceDatasetKey: 'cf3bdc30-370c-48d3-8fff-b587a39d72d6', //New idea from eButterfly config NOT implemented yet
+    occurrenceDatasetKey: '', //New idea NOT implemented yet
     occurrenceFilter: '', //leave blank if scope is world - this is used in speciesExplorer for each taxonKey - it can be geographic limit or a publishingOrg
     columns: columns,
     columNames: columNames,
