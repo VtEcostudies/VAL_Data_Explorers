@@ -23,6 +23,7 @@ export async function getWikiPage(searchTerm=false) {
             return json;
         } else {
             //console.log(`getWikiPage(${searchTerm}) BAD RESULT:`, res.status);
+            return new Error(res);
         }
     } catch (err) {
         err.query = enc;

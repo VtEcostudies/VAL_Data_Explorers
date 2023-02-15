@@ -46,7 +46,7 @@ console.log('gbif_data_config.js | resultsUrl', resultsUrl);
 console.log('gbif_data_config.js | literatUrl', literatUrl);
 console.log('gbif_data_config.js | publishUrl', publishUrl);
 //const allColumns = ['key','nubKey','canonicalName','scientificName','vernacularName','rank','taxonomicStatus','synonym','parentKey','parent','occurrences','images','childTaxa','iconImage'];
-const columns = ['key', 'nubKey', 'scientificName','vernacularNames','rank','taxonomicStatus','childTaxa','parentTaxa','iconImage','occurrences','images']; //these are the columns that will be shown
+const columns = ['scientificName','vernacularNames','rank','taxonomicStatus','childTaxa','parentTaxa','iconImage','occurrences','images']; //these are the columns that will be shown
 const columNames = {
   'key':'Dataset Key',
   'nubKey':'Backbone Key',
@@ -264,7 +264,7 @@ const config = {
     publishingOrgKey: '', //leave blank if N/A
     occurrenceDatasetKey: 'cf3bdc30-370c-48d3-8fff-b587a39d72d6', //New idea from eButterfly config NOT implemented yet
     occurrenceFilter: '', //leave blank if scope is world - this is used in speciesExplorer for each taxonKey - it can be geographic limit or a publishingOrg
-    columns: columns,
+    columns: ['key','nubKey','canonicalName','vernacularNames','rank','taxonomicStatus','childTaxa','parentTaxa','iconImage','occurrences','images'], //these are the columns that will be shown    columNames: columNames,
     columNames: columNames,
     mapSettings: {
       lat: 41.885,
@@ -302,8 +302,8 @@ const config = {
     speciesFilter: 'datasetKey=f9d29a0f-b64f-40ee-8061-471a3c15a0fc',
     publishingOrgKey: '', //leave blank if N/A
     occurrenceDatasetKey: '', //New idea NOT implemented yet
-    occurrenceFilter: '', //leave blank if scope is world - this is used in speciesExplorer for each taxonKey - it can be geographic limit or a publishingOrg
-    columns: columns,
+    occurrenceFilter: '', //'taxonKey=6953&taxonKey=5473&taxonKey=7017&taxonKey=9417&taxonKey=5481&taxonKey=1933999', //leave blank if scope is world - this is used in speciesExplorer for each taxonKey - it can be geographic limit or a publishingOrg
+    columns: ['key','nubKey','canonicalName','vernacularNames','rank','taxonomicStatus','childTaxa','parentTaxa','iconImage','occurrences','images'], //these are the columns that will be shown    columNames: columNames,
     columNames: columNames,
     mapSettings: {
       lat: 41.885,

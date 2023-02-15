@@ -1,4 +1,9 @@
 
+/* Resize the dataTables drop-down box to fit number and down-arrow */
+#species-table_wrapper #species-table_length select {
+  width: 50%;
+}
+
 @media screen and (max-width: 680px) {
   table {width:100%;}
   thead {display: none;}
