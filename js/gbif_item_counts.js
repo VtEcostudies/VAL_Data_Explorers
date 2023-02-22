@@ -12,7 +12,7 @@ export async function getStoredOccCnts() {
         sOccCnts = getAggOccCounts(); //returns a promise. handle that downstream with occs.then(occs => {}).
         console.log(`getAccOccCounts returned`, sOccCnts); //this returns 'Promise { <state>: "pending" }'
         sOccCnts.then(occCnts => { //convert promise to data object...
-        Storage.setItem(storeName, JSON.stringify(occCnts));
+            Storage.setItem(storeName, JSON.stringify(occCnts));
         });
     }
     return sOccCnts; //return a JSON data object from async function wraps the object in a promise. the caller should await or .then() it.
