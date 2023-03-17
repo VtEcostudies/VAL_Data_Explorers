@@ -150,12 +150,14 @@ async function fillRow(objSpc, objRow, rowIdx, occs) {
     switch(colNam) {
       case 'canonicalName':
         //colObj.innerHTML = `<a href="${resultsUrl}?q=${name}">${name}</a>`; //call self with name
-        colObj.innerHTML += `<a title="Wikipedia: ${name}" href="https://en.wikipedia.org/wiki/${name}">${name}</a>`; //wikipedia link to name
+        //colObj.innerHTML += `<a title="Wikipedia: ${name}" href="https://en.wikipedia.org/wiki/${name}">${name}</a>`; //wikipedia link to name
+        colObj.innerHTML += `<a title="VAL Species Profile: ${name}" href="https://vtatlasoflife.org/VAL_Species_Page/valSpeciesPage.html?taxonName=${name}">${name}</a>`; //wikipedia link to name
         //colObj.innerHTML = `<a href="${resultsUrl}?higherTaxonKey=${key}&higherTaxonName=${name}&higherTaxonRank=${res['rank']}">${name}</a>`; //child taxa of name
         //colObj.title = `Click '${name}' to view its profile. Click tree icon to list its child taxa.`; //apply title directly to sub-elements
         break;
       case 'scientificName': //show scientificName but link by canonicalName
-        colObj.innerHTML += `<a title="Wikipedia: ${name}" href="https://en.wikipedia.org/wiki/${name}">${res.scientificName}</a>`; //wikipedia link to name
+        //colObj.innerHTML += `<a title="Wikipedia: ${name}" href="https://en.wikipedia.org/wiki/${name}">${res.scientificName}</a>`; //wikipedia link to name
+        colObj.innerHTML += `<a title="VAL Species Profile: ${name}" href="https://vtatlasoflife.org/VAL_Species_Page/valSpeciesPage.html?taxonName=${name}">${name}</a>`; //wikipedia link to name
         break;
       case 'childTaxa':
         colObj.innerHTML += `<a title="List child taxa of ${name}" href="${resultsUrl}?q=&higherTaxonKey=${res.key}&higherTaxonName=${name}&higherTaxonRank=${res.rank}"><i class="fa-solid fa-code-branch"></i></a>`
