@@ -182,10 +182,17 @@
         <button class="btn btn-primary" id="information-button" onclick="hideInfo();">Ok</button>
       </div>
 
-      <div id="species-results">
-  			<table id="species-table" class="table table-striped table-responsive table-sm">
-        </table>
+      <div class="row" id="species-results">
+        <div class="col-lg-12">
+          <table id="species-table" class="table table-striped table-responsive table-sm"></table>
+        </div>
   		</div>
+
+      <div class="row">
+        <div class="col-lg-12" id="search-term">
+          <label id="search-value-bot"></label>
+        </div>
+      </div>
 
   	</div>
 

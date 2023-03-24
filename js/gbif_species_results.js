@@ -530,7 +530,7 @@ if (eleTbl) { //results are displayed in a table with id="species-table". we nee
         eleLbl.innerHTML += key;
         if (idx < tKeys.length-1) {eleLbl.innerHTML += ', ';}
       })
-      eleLb2.innerHTML = eleLbl.innerHTML;
+      if (eleLb2) {eleLb2.innerHTML = eleLbl.innerHTML;}
     }
     remTableWait();
   } else { //important: include q="" to show ALL species result
@@ -554,7 +554,7 @@ if (eleTbl) { //results are displayed in a table with id="species-table". we nee
           eleLbl.innerHTML += ` ${key} is <u><b>'${objOther[key]}'</b></u>`;
           if (idx < Object.keys(objOther).length-1) {eleLbl.innerHTML += ' and ';}
         });
-        eleLb2.innerHTML = eleLbl.innerHTML;
+        if (eleLb2) {eleLb2.innerHTML = eleLbl.innerHTML;}
       }
       remTableWait();
     } catch (err) {
