@@ -9,6 +9,7 @@ const speciesDatasetKey = dataConfig.speciesDatasetKey; //'0b1735ff-6a66-454b-86
 const gadmGid = dataConfig.gadmGid; //'USA.46_1';
 const exploreUrl = dataConfig.exploreUrl;
 const resultsUrl = dataConfig.resultsUrl;
+const profileUrl = dataConfig.profileUrl;
 const columns = dataConfig.columns;
 const columNames = dataConfig.columNames;
 var columnIds = {};
@@ -46,6 +47,7 @@ const eleTxt = document.getElementById("results_search"); if (eleTxt) {eleTxt.va
 const elePag = document.getElementById("page-number"); if (elePag) {elePag.innerText = `Page ${nFmt.format(page)}`;}
 const eleTbl = document.getElementById("species-table");
 const eleLbl = document.getElementById("search-value");
+const eleLb2 = document.getElementById("search-value-bot"); //a duplicate search-value display to go below the table of results
 const eleRnk = document.getElementById("taxon-rank"); if (eleRnk) {eleRnk.value =  rank;}
 const eleSts = document.getElementById("taxon-status"); if (eleSts) {eleSts.value =  status;}
 const eleCto = document.getElementById("compare-to"); if (eleCto) {eleCto.value =  qField;}
@@ -151,13 +153,13 @@ async function fillRow(objSpc, objRow, rowIdx, occs) {
       case 'canonicalName':
         //colObj.innerHTML = `<a href="${resultsUrl}?q=${name}">${name}</a>`; //call self with name
         //colObj.innerHTML += `<a title="Wikipedia: ${name}" href="https://en.wikipedia.org/wiki/${name}">${name}</a>`; //wikipedia link to name
-        colObj.innerHTML += `<a title="VAL Species Profile: ${name}" href="https://vtatlasoflife.org/VAL_Species_Page/valSpeciesPage.html?taxonName=${name}">${name}</a>`; //wikipedia link to name
+        colObj.innerHTML += `<a title="VAL Species Profile: ${name}" href="${profileUrl}?taxonName=${name}">${name}</a>`;
         //colObj.innerHTML = `<a href="${resultsUrl}?higherTaxonKey=${key}&higherTaxonName=${name}&higherTaxonRank=${res['rank']}">${name}</a>`; //child taxa of name
         //colObj.title = `Click '${name}' to view its profile. Click tree icon to list its child taxa.`; //apply title directly to sub-elements
         break;
       case 'scientificName': //show scientificName but link by canonicalName
         //colObj.innerHTML += `<a title="Wikipedia: ${name}" href="https://en.wikipedia.org/wiki/${name}">${res.scientificName}</a>`; //wikipedia link to name
-        colObj.innerHTML += `<a title="VAL Species Profile: ${name}" href="https://vtatlasoflife.org/VAL_Species_Page/valSpeciesPage.html?taxonName=${name}">${name}</a>`; //wikipedia link to name
+        colObj.innerHTML += `<a title="VAL Species Profile: ${name}" href="${profileUrl}?taxonName=${name}">${name}</a>`;
         break;
       case 'childTaxa':
         colObj.innerHTML += `<a title="List child taxa of ${name}" href="${resultsUrl}?q=&higherTaxonKey=${res.key}&higherTaxonName=${name}&higherTaxonRank=${res.rank}"><i class="fa-solid fa-code-branch"></i></a>`
@@ -166,8 +168,9 @@ async function fillRow(objSpc, objRow, rowIdx, occs) {
         let vnArr = res[colNam]; //array of vernacular columNames
         if (!vnArr) break;
         vnArr.forEach((ele, idx) => {
+          colObj.innerHTML += ele.vernacularName;
           //colObj.innerHTML += `<a href="${resultsUrl}?q=${ele.vernacularName}">${ele.vernacularName}</a>`; //original - load self with just common name
-          colObj.innerHTML += `<a title="Wikipedia: ${ele.vernacularName}" href="https://en.wikipedia.org/wiki/${ele.vernacularName}">${ele.vernacularName}</a>`; //modified - wikipedia link common name
+          //colObj.innerHTML += `<a title="Wikipedia: ${ele.vernacularName}" href="https://en.wikipedia.org/wiki/${ele.vernacularName}">${ele.vernacularName}</a>`; //modified - wikipedia link common name
           if (idx < Object.keys(vnArr).length-1) {colObj.innerHTML += ', ';}
         })
         break;
@@ -527,6 +530,7 @@ if (eleTbl) { //results are displayed in a table with id="species-table". we nee
         eleLbl.innerHTML += key;
         if (idx < tKeys.length-1) {eleLbl.innerHTML += ', ';}
       })
+      eleLb2.innerHTML = eleLbl.innerHTML;
     }
     remTableWait();
   } else { //important: include q="" to show ALL species result
@@ -550,6 +554,7 @@ if (eleTbl) { //results are displayed in a table with id="species-table". we nee
           eleLbl.innerHTML += ` ${key} is <u><b>'${objOther[key]}'</b></u>`;
           if (idx < Object.keys(objOther).length-1) {eleLbl.innerHTML += ' and ';}
         });
+        eleLb2.innerHTML = eleLbl.innerHTML;
       }
       remTableWait();
     } catch (err) {
@@ -573,15 +578,20 @@ if (eleHlp) {
   }
 }
 
-//configure jQuery dataTable for column sorting
+/*
+ * Configure jQuery dataTable for column sorting. Note that this was called on completed Occ Counts. That's
+ * because dataTables can't sort on columns without values. We remove from sorting other columns whose data
+ * we don't wait for, but that could be done.
+ */
 function setDataTable() {
   let hideCols = [columnIds['childTaxa'], columnIds['iconImage'], columnIds['images']]; //images, iconImage, childTaxa
   console.log(`setDataTable | hide volumnIds`, hideCols, 'of Columns', columnIds)
   $('#species-table').DataTable({
     responsive: false,
     order: [columnIds['occurrences'], 'desc'],
-    paging: false,
-    searching: false,
+    paging: false, //hides the pagination logic
+    searching: false, //hides the dt search box
+    info: false, //hides the 1 to 20 of 20
     columnDefs: [
       { orderable: false, targets: columnIds['childTaxa'] }, //childTaxa
       { orderable: false, targets: columnIds['iconImage'] }, //iconImage
