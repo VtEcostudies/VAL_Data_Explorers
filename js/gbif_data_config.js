@@ -121,14 +121,29 @@ const config = {
               "type": "equals",
               "key": "hasCoordinate",
               "value": false
+            },
+            {
+              "type": "equals",
+              "key": "occurrenceStatus",
+              "value": "PRESENT"
             }
           ]
         },
         // then include data having coordinates that has the correct GADM code
         {
-          "type": "equals",
-          "key": "gadmGid",
-          "value": "USA.46_1"
+            "type": "and",
+            "predicates": [
+            {
+              "type": "equals",
+              "key": "gadmGid",
+              "value": "USA.46_1"
+            },
+            {
+              "type": "equals",
+              "key": "occurrenceStatus",
+              "value": "PRESENT"
+            }
+          ]
         }
       ]
     }

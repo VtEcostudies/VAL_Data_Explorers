@@ -9,17 +9,31 @@ Before deployment:
   width: 50%;
 }
 
-@media screen and (max-width: 680px) {
-    table {width:100%;}
-    thead {display: none;}
-    tr:nth-of-type(2n) {background-color: inherit;}
-    tr td:first-child {background: #f0f0f0; font-weight:bold;font-size:1.3em;}
-    tbody td {display: block;  text-align:center;}
-    tbody td:before {
-        content: attr(data-th);
-        display: block;
-        text-align:center;
-    }
+@media screen and (max-width: 780px) {
+  table {min-width: 300px;}
+  thead {display: none;}
+  tr:nth-child(odd) td:first-child {
+    background: lightblue;
+    font-weight:bold;
+    font-size:1.3em;
+  }
+  tr:nth-child(even) td:first-child {
+    background: lightgoldenrodyellow;
+    font-weight:bold;
+    font-size:1.3em;
+  }
+  tbody td {display: block;  text-align:center;}
+  tbody td:before {
+      content: attr(data-th);
+      display: block;
+      text-align:center;
+  }
+  tbody tr:nth-child(odd) {
+    background-color: lightblue !important;
+  }
+  tbody tr:nth-child(even) {
+    background-color: lightgoldenrodyellow !important;
+  }
 }
 
 .pagination {padding:0;}

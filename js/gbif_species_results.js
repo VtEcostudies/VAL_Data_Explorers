@@ -3,6 +3,7 @@ import { speciesSearch } from './gbif_species_search.js'; //NOTE: importing just
 import { getWikiPage } from './wiki_page_data.js';
 import { predicateToQueries } from './gbif_data_config.js';
 import { getStoredOccCnts, getImgCount } from './gbif_item_counts.js';
+import { tableSortSimple } from '../VAL_Web_Utilities/js/tableSortSimple.js';
 
 const gbifApi = dataConfig.gbifApi; //"https://api.gbif.org/v1";
 const speciesDatasetKey = dataConfig.speciesDatasetKey; //'0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
@@ -94,7 +95,8 @@ async function addHead() {
     console.log('addHead', hedNam, hedIdx);
     columnIds[hedNam]=hedIdx; //make an object having names as keys and index as values, for use by dataTables to enable/disable sorting
     let colObj = await hedRow.insertCell(hedIdx);
-    colObj.innerHTML = columNames[hedNam];
+    colObj.outerHTML = `<th>${columNames[hedNam]}</th>`
+    //colObj.innerHTML = columNames[hedNam];
     if ("canonicalName" == hedNam) {
       colObj.innerHTML = `
         ${columNames[hedNam]}
@@ -585,7 +587,7 @@ if (eleHlp) {
  */
 function setDataTable() {
   let hideCols = [columnIds['childTaxa'], columnIds['iconImage'], columnIds['images']]; //images, iconImage, childTaxa
-  console.log(`setDataTable | hide volumnIds`, hideCols, 'of Columns', columnIds)
+  console.log(`setDataTable | hide columnIds`, hideCols, 'of Columns', columnIds)
   $('#species-table').DataTable({
     responsive: false,
     order: [columnIds['occurrences'], 'desc'],
@@ -608,5 +610,8 @@ function setDataTable() {
 }
 
 $('#species-table').ready(function () {
-  gOccCnts.then(() => {setDataTable()})
+  gOccCnts.then(() => {
+    //setDataTable()
+    tableSortSimple('species-table');
+  })
 });
