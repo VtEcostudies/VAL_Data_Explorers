@@ -9,8 +9,12 @@ Before deployment:
   width: 50%;
 }
 
-@media screen and (max-width: 780px) {
+/* Allow table to shrink despite longish cell values without breaking characters */
+table td {max-width:100px; word-wrap:break-word;}
+
+@media screen and (max-width: 680px) {
   table {min-width: 300px;}
+  table td {max-width:100%;}
   thead {display: none;}
   tr:nth-child(odd) td:first-child {
     background: lightblue;
@@ -18,7 +22,7 @@ Before deployment:
     font-size:1.3em;
   }
   tr:nth-child(even) td:first-child {
-    background: lightgoldenrodyellow;
+    background: lightgray;
     font-weight:bold;
     font-size:1.3em;
   }
@@ -32,7 +36,7 @@ Before deployment:
     background-color: lightblue !important;
   }
   tbody tr:nth-child(even) {
-    background-color: lightgoldenrodyellow !important;
+    background-color: lightgray !important;
   }
 }
 

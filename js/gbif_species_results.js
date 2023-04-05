@@ -1,9 +1,10 @@
 import { dataConfig } from './gbif_data_config.js';
 import { speciesSearch } from './gbif_species_search.js'; //NOTE: importing just a function includes the entire module
 import { getWikiPage } from './wiki_page_data.js';
-import { predicateToQueries } from './gbif_data_config.js';
 import { getStoredOccCnts, getImgCount } from './gbif_item_counts.js';
 import { tableSortSimple } from '../VAL_Web_Utilities/js/tableSortSimple.js';
+import { tableSortTrivial } from '../VAL_Web_Utilities/js/tableSortTrivial.js';
+import { tableSortHeavy } from '../VAL_Web_Utilities/js/tableSortHeavy.js';
 
 const gbifApi = dataConfig.gbifApi; //"https://api.gbif.org/v1";
 const speciesDatasetKey = dataConfig.speciesDatasetKey; //'0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
@@ -223,7 +224,6 @@ async function fillRow(objSpc, objRow, rowIdx, occs) {
           colObj.innerHTML = '';
           if (wik.thumbnail) {
             let iconImg = document.createElement("img");
-            //iconImg.src = wik.originalimage.source;
             iconImg.src = wik.thumbnail.source;
             iconImg.alt = name;
             iconImg.className = "icon-image";
@@ -580,38 +580,11 @@ if (eleHlp) {
   }
 }
 
-/*
- * Configure jQuery dataTable for column sorting. Note that this was called on completed Occ Counts. That's
- * because dataTables can't sort on columns without values. We remove from sorting other columns whose data
- * we don't wait for, but that could be done.
- */
-function setDataTable() {
-  let hideCols = [columnIds['childTaxa'], columnIds['iconImage'], columnIds['images']]; //images, iconImage, childTaxa
-  console.log(`setDataTable | hide columnIds`, hideCols, 'of Columns', columnIds)
-  $('#species-table').DataTable({
-    responsive: false,
-    order: [columnIds['occurrences'], 'desc'],
-    paging: false, //hides the pagination logic
-    searching: false, //hides the dt search box
-    info: false, //hides the 1 to 20 of 20
-    columnDefs: [
-      { orderable: false, targets: columnIds['childTaxa'] }, //childTaxa
-      { orderable: false, targets: columnIds['iconImage'] }, //iconImage
-      { orderable: false, targets: columnIds['images'] }  //images (imageCount)
-    ]
-/*
-    lengthMenu: [
-      [10, 20, 50, 100, 500, -1],
-      [10, 20, 50, 100, 500, 'All'],
-    ],
-    pageLength: limit
-*/
-  });
-}
-
 $('#species-table').ready(function () {
   gOccCnts.then(() => {
-    //setDataTable()
-    tableSortSimple('species-table');
+    let excludeColumnIds = [columnIds['childTaxa'], columnIds['iconImage'], columnIds['images']]; //images, iconImage, childTaxa
+    tableSortHeavy('species-table', columnIds['occurrences'], excludeColumnIds);
+    //tableSortSimple('species-table');
+    //tableSortTrivial('species-table');
   })
 });
