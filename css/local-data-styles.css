@@ -9,7 +9,7 @@ Before deployment:
   width: 50%;
 }
 
-/* Allow table to shrink despite longish cell values without breaking characters */
+/* Allow table to shrink by breaking longish cell values without breaking characters */
 table td {max-width:100px; word-wrap:break-word;}
 
 @media screen and (max-width: 680px) {
