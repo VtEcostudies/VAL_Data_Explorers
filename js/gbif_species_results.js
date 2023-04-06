@@ -1,7 +1,7 @@
 import { dataConfig } from './gbif_data_config.js';
 import { speciesSearch } from './gbif_species_search.js'; //NOTE: importing just a function includes the entire module
-import { getWikiPage } from './wiki_page_data.js';
 import { getStoredOccCnts, getImgCount } from './gbif_item_counts.js';
+import { getWikiPage } from '../VAL_Web_Utilities/js/wikiPageData.js';
 import { tableSortSimple } from '../VAL_Web_Utilities/js/tableSortSimple.js';
 import { tableSortTrivial } from '../VAL_Web_Utilities/js/tableSortTrivial.js';
 import { tableSortHeavy } from '../VAL_Web_Utilities/js/tableSortHeavy.js';

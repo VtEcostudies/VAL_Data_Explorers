@@ -1,6 +1,0 @@
-?taxonKey=160793879&taxonName=Apidae
-&taxonKey=160793679&taxonName=Andrenidae
-&taxonKey=160793560&taxonName=Halictidae
-&taxonKey=197821323&taxonName=Melittidae
-&taxonKey=160793651&taxonName=Colletidae
-&taxonKey=160793525&taxonName=Megachilidae
