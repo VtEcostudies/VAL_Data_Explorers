@@ -24,7 +24,8 @@ if (hostUrl.includes('vtatlasoflife.org') || hostUrl.includes('localhost')) { //
   baseRoute = urlRouts.splice(0, urlRouts.length-1).join('/'); //remove the html file from the route and use what's left to build URLs for page links in code
   exploreEnd = 'occurrences.html';
   resultsEnd = 'results.html';
-  profileEnd = 'profile.html';
+  //profileEnd = 'profile.html';
+  profileEnd = '/VAL_Species_Page/species-profile.html';
   literatEnd = 'literature.html';
   publishEnd = 'publishers.html';
 }
@@ -38,7 +39,8 @@ if (!urlRout.endsWith('/')) {urlRout += '/';}
 if (!baseRoute.endsWith('/')) {baseRoute += '/';}
 const exploreUrl = `${thisUrl.protocol}//${hostUrl}${baseRoute}${exploreEnd}`;
 const resultsUrl = `${thisUrl.protocol}//${hostUrl}${baseRoute}${resultsEnd}`;
-const profileUrl = `${thisUrl.protocol}//${hostUrl}${baseRoute}${profileEnd}`;
+//const profileUrl = `${thisUrl.protocol}//${hostUrl}${baseRoute}${profileEnd}`;
+const profileUrl = `${thisUrl.protocol}//${hostUrl}${profileEnd}`;
 const literatUrl = `${thisUrl.protocol}//${hostUrl}${baseRoute}${literatEnd}`;
 const publishUrl = `${thisUrl.protocol}//${hostUrl}${baseRoute}${publishEnd}`;
 console.log('gbif_data_config.js | hostUrl', hostUrl);
