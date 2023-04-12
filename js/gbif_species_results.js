@@ -1,4 +1,4 @@
-import { dataConfig } from './gbif_data_config.js';
+import { dataConfig } from '../VAL_Web_Utilities/js/gbifDataConfig.js';
 import { speciesSearch } from './gbif_species_search.js'; //NOTE: importing just a function includes the entire module
 import { getStoredOccCnts, getImgCount } from './gbif_item_counts.js';
 import { getWikiPage } from '../VAL_Web_Utilities/js/wikiPageData.js';

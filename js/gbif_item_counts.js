@@ -1,4 +1,4 @@
-import { dataConfig, predicateToQueries } from "./gbif_data_config.js";
+import { dataConfig, predicateToQueries } from "../VAL_Web_Utilities/js/gbifDataConfig.js";
 
 const Storage = sessionStorage; //localStorage;
 

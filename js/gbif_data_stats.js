@@ -1,6 +1,5 @@
-import { dataConfig } from './gbif_data_config.js';
+import { dataConfig, predicateToQueries } from "../VAL_Web_Utilities/js/gbifDataConfig.js";
 import { speciesSearch } from './gbif_species_search.js';
-import { predicateToQueries } from './gbif_data_config.js';
 
 const speciesDatasetKey = dataConfig.speciesDatasetKey; //'0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
 const qrys = predicateToQueries(); //['?state_province=Vermont&hasCoordinate=false', '?gadmGid=USA.46_1'];
