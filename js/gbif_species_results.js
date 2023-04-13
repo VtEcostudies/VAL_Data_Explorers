@@ -429,11 +429,19 @@ document.getElementsByName("page-last").forEach((ele) => {
   })
 if (document.getElementById("download-json")) {
     document.getElementById("download-json").addEventListener("mouseup", function(e) {
-      getDownloadData(1);
+      if (count > 9999) {
+        alert(`GBIF species results are limited to 10,000 records. Please focus your search terms to reduce data scope.`);
+      } else {
+        getDownloadData(1);
+      }
     });}
 if (document.getElementById("download-csv")) {
     document.getElementById("download-csv").addEventListener("mouseup", function(e) {
-      getDownloadData(0);
+      if (count > 9999) {
+        alert(`GBIF species results are limited to 10,000 records. Please focus your search terms to reduce data scope.`);
+      } else {
+        getDownloadData(0);
+      }
     });}
 //using search term and other query parameters, download all species data by page and concatenate into a single array of objects
 async function getAllDataPages(q=qParm, lim=limit, qf=qField, oth=other) {
