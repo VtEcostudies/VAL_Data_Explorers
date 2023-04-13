@@ -402,22 +402,26 @@ if (document.getElementById("compare-to")) {
       console.log('page-size change to', newLimit);
       SamePage(qParm, newLimit);
     });}
-if (document.getElementById("page-prev")) {
-    document.getElementById("page-prev").addEventListener("mouseup", function(e) {
+document.getElementsByName("page-prev").forEach((ele) => {
+    ele.addEventListener("mouseup", (e) => {
       PrevPage();
-    });}
-if (document.getElementById("page-next")) {
-    document.getElementById("page-next").addEventListener("mouseup", function(e) {
+    })
+  })
+document.getElementsByName("page-next").forEach((ele) => {
+    ele.addEventListener("mouseup", (e) => {
       NextPage();
-    });}
-if (document.getElementById("page-first")) {
-    document.getElementById("page-first").addEventListener("mouseup", function(e) {
+    })
+  })
+document.getElementsByName("page-first").forEach((ele) => {
+    ele.addEventListener("mouseup", (e) => {
       FirstPage();
-    });}
-if (document.getElementById("page-last")) {
-    document.getElementById("page-last").addEventListener("mouseup", function(e) {
+    })
+  })
+document.getElementsByName("page-last").forEach((ele) => {
+    ele.addEventListener("mouseup", (e) => {
       LastPage();
-    });}
+    })
+  })
 if (document.getElementById("download-json")) {
     document.getElementById("download-json").addEventListener("mouseup", function(e) {
       getDownloadData(1);
@@ -426,7 +430,6 @@ if (document.getElementById("download-csv")) {
     document.getElementById("download-csv").addEventListener("mouseup", function(e) {
       getDownloadData(0);
     });}
-
 //using search term and other query parameters, download all species data by page and concatenate into a single array of objects
 async function getAllDataPages(q=qParm, lim=limit, qf=qField, oth=other) {
   var res = []; var page = {}; var off = 0; var fatalError = 0;
