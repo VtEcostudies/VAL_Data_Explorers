@@ -46,7 +46,7 @@ objUrlParams.forEach((val, key) => {
 const eleTtl = document.getElementById("species-title"); //the h tag within the title
 const eleHlp = document.getElementById("flag-issue"); //id='flag-issue' element for HelpDesk support
 const eleTxt = document.getElementById("results_search"); if (eleTxt) {eleTxt.value = qParm;}
-const elePag = document.getElementById("page-number"); if (elePag) {elePag.innerText = `Page ${nFmt.format(page)}`;}
+const elePag = document.getElementsByName("page-number"); elePag.forEach(ele => {ele.innerText = `Page ${nFmt.format(page)}`;})
 const eleTbl = document.getElementById("species-table");
 const eleLbl = document.getElementById("search-value");
 const eleLb2 = document.getElementById("search-value-bot"); //a duplicate search-value display to go below the table of results
@@ -333,7 +333,9 @@ export function PrevPage() {
   }
 }
 export function NextPage() {
-  if ((offset + limit) < count) {
+  if (offset + limit > 9999) {
+    alert(`GBIF species results are limited to 10,000 records. Please focus your search terms to reduce data scope.`);
+  } else if ((offset + limit) < count) {
     offset = offset + limit;
     //alert(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}`);
     window.location.assign(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}${other}`);
@@ -344,7 +346,10 @@ export function FirstPage() {
   window.location.assign(`${resultsUrl}?q=${qParm}&offset=0&limit=${limit}${other}`);
 }
 export function LastPage() {
-  if (count > limit) {
+  //alert(`LastPage() | count:${count}, limit:${limit}, offset:${offset}`);
+  if (count > 10000) {
+    alert(`GBIF species results are limited to 10,000 records. Please focus your search terms to reduce data scope.`);
+  } else  if (count > limit) {
     offset = Math.floor(count/limit)*limit;
     if (offset >= count) {offset = offset - limit;}
     //alert(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}`);
