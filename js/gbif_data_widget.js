@@ -2,7 +2,7 @@
   GBIF REACT EVENT SEARCH SCRIPTS
 */
 
-import { dataConfig } from '../VAL_Web_Utilities/js/gbifDataConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_widget.js"></script>
+import { dataConfig } from '../VAL_Web_Utilities/js/gbifDataConfig.js '; //in html must declare this as module eg. <script type="module" src="js/gbif_data_widget.js"></script>
 import { townsBasemap } from './gbif_vt_town_tile.js';
 
 var widgetLocale = 'en';
@@ -29,9 +29,10 @@ var routes = userConfig.routes || {
     route: '/',
   }
 };
+console.log('gbif_data_widget | hostUrl', dataConfig.hostUrl);
 
 //sometimes the widget inserts basename into path (eg. on page-reload). detect host and use relevant path.
-if ('vtatlasoflife.org' == dataConfig.hostUrl || 'localhost' == dataConfig.hostUrl) {
+if ('vtatlasoflife.org' == dataConfig.hostUrl || 'localhost' == dataConfig.hostUrl.split(':')[0]) {
   routes.basename = '/';
 } else {
   routes.basename = '/gbif-explorer';
@@ -92,6 +93,27 @@ var maps = {
   }
 }
 
+/*
+  Wordpress reserves the query parameter 'year' so we can't use it directly.
+  Instead, pass the param 'gbif-year'. Here we replace it with 'year' just
+  before invoking the OcurrenceSearch widget.
+*/
+let url = new URL(location);
+let gbifYear = url.searchParams.get('gbif-year');
+if (gbifYear) {
+  if (history.replaceState) {
+    console.log(`gbif_data_widget | GBIF OccurrenceSearch RECEIVED queryParam 'gbif-year' | REPLACING WITH 'year'...`)
+    url.searchParams.set('year', gbifYear);
+    url.searchParams.delete('gbif-year');
+      history.replaceState({}, "", url);  
+  } else {
+    let msg = `WEB BROWSER IS NOT HTML5 COMPATIBLE. CANNOT RELOAD PAGE CONTENTS REPLACING 'gbif-year' WITH 'year'.`
+    console.log(`gbif_data_widget | ${msg}`);
+    alert(msg);
+    //location.url = url;
+  }
+}
+
 ReactDOM.render(
   React.createElement(gbifReactComponents.OccurrenceSearch, {
     style: { 'min-height': 'calc(100vh - 80px)' },
@@ -101,7 +123,7 @@ ReactDOM.render(
       locale: widgetLocale,
       occurrence: occurrence,
       apiKeys: apiKeys,
-      maps: maps
+      maps: maps,
     },
     pageLayout: true,
   }),
