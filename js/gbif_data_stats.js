@@ -1,11 +1,18 @@
-import { dataConfig, predicateToQueries } from "../VAL_Web_Utilities/js/gbifDataConfig.js";
+import { siteConfig } from './gbifSiteConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_config.js"></script>
+//const dataConfig = (async () => {return await import(`../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteConfig.siteName}`);})()
+import { predicateToQueries } from '../VAL_Web_Utilities/js/gbifDataConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_widget.js"></script>
 import { speciesSearch } from './gbif_species_search.js';
 
-const speciesDatasetKey = dataConfig.speciesDatasetKey; //'0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
-const qrys = predicateToQueries(); //['?state_province=Vermont&hasCoordinate=false', '?gadmGid=USA.46_1'];
+import(`../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteConfig.siteName}`)
+  .then(fileConfig => {
+    console.log('gbif_data_stats | siteName:', siteConfig.siteName, 'dataConfig:', fileConfig.dataConfig);
+    startUp(fileConfig.dataConfig);
+  })
 
-console.log('gbif_data_stats.js | rootPredicate converted to http query parameters:');
-console.dir(qrys);
+//const speciesDatasetKey = dataConfig.speciesDatasetKey; //'0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
+//const qrys = predicateToQueries(); //['?state_province=Vermont&hasCoordinate=false', '?gadmGid=USA.46_1'];
+//console.log('gbif_data_stats.js | rootPredicate converted to http query parameters:');
+//console.dir(qrys);
 
 var begEvent = new Event('xhttpBeg');
 var endEvent = new Event('xhttpEnd');
@@ -183,9 +190,9 @@ function speciesOccStats(reqQuery) {
   Get a count of accepted species and set speciesCount html element value
   Using speciesSearch, count rank=SPECIES & status=ACCEPTED
 */
-async function speciesStats(reqQuery="") {
+async function speciesStats(dataConfig, reqQuery="") {
   reqQuery += `&rank=SPECIES&status=ACCEPTED`;
-  let spcs = await speciesSearch(reqQuery, 0, 0);
+  let spcs = await speciesSearch(dataConfig, reqQuery, 0, 0);
   let lmId = 'count-species';
   let elem = document.getElementById(lmId);
   console.log(`gbif_data_stats.js::speciesStats(${reqQuery})|`, spcs);
@@ -325,7 +332,7 @@ window.onload = function() {
 };
 
 // Add listeners to handle clicks on stats items
-function addListeners() {
+function addListeners(dataConfig) {
 
       /* Respond to mouse click on Occurrence Stats button */
       if (document.getElementById("stats-records")) {
@@ -380,7 +387,7 @@ function addListeners() {
   There are 2 sets of html elements to manipulate on the home page, 
   counts and links. We set the counts' values and the links' hrefs.
 */
-function setContext() {
+function setContext(dataConfig) {
   let homeTitle = document.getElementById("home-title")
   let countOccs = document.getElementById("count-occurrences");
   let countDset = document.getElementById("count-datasets");
@@ -412,15 +419,20 @@ function setContext() {
   }
 }
 
-setContext();
-qrys.forEach(qry => {
-  console.log('gbif_data_stats.js NOW QUERYING:', qry);
-  if (!dataConfig.speciesFilter) speciesOccStats(qry); //backup query of all unique scientificNames from occurrences
-  occStats(qry);
-  datasetStats(qry);
-  if (!dataConfig.publishingOrKey) publisherOccStats(qry); //backup query of 
-})
-if (dataConfig.speciesFilter) {speciesStats();}
-//if (dataConfig.publishingOrgKey) {publisherStats(dataConfig.publishingOrgKey);} //this is done manually new in WordPress
-otherStats(); //attempt to do this within WP user access so it can be easily edited
-addListeners();
+function startUp(dataConfig) {
+  let qrys = predicateToQueries(dataConfig.rootPredicate); //['?state_province=Vermont&hasCoordinate=false', '?gadmGid=USA.46_1'];
+  console.log('gbif_data_stats.js | rootPredicate converted to http query parameters:');
+  console.dir(qrys);
+  setContext(dataConfig);
+  qrys.forEach(qry => {
+    console.log('gbif_data_stats.js NOW QUERYING:', qry);
+    if (!dataConfig.speciesFilter) speciesOccStats(qry); //backup query of all unique scientificNames from occurrences
+    occStats(qry);
+    datasetStats(qry);
+    if (!dataConfig.publishingOrKey) publisherOccStats(qry); //backup query of 
+  })
+  if (dataConfig.speciesFilter) {speciesStats(dataConfig);}
+  //if (dataConfig.publishingOrgKey) {publisherStats(dataConfig.publishingOrgKey);} //this is done manually new in WordPress
+  otherStats(); //attempt to do this within WP user access so it can be easily edited
+  addListeners(dataConfig);
+}

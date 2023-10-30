@@ -1,11 +1,17 @@
-import { dataConfig } from '../VAL_Web_Utilities/js/gbifDataConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_widget.js"></script>
+import { siteConfig } from './gbifSiteConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_config.js"></script>
+//const dataConfig = (async () => {return await import(`../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteConfig.siteName}`);})()
+//import { dataConfig } from '../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=mva';
 
-const speciesDatasetKey = dataConfig.speciesDatasetKey; //'0b1735ff-6a66-454b-8686-cae1cbc732a2';
+import(`../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteConfig.siteName}`)
+  .then(fileConfig => {
+    console.log('gbif_auto_complete | siteName:', siteConfig.siteName, 'dataConfig:', fileConfig.dataConfig);
+
+const speciesDatasetKey = fileConfig.dataConfig.speciesDatasetKey; //'0b1735ff-6a66-454b-8686-cae1cbc732a2';
 const filterVermont = true;
 var inputElementId = null; //the Id of the text input to have autoComplete. only put one on a page, multiple is not tested.
 var listElementId = 'gbif_autocomplete_list'; //the Id of the datalist attached to the input (required)
 
-export function listenerInit(elementId=null) {
+function listenerInit(elementId=null) {
   window.addEventListener("load", function() {
 
       // Add a keyup event listener to our input element
@@ -163,6 +169,7 @@ function getSelectedItemData(dataItem) {
 
     return data;
 }
+})
 
 export function getTaxonKey() {
     return getSelectedItemData('taxonKey');

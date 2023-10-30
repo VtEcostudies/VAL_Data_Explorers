@@ -1,14 +1,34 @@
-import { dataConfig } from '../VAL_Web_Utilities/js/gbifDataConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_widget.js"></script>
 
-const gbifPortal = dataConfig.gbifPortal; //'https://hp-vtatlasoflife.gbif.org'; // "https://hp-vtatlasoflife.gbif-staging.org";
+import { siteConfig } from './gbifSiteConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_config.js"></script>
+//const dataConfig = (async () => {return await import(`../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteConfig.siteName}`);})()
+//import { dataConfig } from '../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=mva';
+const gbifApi = "https://api.gbif.org/v1";
+
+var dataConfig;
+var datasetKey;
+var speciesFilter;
+var exploreUrl;
+var resultsUrl;
+
+var fileConfig = import(`../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteConfig.siteName}`);
+/*
+import(`../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteConfig.siteName}`)
+  .then(fileConfig => {
+    console.log('gbif_species_search | siteName:', siteConfig.siteName, 'dataConfig:', fileConfig.dataConfig);
+    startUp(fileConfig);
+  })
+*/
+/*
 const gbifApi = dataConfig.gbifApi; //"https://api.gbif.org/v1";
 const datasetKey = dataConfig.datasetKey; //'0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
 const speciesFilter = dataConfig.speciesFilter; //generalize species filter to be anything allowable in species API
 const exploreUrl = dataConfig.exploreUrl;
 const resultsUrl = dataConfig.resultsUrl;
 
+console.log('dataConfig:', dataConfig);
 console.log('Explorer URL:', exploreUrl);
 console.log('Results URL:', resultsUrl);
+*/  
 
 /*
   https://api.gbif.org/v1/species?name=Turdus%20migratorius
@@ -25,7 +45,8 @@ console.log('Results URL:', resultsUrl);
 
   NOTE: otherParms must be in the form '&key=value&key=value&...'
 */
-export async function speciesSearch(searchTerm="", offset=0, limit=20, qField='', otherParms='') {
+export async function speciesSearch(dataConfig, searchTerm="", offset=0, limit=20, qField='', otherParms='') {
+  console.log('gbif_species_search::speciesSearch | dataConfig:', dataConfig);
 
   let s = searchTerm.split("&"); //allow searchTerm inline query params delmited by &
   for (var i=1; i<s.length; i++) {otherParms += "&" + s[i];}
@@ -33,9 +54,9 @@ export async function speciesSearch(searchTerm="", offset=0, limit=20, qField=''
 
   let reqHost = gbifApi;
   let reqRoute = "/species/search";
-  let reqQuery = searchTerm?`?q=${searchTerm}&`:'?';
-  //let reqFilter = `&datasetKey=${datasetKey}${otherParms}`;
-  let reqFilter = speciesFilter;
+  let reqQuery = searchTerm ? `?q=${searchTerm}&` : '?';
+  //let reqFilter = `&datasetKey=${dataConfig.datasetKey}${otherParms}`;
+  let reqFilter = dataConfig.speciesFilter;
   let reqQfield = `&qField=${qField}`; //compare the searchTerm to just this field (SCIENTIFIC, VERNACULAR, DESCRIPTION)
   let reqSize = `&offset=${offset}&limit=${limit}`;
   let url = reqHost+reqRoute+reqQuery+reqFilter+reqQfield+otherParms+reqSize;
@@ -114,24 +135,17 @@ export async function speciesMatch(searchTerm) {
 // Navigate to Occurrence Search page with speciesMatch results from html element occ_search
 export async function speciesMatchLoadExplorer(searchValue=null) {
   if (!searchValue) {searchValue = document.getElementById("occ_search").value;}
-  let frame = document.getElementById("gbif_frame");
   let react = document.getElementById("gbif_react");
   console.log(`speciesMatchLoadExplorer(${searchValue})`);
 
   let mRes = await speciesMatch(searchValue); //single result: match or null
 
   if (mRes.usageKey) { //successful match API results always have usageKey (aka nubKey?)
-    if (frame) {frame.scrollIntoView(); frame.src = `${gbifPortal}/occurrence/search/?taxonKey=${mRes.result.usageKey}&view=MAP`;}
-    else {
       window.location.assign(`${exploreUrl}?taxonKey=${mRes.result.usageKey}&view=MAP`);
       if (react) react.scrollIntoView();
-    }
   } else { //send raw text for search
-    if (frame) {frame.scrollIntoView(); frame.src = `${gbifPortal}/occurrence/search/?q=${searchValue}&view=MAP`;}
-    else {
       window.location.assign(`${exploreUrl}?q=${searchValue}&view=MAP`);
       if (react) react.scrollIntoView();
-    }
   }
 }
 
@@ -206,7 +220,16 @@ function addListeners() {
   }
 }
 
-addListeners();
+//async function startUp(fileConfig) {
+fileConfig.then(fileConfig => {
+  dataConfig = fileConfig.dataConfig;
+  datasetKey = dataConfig.datasetKey;
+  speciesFilter = dataConfig.speciesFilter;
+  //gbifApi = dataConfig.gbifApi;
+  exploreUrl = dataConfig.exploreUrl;
+  resultsUrl = dataConfig.resultsUrl;
+  addListeners();
+})
 //let mRes = await speciesMatch('Turdus migratorius') //test code
 //let sRes = await speciesSearch('Turdus migratorius') //test code
 //speciesMatchLoadExplorer('Ambystoma maculatum'); //test code

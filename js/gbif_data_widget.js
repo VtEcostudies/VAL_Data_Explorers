@@ -2,8 +2,12 @@
   GBIF REACT EVENT SEARCH SCRIPTS
 */
 
-import { dataConfig } from '../VAL_Web_Utilities/js/gbifDataConfig.js '; //in html must declare this as module eg. <script type="module" src="js/gbif_data_widget.js"></script>
+import { siteConfig } from './gbifSiteConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_config.js"></script>
+//const dataConfig = (async () => {return await import(`../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteConfig.siteName}`);})()
 import { townsBasemap } from './gbif_vt_town_tile.js';
+
+import(`../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteConfig.siteName}`)
+.then(fileConfig => { let dataConfig = fileConfig.dataConfig
 
 var widgetLocale = 'en';
 
@@ -63,7 +67,7 @@ var occurrence = {
     highlightedFilters: ['q','taxonKey','gadmGid','locality','elevation','year','recordedBy','publishingOrg','datasetName'],
     excludedFilters: ['stateProvince', 'continent', 'country', 'publishingCountry', 'hostingOrganization', 'networkKey', 'publishingProtocol'],
     occurrenceSearchTabs: ['GALLERY', 'MAP', 'TABLE', 'DATASETS'], // what tabs should be shown
-    defaultTableColumns: ['features','coordinates','locality','year','basisOfRecord','dataset','publisher','recordedBy','collectionCode','institutionCode'],
+    defaultTableColumns: ['features','coordinates','locality','year','month','basisOfRecord','dataset','publisher','recordedBy','collectionCode','institutionCode'],
     getSuggests: getSuggestions,
  }
 
@@ -129,3 +133,5 @@ ReactDOM.render(
   }),
   document.getElementById('root')
 );
+
+})

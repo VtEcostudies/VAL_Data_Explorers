@@ -1,4 +1,5 @@
-import { dataConfig } from '../VAL_Web_Utilities/js/gbifDataConfig.js';
+import { siteConfig } from './gbifSiteConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_config.js"></script>
+//import { dataConfig } from '../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=mva';
 import { speciesSearch } from './gbif_species_search.js'; //NOTE: importing just a function includes the entire module
 import { getStoredOccCnts, getImgCount } from './gbif_item_counts.js';
 import { getWikiPage } from '../VAL_Web_Utilities/js/wikiPageData.js';
@@ -6,6 +7,21 @@ import { tableSortSimple } from '../VAL_Web_Utilities/js/tableSortSimple.js';
 import { tableSortTrivial } from '../VAL_Web_Utilities/js/tableSortTrivial.js';
 import { tableSortHeavy } from '../VAL_Web_Utilities/js/tableSortHeavy.js';
 
+var dataConfig;
+var gbifApi;
+var speciesDatasetKey;
+var exploreUrl;
+var resultsUrl;
+var profileUrl;
+var columns;
+var columNames;
+
+import(`../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteConfig.siteName}`)
+  .then(fileConfig => {
+    console.log('gbif_species_results | siteName:', siteConfig.siteName, 'dataConfig:', fileConfig.dataConfig);
+    startUp(fileConfig);
+  })
+/*
 const gbifApi = dataConfig.gbifApi; //"https://api.gbif.org/v1";
 const speciesDatasetKey = dataConfig.speciesDatasetKey; //'0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
 const gadmGid = dataConfig.gadmGid; //'USA.46_1';
@@ -14,6 +30,7 @@ const resultsUrl = dataConfig.resultsUrl;
 const profileUrl = dataConfig.profileUrl;
 const columns = dataConfig.columns;
 const columNames = dataConfig.columNames;
+*/
 var columnIds = {};
 const nFmt = new Intl.NumberFormat(); //use this to format numbers by locale... automagically
 const objUrlParams = new URLSearchParams(window.location.search);
@@ -237,7 +254,7 @@ async function fillRow(objSpc, objRow, rowIdx, occs) {
       case 'images':
         colObj.innerHTML = `<i class="fa fa-spinner fa-spin" style="font-size:18px"></i>`;
         try {
-          img = await getImgCount(key);
+          img = await getImgCount(dataConfig, key);
           colObj.innerHTML = `<a href="${exploreUrl}?taxonKey=${key}&view=GALLERY">${nFmt.format(img.count)}</a>`;
         } catch (err) {colObj.innerHTML = ''; console.log(`ERROR in getImageCount:`, err);}
         break;
@@ -449,7 +466,7 @@ async function getAllDataPages(q=qParm, lim=limit, qf=qField, oth=other) {
   eleDwn.style.display = 'block'; eleOvr.style.display = 'block';
   do {
     try {
-      page = await speciesSearch(q, off, lim, qf, oth);
+      page = await speciesSearch(dataConfig, q, off, lim, qf, oth);
       await page.results.forEach(async oSpc => {
       //for (var i=0; i<page.results.length; i++) { //blocking for-loop
         //let oSpc = page.results[i];
@@ -536,71 +553,83 @@ function jsonToCsv(json) {
   return csv;
 }
 
-if (eleTbl) { //results are displayed in a table with id="species-table". we need that to begin.
-  if (tKeys.length) {
-    addTableWait();
-    gOccCnts = getStoredOccCnts();
-    await addTaxaByKeys(gOccCnts);
-    await addHead();
-    if (eleLbl) {
-      eleLbl.innerHTML = "Showing results for taxon keys: ";
-      tKeys.forEach((key, idx) => {
-        eleLbl.innerHTML += key;
-        if (idx < tKeys.length-1) {eleLbl.innerHTML += ', ';}
-      })
-      if (eleLb2) {eleLb2.innerHTML = eleLbl.innerHTML;}
-    }
-    remTableWait();
-  } else { //important: include q="" to show ALL species result
-    if (!qParm) {qParm = "";}
-    if ("" === qParm && !other) {other='&rank=KINGDOM'; objOther={'rank':'KINGDOM'}; eleRnk.value='KINGDOM';}
-    try {
+async function startUp(fileConfig) {
+
+  dataConfig = fileConfig.dataConfig;
+  gbifApi = dataConfig.gbifApi;
+  speciesDatasetKey = dataConfig.speciesDatasetKey;
+  exploreUrl = dataConfig.exploreUrl;
+  resultsUrl = dataConfig.resultsUrl;
+  profileUrl = dataConfig.profileUrl;
+  columns = dataConfig.columns;
+  columNames = dataConfig.columNames;
+    
+  if (eleTbl) { //results are displayed in a table with id="species-table". we need that to begin.
+    if (tKeys.length) {
       addTableWait();
-      gOccCnts = getStoredOccCnts();
-      let spcs = await speciesSearch(qParm, offset, limit, qField, other);
-      count = spcs.count;
-      await addTaxaFromArr(spcs.results, gOccCnts);
+      gOccCnts = getStoredOccCnts(fileConfig);
+      await addTaxaByKeys(gOccCnts);
       await addHead();
-      let finish = (offset+limit)>count ? count : offset+limit;
       if (eleLbl) {
-        eleLbl.innerHTML = `Showing ${nFmt.format(count?offset+1:0)}-${nFmt.format(finish)} of <u><b>${nFmt.format(count)}</b></u> Results`;
-        if (qParm) {
-          eleLbl.innerHTML += ` for Search Term <u><b>'${qParm}'</b></u>`;
-        }
-        if (Object.keys(objOther).length) {eleLbl.innerHTML += ' where ';}
-        Object.keys(objOther).forEach((key, idx) => {
-          eleLbl.innerHTML += ` ${key} is <u><b>'${objOther[key]}'</b></u>`;
-          if (idx < Object.keys(objOther).length-1) {eleLbl.innerHTML += ' and ';}
-        });
+        eleLbl.innerHTML = "Showing results for taxon keys: ";
+        tKeys.forEach((key, idx) => {
+          eleLbl.innerHTML += key;
+          if (idx < tKeys.length-1) {eleLbl.innerHTML += ', ';}
+        })
         if (eleLb2) {eleLb2.innerHTML = eleLbl.innerHTML;}
       }
       remTableWait();
-    } catch (err) {
-      putErrorOnScreen(err);
+    } else { //important: include q="" to show ALL species result
+      if (!qParm) {qParm = "";}
+      if ("" === qParm && !other) {other='&rank=KINGDOM'; objOther={'rank':'KINGDOM'}; eleRnk.value='KINGDOM';}
+      try {
+        addTableWait();
+        gOccCnts = getStoredOccCnts(fileConfig);
+        let spcs = await speciesSearch(dataConfig, qParm, offset, limit, qField, other);
+        count = spcs.count;
+        await addTaxaFromArr(spcs.results, gOccCnts);
+        await addHead();
+        let finish = (offset+limit)>count ? count : offset+limit;
+        if (eleLbl) {
+          eleLbl.innerHTML = `Showing ${nFmt.format(count?offset+1:0)}-${nFmt.format(finish)} of <u><b>${nFmt.format(count)}</b></u> Results`;
+          if (qParm) {
+            eleLbl.innerHTML += ` for Search Term <u><b>'${qParm}'</b></u>`;
+          }
+          if (Object.keys(objOther).length) {eleLbl.innerHTML += ' where ';}
+          Object.keys(objOther).forEach((key, idx) => {
+            eleLbl.innerHTML += ` ${key} is <u><b>'${objOther[key]}'</b></u>`;
+            if (idx < Object.keys(objOther).length-1) {eleLbl.innerHTML += ' and ';}
+          });
+          if (eleLb2) {eleLb2.innerHTML = eleLbl.innerHTML;}
+        }
+        remTableWait();
+      } catch (err) {
+        putErrorOnScreen(err);
+      }
+    }
+  } else {
+    console.log('gbif_species_results.js requires a table having id="species-table" to operate.')
+  }
+
+  if (eleTtl) {
+    eleTtl.innerText = `${dataConfig.atlasPlace} Species Explorer`;
+  }
+
+  if (eleHlp) {
+    if (dataConfig.helpDeskUrl) {
+      eleHlp.style.display = 'inline';
+      eleHlp.href = dataConfig.helpDeskUrl;
+    } else {
+      eleHlp.style.display = 'none';
     }
   }
-} else {
-  console.log('gbif_species_results.js requires a table having id="species-table" to operate.')
-}
 
-if (eleTtl) {
-  eleTtl.innerText = `${dataConfig.atlasPlace} Species Explorer`;
+  $('#species-table').ready(() => {
+    gOccCnts.then(() => {
+      let excludeColumnIds = [columnIds['childTaxa'], columnIds['iconImage'], columnIds['images']]; //images, iconImage, childTaxa
+      tableSortHeavy('species-table', columnIds['occurrences'], excludeColumnIds);
+      //tableSortSimple('species-table');
+      //tableSortTrivial('species-table');
+    })
+  });
 }
-
-if (eleHlp) {
-  if (dataConfig.helpDeskUrl) {
-    eleHlp.style.display = 'inline';
-    eleHlp.href = dataConfig.helpDeskUrl;
-  } else {
-    eleHlp.style.display = 'none';
-  }
-}
-
-$('#species-table').ready(function () {
-  gOccCnts.then(() => {
-    let excludeColumnIds = [columnIds['childTaxa'], columnIds['iconImage'], columnIds['images']]; //images, iconImage, childTaxa
-    tableSortHeavy('species-table', columnIds['occurrences'], excludeColumnIds);
-    //tableSortSimple('species-table');
-    //tableSortTrivial('species-table');
-  })
-});

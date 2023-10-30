@@ -1,15 +1,17 @@
-import { dataConfig, predicateToQueries } from "../VAL_Web_Utilities/js/gbifDataConfig.js";
+//import { siteConfig } from './gbifSiteConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_config.js"></script>
+//const dataConfig = (async () => {return await import(`../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteConfig.siteName}`);})()
+//import { dataConfig } from '../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=mva';
 
 const Storage = sessionStorage; //localStorage;
 
 //wrap retrieval of occ counts in this async function to return a promise, which elsewhere waits for data
-export async function getStoredOccCnts() {
-    let sOccCnts; let storeName = `occCnts-${dataConfig.atlasAbbrev}`;
+export async function getStoredOccCnts(fileConfig) {
+    let sOccCnts; let storeName = `occCnts-${fileConfig.dataConfig.atlasAbbrev}`;
         if (Storage.getItem(storeName)) {
         sOccCnts = JSON.parse(Storage.getItem(storeName));
         console.log(`Storage.getItem(${storeName}) returned`, sOccCnts);
     } else {
-        sOccCnts = getAggOccCounts(); //returns a promise. handle that downstream with occs.then(occs => {}).
+        sOccCnts = getAggOccCounts(fileConfig); //returns a promise. handle that downstream with occs.then(occs => {}).
         console.log(`getAccOccCounts returned`, sOccCnts); //this returns 'Promise { <state>: "pending" }'
         sOccCnts.then(occCnts => { //convert promise to data object...
             Storage.setItem(storeName, JSON.stringify(occCnts));
@@ -21,13 +23,13 @@ export async function getStoredOccCnts() {
 /*
     Iterate over root predicate queries. Sum aggregate occurrence counts across queries.
 */
-export async function getAggOccCounts(occCnts = {}) {
-    let qrys = predicateToQueries();
+export async function getAggOccCounts(fileConfig, occCnts = {}) {
+    let qrys = fileConfig.predicateToQueries();
 
     try {
         for (var i=0; i<qrys.length; i++) { //necessary: wait for a synchronous loop
             let qry = qrys[i]
-            let aoc = await getAggOccCount(qry);
+            let aoc = await getAggOccCount(fileConfig.dataConfig, qry);
             for await (const [key,val] of Object.entries(aoc)) {
                 if (occCnts[key]) {occCnts[key] += Number(val);}
                 else {occCnts[key] = Number(val);}
@@ -49,7 +51,7 @@ export async function getAggOccCounts(occCnts = {}) {
     https://api.gbif.org/v1/occurrence/search?stateProvince=vermont&hasCoordinate=false&limit=0&taxonKey=5&facet=taxonKey&facetLimit=100000
     IMPORTANT NOTE: It appears that this approach returns occurrence counts for nubKeys. Everywhere that uses these must do the same.
 */
-export async function getAggOccCount(filter = dataConfig.occurrenceFilter) {
+export async function getAggOccCount(dataConfig, filter = dataConfig.occurrenceFilter) {
     let reqHost = dataConfig.gbifApi;
     let reqRoute = "/occurrence/search";
     let reqFilter = `?limit=0&${filter}&facet=taxonKey&facetLimit=1199999`
@@ -82,7 +84,7 @@ export async function getAggOccCount(filter = dataConfig.occurrenceFilter) {
     https://api.gbif.org/v1/occurrence/search?stateProvince=vermont&hasCoordinate=false&limit=0&taxonKey=5&facet=taxonKey&facetLimit=100000
     IMPORTANT NOTE: It appears that this approach returns occurrence counts for nubKeys. Everywhere that uses these must do the same.
 */
-export async function getAggOImgCount(filter = dataConfig.occurrenceFilter) {
+export async function getAggOImgCount(dataConfig, filter = dataConfig.occurrenceFilter) {
     let reqHost = dataConfig.gbifApi;
     let reqRoute = "/occurrence/search";
     let reqFilter = `?limit=0&${filter}`
@@ -133,7 +135,7 @@ results are like
     ]
 }
 */
-export async function getImgCount(key) {
+export async function getImgCount(dataConfig, key) {
     let reqHost = dataConfig.gbifApi;
     let reqRoute = "/occurrence/search";
     let reqFilter = `?advanced=1&limit=0&${dataConfig.occurrenceFilter}&taxon_key=${key}`
@@ -160,14 +162,14 @@ export async function getImgCount(key) {
 /*
 This is deprecated in favor of getAggOccCounts.
 */
-async function getOccCountsByKey(key) {
-    let qrys = predicateToQueries();
+async function getOccCountsByKey(fileConfig, key) {
+    let qrys = fileConfig.predicateToQueries();
     var occs = 0;
 
     try {
         //await qrys.forEach(async qry => {
         for (var i=0; i<qrys.length; i++) { //again, this is how to wait for a synchronous loop. batshit crazy.
-        let occ = await getOccCountByKey(key, qrys[i]);
+        let occ = await getOccCountByKey(fileConfig.dataConfig, key, qrys[i]);
         occs += occ.count;
         //console.log(`getOccCountsByKey RESULT`, qrys[i], occ, occs);
         }
@@ -182,7 +184,7 @@ async function getOccCountsByKey(key) {
 This is deprecated in favor of getAggOccCount.
 get an occurrence count from the occurrence API by taxonKey occurrenceFilter
 */
-async function getOccCountByKey(key, filter = dataConfig.occurrenceFilter) {
+async function getOccCountByKey(dataConfig, key, filter = dataConfig.occurrenceFilter) {
     let reqHost = dataConfig.gbifApi;
     let reqRoute = "/occurrence/search";
     let reqFilter = `?advanced=1&limit=0&${filter}&taxon_key=${key}`
