@@ -1,7 +1,12 @@
 //import { siteConfig } from './gbifSiteConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_config.js"></script>
-//const dataConfig = (async () => {return await import(`../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteConfig.siteName}`);})()
 //import { dataConfig } from '../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=mva';
-
+/*
+localStorage is a property that allows JavaScript sites and apps to save key-value pairs in a web browser with no expiration date. 
+This means the data stored persists even after the user closes the browser or restarts the computer.
+sessionStorage is similar to localStorage; the difference is that while data in localStorage doesn't expire, data in sessionStorage 
+is cleared when the page session ends. Whenever a document is loaded in a particular tab in the browser, a unique page session gets 
+created and assigned to that particular tab.
+*/
 const Storage = sessionStorage; //localStorage;
 
 //wrap retrieval of occ counts in this async function to return a promise, which elsewhere waits for data
@@ -68,7 +73,7 @@ export async function getAggOccCount(dataConfig, filter = dataConfig.occurrenceF
         for (var i=0; i<aCount.length; i++) { //put array into object like {taxonKey:count, taxonKey:count, ...}
             oCount[aCount[i].name]=Number(aCount[i].count);
         }
-        oCount.query = enc;
+        //oCount.query = enc;
         return oCount;
     } catch (err) {
         err.query = enc;
@@ -78,10 +83,10 @@ export async function getAggOccCount(dataConfig, filter = dataConfig.occurrenceF
 }
 
 /*
-    Get occurrence-counts aggregated by facet taxonKey for a filter query.
+    Get occurrence-counts aggregated by facet mediaType for a filter query.
     Return an object like {taxonKey:count, taxonKey:count, ...}
-    https://api.gbif.org/v1/occurrence/search?gadmGid=USA.46_1&limit=0&taxonKey=5&facet=taxonKey&facetLimit=100000
-    https://api.gbif.org/v1/occurrence/search?stateProvince=vermont&hasCoordinate=false&limit=0&taxonKey=5&facet=taxonKey&facetLimit=100000
+    https://api.gbif.org/v1/occurrence/search?gadmGid=USA.46_1&limit=0&taxonKey=5&facet=mediaType&facetLimit=100000
+    https://api.gbif.org/v1/occurrence/search?stateProvince=vermont&hasCoordinate=false&limit=0&taxonKey=5&facet=mediaType&facetLimit=100000
     IMPORTANT NOTE: It appears that this approach returns occurrence counts for nubKeys. Everywhere that uses these must do the same.
 */
 export async function getAggOImgCount(dataConfig, filter = dataConfig.occurrenceFilter) {

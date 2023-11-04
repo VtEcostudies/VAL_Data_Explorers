@@ -383,11 +383,40 @@ function addListeners(dataConfig) {
       }
 }
 
+function changeStyle(selectorText='page-template-page-species-explorer-2022', property='background-image', value='url(../images/vermont-panorama-large.jpg)')
+{
+    var theRules = new Array();
+    if (document.styleSheets[0].cssRules) {
+        theRules = document.styleSheets[0].cssRules;
+        console.log('theRules', theRules);
+      } 
+    else if (document.styleSheets[0].rules) {
+        theRules = document.styleSheets[0].rules;
+        console.log('theRules', theRules);
+    } else {
+      console.log('noTheRules', document.styleSheets[0]);
+    }
+    for (const n in theRules)
+    {
+        if (theRules[n].selectorText == selectorText)   {
+            //theRules[n].style.color = 'blue';
+            theRules[n].style[property] = value;
+        }
+    }
+}
 /*
   There are 2 sets of html elements to manipulate on the home page, 
   counts and links. We set the counts' values and the links' hrefs.
 */
 function setContext(dataConfig) {
+  let eleSection = document.getElementsByClassName('hero');
+  let eleBody = document.getElementsByTagName('body')[0];
+  if (eleBody) {
+    console.log('background element', eleBody);
+    //eleBody.style.backgroundImage=`url(${dataConfig.backgroundImageUrl.default})`;
+    //eleBody.classList.remove('page-template-page-species-explorer-2022')
+    changeStyle('.page-template-page-species-explorer-2022 .hero', 'background-image', dataConfig.backgroundImageUrl.default);
+  }
   let homeTitle = document.getElementById("home-title")
   let countOccs = document.getElementById("count-occurrences");
   let countDset = document.getElementById("count-datasets");

@@ -7,6 +7,7 @@ import { tableSortSimple } from '../VAL_Web_Utilities/js/tableSortSimple.js';
 import { tableSortTrivial } from '../VAL_Web_Utilities/js/tableSortTrivial.js';
 import { tableSortHeavy } from '../VAL_Web_Utilities/js/tableSortHeavy.js';
 
+var siteName = siteConfig.siteName;
 var dataConfig;
 var gbifApi;
 var speciesDatasetKey;
@@ -16,9 +17,9 @@ var profileUrl;
 var columns;
 var columNames;
 
-import(`../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteConfig.siteName}`)
+import(`../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`)
   .then(fileConfig => {
-    console.log('gbif_species_results | siteName:', siteConfig.siteName, 'dataConfig:', fileConfig.dataConfig);
+    console.log('gbif_species_results | siteName:', siteName, 'dataConfig:', fileConfig.dataConfig);
     startUp(fileConfig);
   })
 /*
@@ -173,13 +174,13 @@ async function fillRow(objSpc, objRow, rowIdx, occs) {
       case 'canonicalName':
         //colObj.innerHTML = `<a href="${resultsUrl}?q=${name}">${name}</a>`; //call self with name
         //colObj.innerHTML += `<a title="Wikipedia: ${name}" href="https://en.wikipedia.org/wiki/${name}">${name}</a>`; //wikipedia link to name
-        colObj.innerHTML += `<a title="VAL Species Profile: ${name}" href="${profileUrl}?taxonName=${name}">${name}</a>`;
+        colObj.innerHTML += `<a title="VAL Species Profile: ${name}" href="${profileUrl}?siteName=${siteName}&taxonKey=${key}&taxonName=${name}&taxonRank=${res.rank}">${name}</a>`;
         //colObj.innerHTML = `<a href="${resultsUrl}?higherTaxonKey=${key}&higherTaxonName=${name}&higherTaxonRank=${res['rank']}">${name}</a>`; //child taxa of name
         //colObj.title = `Click '${name}' to view its profile. Click tree icon to list its child taxa.`; //apply title directly to sub-elements
         break;
       case 'scientificName': //show scientificName but link by canonicalName
         //colObj.innerHTML += `<a title="Wikipedia: ${name}" href="https://en.wikipedia.org/wiki/${name}">${res.scientificName}</a>`; //wikipedia link to name
-        colObj.innerHTML += `<a title="VAL Species Profile: ${name}" href="${profileUrl}?taxonName=${name}">${name}</a>`;
+        colObj.innerHTML += `<a title="VAL Species Profile: ${name}" href="${profileUrl}?siteName=${siteName}&taxonKey=${key}&taxonName=${name}&taxonRank=${res.rank}">${name}</a>`;
         break;
       case 'childTaxa':
         colObj.innerHTML += `<a title="List child taxa of ${name}" href="${resultsUrl}?q=&higherTaxonKey=${res.key}&higherTaxonName=${name}&higherTaxonRank=${res.rank}"><i class="fa-solid fa-code-branch"></i></a>`
@@ -266,6 +267,7 @@ async function fillRow(objSpc, objRow, rowIdx, occs) {
         }
         break;
       default:
+        console.log('switch-default', colNam, res[colNam], objSpc);
         colObj.innerHTML = res[colNam] ? res[colNam] : null;
         break;
     }
@@ -543,12 +545,12 @@ function downloadData(dataStr, expName) {
 
 //convert json array of objects to csv
 function jsonToCsv(json) {
-  const replacer = (key, value) => value === null ? '' : value // specify how you want to handle null values here
-  const header = Object.keys(json[0])
+  const replacer = (key, value) => value === null ? '' : value; // specify how you want to handle null values here
+  const header = Object.keys(json[0]);  // the first row defines the header
   const csv = [
     header.join(','), // header row first
-    ...json.map(row => header.map(fieldName => JSON.stringify(row[fieldName], replacer)).join(','))
-  ].join('\r\n')
+    ...json.map(row => header.map(fieldName => JSON.stringify(row[fieldName], replacer)).join(',')) //iterate over header keys, extract row data by key
+  ].join('\r\n');
 
   return csv;
 }
@@ -581,7 +583,13 @@ async function startUp(fileConfig) {
       remTableWait();
     } else { //important: include q="" to show ALL species result
       if (!qParm) {qParm = "";}
-      if ("" === qParm && !other) {other='&rank=KINGDOM'; objOther={'rank':'KINGDOM'}; eleRnk.value='KINGDOM';}
+      if ("" === qParm && !other) {
+        if ('vtb' == siteName || 'ebu' == siteName || 'ebw' == siteName) {
+          other='&rank=FAMILY'; objOther={'rank':'FAMILY'}; eleRnk.value='FAMILY';
+        } else {
+          other='&rank=KINGDOM'; objOther={'rank':'KINGDOM'}; eleRnk.value='KINGDOM';
+        }
+      }
       try {
         addTableWait();
         gOccCnts = getStoredOccCnts(fileConfig);
