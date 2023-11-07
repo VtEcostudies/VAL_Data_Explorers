@@ -1,12 +1,11 @@
 import { siteConfig } from './gbifSiteConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_config.js"></script>
-//const dataConfig = (async () => {return await import(`../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteConfig.siteName}`);})()
-import { predicateToQueries } from '../VAL_Web_Utilities/js/gbifDataConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_widget.js"></script>
+//import { predicateToQueries } from '../VAL_Web_Utilities/js/gbifDataConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_widget.js"></script>
 import { speciesSearch } from './gbif_species_search.js';
 
 import(`../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteConfig.siteName}`)
   .then(fileConfig => {
     console.log('gbif_data_stats | siteName:', siteConfig.siteName, 'dataConfig:', fileConfig.dataConfig);
-    startUp(fileConfig.dataConfig);
+    startUp(fileConfig);
   })
 
 //const speciesDatasetKey = dataConfig.speciesDatasetKey; //'0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
@@ -409,6 +408,7 @@ function changeStyle(selectorText='page-template-page-species-explorer-2022', pr
   counts and links. We set the counts' values and the links' hrefs.
 */
 function setContext(dataConfig) {
+  //Attempt to change background image for atlas
   let eleSection = document.getElementsByClassName('hero');
   let eleBody = document.getElementsByTagName('body')[0];
   if (eleBody) {
@@ -448,8 +448,9 @@ function setContext(dataConfig) {
   }
 }
 
-function startUp(dataConfig) {
-  let qrys = predicateToQueries(dataConfig.rootPredicate); //['?state_province=Vermont&hasCoordinate=false', '?gadmGid=USA.46_1'];
+function startUp(fileConfig) {
+  let dataConfig = fileConfig.dataConfig;
+  let qrys = fileConfig.predicateToQueries(dataConfig.rootPredicate); //['?state_province=Vermont&hasCoordinate=false', '?gadmGid=USA.46_1'];
   console.log('gbif_data_stats.js | rootPredicate converted to http query parameters:');
   console.dir(qrys);
   setContext(dataConfig);
