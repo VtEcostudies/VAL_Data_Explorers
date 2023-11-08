@@ -1,7 +1,7 @@
 import { siteConfig } from './gbifSiteConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_config.js"></script>
 //import { dataConfig } from '../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=mva';
 import { speciesSearch } from './gbif_species_search.js'; //NOTE: importing just a function includes the entire module
-import { getStoredOccCnts, getImgCount } from './gbif_item_counts.js';
+import { getStoredOccCnts, sumSubTaxonOccs, getImgCount } from './gbif_item_counts.js';
 import { getWikiPage } from '../VAL_Web_Utilities/js/wikiPageData.js';
 import { tableSortSimple } from '../VAL_Web_Utilities/js/tableSortSimple.js';
 import { tableSortTrivial } from '../VAL_Web_Utilities/js/tableSortTrivial.js';
@@ -133,26 +133,26 @@ async function putErrorOnScreen(err) {
 }
 
 // Create table row for each taxonKey, then fill row of cells
-async function addTaxaByKeys(occs) {
+async function addTaxaByKeys(fCfg, occs) {
   tKeys.forEach(async (key, rowIdx) => {
     let objRow = eleTbl.insertRow(rowIdx);
-    await fillRow({taxonKey: key}, objRow, rowIdx, occs);
+    await fillRow(fCfg, {taxonKey: key}, objRow, rowIdx, occs);
   })
 }
 
 // Create table row for each array element, then fill row of cells
-async function addTaxaFromArr(sArr, occs) {
+async function addTaxaFromArr(fCfg, sArr, occs) {
   sArr.forEach(async (objSpc, rowIdx) => {
     let objRow = eleTbl.insertRow(rowIdx);
     //let taxKey = objSpc.nubKey ? objSpc.nubKey : objSpc.key;
     //console.log(`get_species_results::addTaxaFromArr | key:${sObj.key} | nubKey:${sObj.nubKey} | result:${taxKey}`);
-    await fillRow(objSpc, objRow, rowIdx, occs);
+    await fillRow(fCfg, objSpc, objRow, rowIdx, occs);
   })
 }
 
 // Fill a row of cells for a taxon object retrieved from species search, or other. At minimum, objSpc
 // must be {key: taxonKey}
-async function fillRow(objSpc, objRow, rowIdx, occs) {
+async function fillRow(fCfg, objSpc, objRow, rowIdx, occs) {
   var key = objSpc.nubKey ? objSpc.nubKey : objSpc.key;
   var res = objSpc;
   var occ,img = {count: 'n/a'}; //initialize these to valid objects in case GETs, below, fail
@@ -210,7 +210,7 @@ async function fillRow(objSpc, objRow, rowIdx, occs) {
         if (!tree) break;
         Object.keys(tree).forEach((key, idx) => {
           colObj.innerHTML += `<a title="Species Explorer: ${tree[key]}" href="${resultsUrl}?q=${tree[key]}">${tree[key]}</a>`; //load self with just parent taxon
-          //colObj.innerHTML += `<a title="Wikipedai: ${tree[key]}" href="https://en.wikipedia.org/wiki/${tree[key]}">${tree[key]}</a>`; //wikipedia: parent taxon
+          //colObj.innerHTML += `<a title="Wikipedia: ${tree[key]}" href="https://en.wikipedia.org/wiki/${tree[key]}">${tree[key]}</a>`; //wikipedia: parent taxon
           if (idx < Object.keys(tree).length-1) {colObj.innerHTML += ', ';}
         })
         break;
@@ -226,14 +226,18 @@ async function fillRow(objSpc, objRow, rowIdx, occs) {
       case 'occurrences':
         colObj.innerHTML = `<i class="fa fa-spinner fa-spin" style="font-size:18px"></i>`;
         occs.then(occs => {
-          colObj.innerHTML = `<a href="${exploreUrl}?taxonKey=${key}&view=MAP">${nFmt.format(occs[key]?occs[key]:0)}</a>`;
+          colObj.innerHTML += `<a href="${exploreUrl}?taxonKey=${key}&view=MAP">${nFmt.format(occs[key]?occs[key]:0)}</a>`;
+          //console.log('nubKey', res.nubKey, 'speciesListKey', res.key, res);
+          if (res.key && !res.acceptedKey && ('SPECIES'==res.rank.toUpperCase() || 'SUBSPECIES'==res.rank.toUpperCase())) {
+            sumSubTaxonOccs(fCfg, occs, res.key).then(res => {
+              let sum = occs[key] + res.sum;
+              let keys = res.keys.map(key => {console.log('mapkey', key); return `&taxonKey=${key}`;}); //returns array. use .join('') for string
+              colObj.innerHTML = `<a href="${exploreUrl}?taxonKey=${key}${keys.join('')}&view=MAP">${nFmt.format(sum?sum:0)}</a>`;  
+            }).catch(err => {colObj.innerHTML = ''; console.log(`ERROR in sumSubTAxonOccs:`, err);})
+          } else {
+            colObj.innerHTML = `<a href="${exploreUrl}?taxonKey=${key}&view=MAP">${nFmt.format(occs[key]?occs[key]:0)}</a>`;
+          }
         }).catch(err => {colObj.innerHTML = ''; console.log(`ERROR in occurrence counts:`, err);})
-        /*
-        try {
-          occ = await getOccCountsByKey(key);
-          colObj.innerHTML = `<a href="${exploreUrl}?taxonKey=${key}&view=MAP">${nFmt.format(occ.count)}</a>`;
-        } catch (err) {}
-        */
         break;
       case 'iconImage':
         colObj.innerHTML = `<i class="fa fa-spinner fa-spin" style="font-size:18px"></i>`;
@@ -595,7 +599,7 @@ async function startUp(fileConfig) {
         gOccCnts = getStoredOccCnts(fileConfig);
         let spcs = await speciesSearch(dataConfig, qParm, offset, limit, qField, other);
         count = spcs.count;
-        await addTaxaFromArr(spcs.results, gOccCnts);
+        await addTaxaFromArr(fileConfig, spcs.results, gOccCnts);
         await addHead();
         let finish = (offset+limit)>count ? count : offset+limit;
         if (eleLbl) {

@@ -7,6 +7,7 @@ sessionStorage is similar to localStorage; the difference is that while data in 
 is cleared when the page session ends. Whenever a document is loaded in a particular tab in the browser, a unique page session gets 
 created and assigned to that particular tab.
 */
+const gbifApi = "https://api.gbif.org/v1";
 const Storage = sessionStorage; //localStorage;
 
 //wrap retrieval of occ counts in this async function to return a promise, which elsewhere waits for data
@@ -26,7 +27,75 @@ export async function getStoredOccCnts(fileConfig) {
 }
 
 /*
+    NOTE: You MUST use nubKeys returned from query b/c occCnts uses nubKeys
+
+    For a given taxonKey, get a list of all its sub-taxonKeys. This is primarily used to
+    sum occurrence counts across ACCEPTED and NON-ACCEPTED taxa when GBIF does not agree
+    with VAL's taxon definitions.
+
+    We already do this elsewhere, like this:
+
+    https://api.gbif.org/v1/species/search?datasetKey=73eb16f0-4b06-4347-8069-459bc2d96ddb&higherTaxonKey=177419414
+*/
+export async function getSubTaxonKeys(fileConfig, higherTaxonKey) {
+    let speciesFilter = fileConfig.dataConfig.speciesFilter;
+    let reqHost = gbifApi;
+    let reqRoute = "/species/search";
+    let reqFilter = `?${speciesFilter}&higherTaxonKey=${higherTaxonKey}`;
+    let url = reqHost+reqRoute+reqFilter;
+    let enc = encodeURI(url);
+
+    try {
+        let res = await fetch(enc);
+        let json = await res.json();
+        //console.log(`getSubTaxonKeys(${speciesFilter}, ${higherTaxonKey}) QUERY:`, enc);
+        //console.log(`getSubTaxonKeys(${speciesFilter}, ${higherTaxonKey}) RESULT:`, json);
+        let arr = [];
+        for (const idx in json.results) { //returns array indexes of array of objects
+            //console.log(`element of array:`, idx);
+            if (json.results[idx].nubKey) {arr.push(json.results[idx].nubKey);}
+        }
+        console.log(`getSubTaxonKeys(${higherTaxonKey})`, arr);
+        return {'keys':arr, 'query':enc};
+    } catch (err) {
+        err.query = enc;
+        console.log(`getSubTaxonKeys(${key}) ERROR:`, err);
+        return new Error(err)
+    }
+}
+/*
+NOTE: higherTaxonKey must be from species-list overlay (NOT nubKey) but occCounts is indexed by nubKey.
+This means several things.
+*/
+export async function sumSubTaxonOccs(fileConfig, occCounts, higherTaxonKey) {
+    try {
+        console.log(`sumAllTaxonOccs(${higherTaxonKey}`);
+        let res = await getSubTaxonKeys(fileConfig, higherTaxonKey);
+        let sum = 0;
+        for (const idx in res.keys) {
+            console.log(`sumAllTaxonOccs Adding taxon ${res.keys[idx]}`, occCounts[res.keys[idx]]);
+            sum += occCounts[res.keys[idx]] ? occCounts[res.keys[idx]] : 0;
+        }
+        console.log(`sumAllTaxonOccs(${higherTaxonKey})`, sum);
+        res.sum = sum;
+        return res;
+    } catch(err) {
+        console.log(`sumSubTaxonOccs(${higherTaxonKey}) ERROR:`, err);
+        return new Error(err)
+    }
+}
+/*
     Iterate over root predicate queries. Sum aggregate occurrence counts across queries.
+
+    To potentially order species-list results across a large number of results, we need an
+    ordered list of occurrence counts by taxonKey and taxonRank. The taxonKey facet results
+    are a descending-ordered array by occurrence-count, but since we sum those across more
+    than one rootPredicate query, list-sums are not necessarily ordered.
+
+    This idea requires that for a specific species-list query, we somehow pre-query all taxonIds
+    within it (filtered by user-defined constraints) then compare that list to our ordered list
+    of occurrence-counts and present the union, ordered by those counts. This seems impossible
+    unless we find a way to retrieve all results for any query all the time.
 */
 export async function getAggOccCounts(fileConfig, occCnts = {}, arrCnts = []) {
     let qrys = fileConfig.predicateToQueries();
@@ -57,10 +126,11 @@ export async function getAggOccCounts(fileConfig, occCnts = {}, arrCnts = []) {
     IMPORTANT NOTE: It appears that this approach returns occurrence counts for nubKeys. Everywhere that uses these must do the same.
 */
 export async function getAggOccCount(dataConfig, filter = dataConfig.occurrenceFilter) {
-    let reqHost = dataConfig.gbifApi;
+    let reqHost = gbifApi;
     let reqRoute = "/occurrence/search";
-    let reqFilter = `?limit=0&${filter}&facet=taxonKey&facetLimit=1199999`
-    let url = reqHost+reqRoute+reqFilter;
+    let reqFilter = `?limit=0&${filter}`;
+    let reqFacet = `&facet=taxonKey&facetLimit=1199999`;
+    let url = reqHost+reqRoute+reqFilter+reqFacet;
     let enc = encodeURI(url);
 
     try {
@@ -77,7 +147,7 @@ export async function getAggOccCount(dataConfig, filter = dataConfig.occurrenceF
         }
         //oCount.query = enc;
         //return oCount;
-        return {'obj':oCount, 'arr':bCount, 'count':bCount.length};
+        return {'obj':oCount, 'arr':bCount, 'count':bCount.length, 'query':enc};
     } catch (err) {
         err.query = enc;
         console.log(`getAggOccCount(${filter}) ERROR:`, err);
@@ -93,11 +163,11 @@ export async function getAggOccCount(dataConfig, filter = dataConfig.occurrenceF
     IMPORTANT NOTE: It appears that this approach returns occurrence counts for nubKeys. Everywhere that uses these must do the same.
 */
 export async function getAggImgCount(dataConfig, filter = dataConfig.occurrenceFilter) {
-    let reqHost = dataConfig.gbifApi;
+    let reqHost = gbifApi;
     let reqRoute = "/occurrence/search";
-    let reqFilter = `?limit=0&${filter}`
-    let reqFacet = `&facet=mediaType&facetLimit=1199999`
-    let url = reqHost+reqRoute+reqFilter;
+    let reqFilter = `?limit=0&${filter}`;
+    let reqFacet = `&facet=mediaType&facetLimit=1199999`;
+    let url = reqHost+reqRoute+reqFilter+reqFacet;
     let enc = encodeURI(url);
 
     try {
@@ -144,7 +214,7 @@ results are like
 }
 */
 export async function getImgCount(dataConfig, key) {
-    let reqHost = dataConfig.gbifApi;
+    let reqHost = gbifApi;
     let reqRoute = "/occurrence/search";
     let reqFilter = `?advanced=1&limit=0&${dataConfig.occurrenceFilter}&taxon_key=${key}`
     let reqFacet = `&facet=mediaType`;
@@ -193,7 +263,7 @@ This is deprecated in favor of getAggOccCount.
 get an occurrence count from the occurrence API by taxonKey occurrenceFilter
 */
 async function getOccCountByKey(dataConfig, key, filter = dataConfig.occurrenceFilter) {
-    let reqHost = dataConfig.gbifApi;
+    let reqHost = gbifApi;
     let reqRoute = "/occurrence/search";
     let reqFilter = `?advanced=1&limit=0&${filter}&taxon_key=${key}`
     let url = reqHost+reqRoute+reqFilter;
