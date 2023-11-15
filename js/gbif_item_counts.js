@@ -11,14 +11,15 @@ const gbifApi = "https://api.gbif.org/v1";
 const Storage = sessionStorage; //localStorage;
 
 //wrap retrieval of occ counts in this async function to return a promise, which elsewhere waits for data
-export async function getStoredOccCnts(fileConfig) {
+export async function getStoredOccCnts(fileConfig, searchTerm='') {
     let sOccCnts; let storeName = `occCnts-${fileConfig.dataConfig.atlasAbbrev}`;
-        if (Storage.getItem(storeName)) {
+    if (searchTerm) {storeName += `-${searchTerm}`;}
+    if (Storage.getItem(storeName)) {
         sOccCnts = JSON.parse(Storage.getItem(storeName));
         console.log(`Storage.getItem(${storeName}) returned`, sOccCnts);
     } else {
-        sOccCnts = getAggOccCounts(fileConfig); //returns a promise. handle that downstream with occs.then(occs => {}).
-        console.log(`getAccOccCounts returned`, sOccCnts); //this returns 'Promise { <state>: "pending" }'
+        sOccCnts = getAggOccCounts(fileConfig, searchTerm); //returns a promise. handle that downstream with occs.then(occs => {}).
+        console.log(`getAggOccCounts returned`, sOccCnts); //this returns 'Promise { <state>: "pending" }'
         sOccCnts.then(occCnts => { //convert promise to data object...
             Storage.setItem(storeName, JSON.stringify(occCnts));
         });
@@ -55,28 +56,59 @@ export async function getSubTaxonKeys(fileConfig, higherTaxonKey) {
             //console.log(`element of array:`, idx);
             if (json.results[idx].nubKey) {arr.push(json.results[idx].nubKey);}
         }
-        console.log(`getSubTaxonKeys(${higherTaxonKey})`, arr);
+        console.log(`getSubTaxonKeys(${speciesFilter}, ${higherTaxonKey})`, arr);
         return {'keys':arr, 'query':enc};
     } catch (err) {
         err.query = enc;
-        console.log(`getSubTaxonKeys(${key}) ERROR:`, err);
+        console.log(`getSubTaxonKeys(${speciesFilter}, ${higherTaxonKey}) ERROR:`, err);
+        return new Error(err)
+    }
+}
+export async function getSubNubTaxonKeys(higherTaxonKey) {
+    let reqHost = gbifApi;
+    let reqRoute = "/species/search";
+    let reqFilter = `?higherTaxonKey=${higherTaxonKey}`;
+    let url = reqHost+reqRoute+reqFilter;
+    let enc = encodeURI(url);
+
+    try {
+        let res = await fetch(enc);
+        let json = await res.json();
+        //console.log(`getSubNubTaxonKeys(${higherTaxonKey}) QUERY:`, enc);
+        //console.log(`getSubNubTaxonKeys(${higherTaxonKey}) RESULT:`, json);
+        let arr = [];
+        for (const idx in json.results) { //returns array indexes of array of objects
+            //console.log(`element of array:`, idx);
+            if (json.results[idx].nubKey) {arr.push(json.results[idx].nubKey);}
+        }
+        console.log(`getSubNubTaxonKeys(${higherTaxonKey})`, arr);
+        return {'keys':arr, 'query':enc};
+    } catch (err) {
+        err.query = enc;
+        console.log(`getSubNubTaxonKeys(${higherTaxonKey}) ERROR:`, err);
         return new Error(err)
     }
 }
 /*
 NOTE: higherTaxonKey must be from species-list overlay (NOT nubKey) but occCounts is indexed by nubKey.
-This means several things.
+This means several things...
+- getSubTaxonKeys returns nubKeys to be used in our stored backbone indexes
 */
-export async function sumSubTaxonOccs(fileConfig, occCounts, higherTaxonKey) {
+export async function sumSubTaxonOccs(fileConfig, occCounts, higherTaxonKey, nubKey=0) {
     try {
-        console.log(`sumAllTaxonOccs(${higherTaxonKey}`);
+        console.log(`sumSubTaxonOccs(${higherTaxonKey}, ${nubKey})`);
         let res = await getSubTaxonKeys(fileConfig, higherTaxonKey);
+        let nub = nubKey ? await getSubNubTaxonKeys(nubKey) : [];
         let sum = 0;
         for (const idx in res.keys) {
-            console.log(`sumAllTaxonOccs Adding taxon ${res.keys[idx]}`, occCounts[res.keys[idx]]);
-            sum += occCounts[res.keys[idx]] ? occCounts[res.keys[idx]] : 0;
+            if (nub.keys.find(ele => {return ele ==  res.keys[idx]})) {
+                console.log(`sumSubTaxonOccs SKIPPING higherTaxonKey ${res.keys[idx]} equal to nubKey`);
+            } else {
+                console.log(`sumSubTaxonOccs Adding taxon ${res.keys[idx]}`, occCounts[res.keys[idx]]);
+                sum += occCounts[res.keys[idx]] ? occCounts[res.keys[idx]] : 0;
+            }
         }
-        console.log(`sumAllTaxonOccs(${higherTaxonKey})`, sum);
+        console.log(`sumSubTaxonOccs(${higherTaxonKey})`, sum);
         res.sum = sum;
         return res;
     } catch(err) {
@@ -97,12 +129,12 @@ export async function sumSubTaxonOccs(fileConfig, occCounts, higherTaxonKey) {
     of occurrence-counts and present the union, ordered by those counts. This seems impossible
     unless we find a way to retrieve all results for any query all the time.
 */
-export async function getAggOccCounts(fileConfig, occCnts = {}, arrCnts = []) {
+export async function getAggOccCounts(fileConfig, searchTerm='', occCnts = {}, arrCnts = []) {
     let qrys = fileConfig.predicateToQueries();
 
     try {
         for (var i=0; i<qrys.length; i++) { //necessary: wait for a synchronous loop
-            let qry = qrys[i]
+            let qry = `${qrys[i]}&${searchTerm}`;
             let aoc = await getAggOccCount(fileConfig.dataConfig, qry);
             for await (const [key,val] of Object.entries(aoc.obj)) {
                 if (occCnts[key]) {occCnts[key] += Number(val);}
@@ -233,52 +265,6 @@ export async function getImgCount(dataConfig, key) {
     } catch (err) {
         err.query = enc;
         console.log(`getImgCount(${key}) ERROR:`, err);
-        return new Error(err)
-    }
-}
-
-/*
-This is deprecated in favor of getAggOccCounts.
-*/
-async function getOccCountsByKey(fileConfig, key) {
-    let qrys = fileConfig.predicateToQueries();
-    var occs = 0;
-
-    try {
-        //await qrys.forEach(async qry => {
-        for (var i=0; i<qrys.length; i++) { //again, this is how to wait for a synchronous loop. batshit crazy.
-        let occ = await getOccCountByKey(fileConfig.dataConfig, key, qrys[i]);
-        occs += occ.count;
-        //console.log(`getOccCountsByKey RESULT`, qrys[i], occ, occs);
-        }
-        return {"count":occs}
-    } catch (err) {
-        console.log(`getOccCountsByKey ERROR`, err);
-        throw new Error(err)
-    }
-}
-
-/*
-This is deprecated in favor of getAggOccCount.
-get an occurrence count from the occurrence API by taxonKey occurrenceFilter
-*/
-async function getOccCountByKey(dataConfig, key, filter = dataConfig.occurrenceFilter) {
-    let reqHost = gbifApi;
-    let reqRoute = "/occurrence/search";
-    let reqFilter = `?advanced=1&limit=0&${filter}&taxon_key=${key}`
-    let url = reqHost+reqRoute+reqFilter;
-    let enc = encodeURI(url);
-
-    try {
-        let res = await fetch(enc);
-        let json = await res.json();
-        //console.log(`getOccCountByKey(${key}) QUERY:`, enc);
-        //console.log(`getOccCountByKey(${key}) RESULT:`, json);
-        json.query = enc;
-        return json;
-    } catch (err) {
-        err.query = enc;
-        console.log(`getOccCountByKey(${key}) ERROR:`, err);
         return new Error(err)
     }
 }

@@ -225,13 +225,16 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx, occs) {
         break;
       case 'occurrences':
         colObj.innerHTML = `<i class="fa fa-spinner fa-spin" style="font-size:18px"></i>`;
-        occs.then(occs => {
+        //occs.then(occs => {
+        getStoredOccCnts(fCfg, `taxonKey=${res.nubKey}`).then(occs => {
           colObj.innerHTML += `<a href="${exploreUrl}?taxonKey=${key}&view=MAP">${nFmt.format(occs[key]?occs[key]:0)}</a>`;
           //console.log('nubKey', res.nubKey, 'speciesListKey', res.key, res);
-          if (res.key && !res.acceptedKey && ('SPECIES'==res.rank.toUpperCase() || 'SUBSPECIES'==res.rank.toUpperCase())) {
-            sumSubTaxonOccs(fCfg, occs, res.key).then(res => {
-              let sum = occs[key] + res.sum;
+          if (res.key != res.nubKey && !res.acceptedKey && ('SPECIES'==res.rank.toUpperCase() || 'SUBSPECIES'==res.rank.toUpperCase())) {
+            sumSubTaxonOccs(fCfg, occs, res.key, res.nubKey).then(res => {
+              let top = occs[key]?occs[key]:0;
+              let sum = top + res.sum;
               let keys = res.keys.map(key => {console.log('mapkey', key); return `&taxonKey=${key}`;}); //returns array. use .join('') for string
+              console.log('sumAllTaxonOccs | parent:', occs[key], 'subSum:', res.sum, 'subKeys:', keys);
               colObj.innerHTML = `<a href="${exploreUrl}?taxonKey=${key}${keys.join('')}&view=MAP">${nFmt.format(sum?sum:0)}</a>`;  
             }).catch(err => {colObj.innerHTML = ''; console.log(`ERROR in sumSubTAxonOccs:`, err);})
           } else {
@@ -265,7 +268,8 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx, occs) {
         break;
       case 'taxonomicStatus':
         if (res.accepted) {
-          colObj.innerHTML += `<a title="Species Explorer ACCEPTED name: ${res.accepted}" href="${resultsUrl}?q=${res.accepted}">${res[colNam]}</a>`;
+          //colObj.innerHTML += `<a title="Species Explorer ACCEPTED name: ${res.accepted}" href="${resultsUrl}?q=${res.accepted}">${res[colNam]}</a>`;
+          colObj.innerHTML += `<a title="Species Explorer ACCEPTED name: ${res.accepted}" href="${resultsUrl}?taxonKey=${res.acceptedKey}">${res[colNam]}</a>`;
         } else {
           colObj.innerHTML = res[colNam] ? res[colNam] : null;
         }
@@ -572,19 +576,23 @@ async function startUp(fileConfig) {
     
   if (eleTbl) { //results are displayed in a table with id="species-table". we need that to begin.
     if (tKeys.length) {
-      addTableWait();
-      gOccCnts = getStoredOccCnts(fileConfig);
-      await addTaxaByKeys(gOccCnts);
-      await addHead();
-      if (eleLbl) {
-        eleLbl.innerHTML = "Showing results for taxon keys: ";
-        tKeys.forEach((key, idx) => {
-          eleLbl.innerHTML += key;
-          if (idx < tKeys.length-1) {eleLbl.innerHTML += ', ';}
-        })
-        if (eleLb2) {eleLb2.innerHTML = eleLbl.innerHTML;}
+      try {
+        addTableWait();
+        gOccCnts = getStoredOccCnts(fileConfig);
+        await addTaxaByKeys(fileConfig, gOccCnts);
+        await addHead();
+        if (eleLbl) {
+          eleLbl.innerHTML = "Showing results for taxon keys: ";
+          tKeys.forEach((key, idx) => {
+            eleLbl.innerHTML += key;
+            if (idx < tKeys.length-1) {eleLbl.innerHTML += ', ';}
+          })
+          if (eleLb2) {eleLb2.innerHTML = eleLbl.innerHTML;}
+        }
+        remTableWait();
+      } catch (err) {
+        putErrorOnScreen(err);
       }
-      remTableWait();
     } else { //important: include q="" to show ALL species result
       if (!qParm) {qParm = "";}
       if ("" === qParm && !other) {
