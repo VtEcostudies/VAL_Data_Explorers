@@ -1,12 +1,13 @@
 import { siteConfig } from './gbifSiteConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_config.js"></script>
-//import { dataConfig } from '../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=mva';
 import { speciesSearch } from './gbif_species_search.js'; //NOTE: importing just a function includes the entire module
 import { getStoredOccCnts, sumSubTaxonOccs, getImgCount } from './gbif_item_counts.js';
 import { getWikiPage } from '../VAL_Web_Utilities/js/wikiPageData.js';
 import { tableSortSimple } from '../VAL_Web_Utilities/js/tableSortSimple.js';
 import { tableSortTrivial } from '../VAL_Web_Utilities/js/tableSortTrivial.js';
 import { tableSortHeavy } from '../VAL_Web_Utilities/js/tableSortHeavy.js';
+import { gbifCountsByDateByTaxonKey } from '../VAL_Species_Page/js/gbifCountsByDate.js';
 
+//const gbifApi = "https://api.gbif.org/v1";
 var siteName = siteConfig.siteName;
 var dataConfig;
 var gbifApi;
@@ -16,22 +17,17 @@ var resultsUrl;
 var profileUrl;
 var columns;
 var columNames;
+var gOccCnts = {}; var gImgCnts = {};
+var downloadOccurrenceCounts = 0;
+var fileConfig = false; //this global pointer used ONLY for getDownloadData
 
 import(`../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`)
-  .then(fileConfig => {
-    console.log('gbif_species_results | siteName:', siteName, 'dataConfig:', fileConfig.dataConfig);
-    startUp(fileConfig);
+  .then(fCfg => {
+    fileConfig = fCfg; //set global value
+    console.log('gbif_species_results | siteName:', siteName, 'dataConfig:', fCfg.dataConfig);
+    startUp(fCfg);
   })
-/*
-const gbifApi = dataConfig.gbifApi; //"https://api.gbif.org/v1";
-const speciesDatasetKey = dataConfig.speciesDatasetKey; //'0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
-const gadmGid = dataConfig.gadmGid; //'USA.46_1';
-const exploreUrl = dataConfig.exploreUrl;
-const resultsUrl = dataConfig.resultsUrl;
-const profileUrl = dataConfig.profileUrl;
-const columns = dataConfig.columns;
-const columNames = dataConfig.columNames;
-*/
+
 var columnIds = {};
 const nFmt = new Intl.NumberFormat(); //use this to format numbers by locale... automagically
 const objUrlParams = new URLSearchParams(window.location.search);
@@ -49,7 +45,6 @@ var status =  objUrlParams.get('status'); status = status ? status.toUpperCase()
 var qField =  objUrlParams.get('qField'); qField = qField ? qField.toUpperCase() : 'ALL';
 var count = 0; //this is set elsewhere after loading data. initialize here.
 var page = offset / limit + 1;
-var gOccCnts = {};
 console.log('Query param q:', qParm, 'offset:', offset, 'limit:', limit, 'page:', page, 'qField:', qField, 'Other:', other);
 
 //get other query params (there are many, and they are necessary. eg. higherTaxonRank)
@@ -144,19 +139,15 @@ async function addTaxaByKeys(fCfg, occs) {
 async function addTaxaFromArr(fCfg, sArr, occs) {
   sArr.forEach(async (objSpc, rowIdx) => {
     let objRow = eleTbl.insertRow(rowIdx);
-    //let taxKey = objSpc.nubKey ? objSpc.nubKey : objSpc.key;
-    //console.log(`get_species_results::addTaxaFromArr | key:${sObj.key} | nubKey:${sObj.nubKey} | result:${taxKey}`);
     await fillRow(fCfg, objSpc, objRow, rowIdx, occs);
   })
 }
 
 // Fill a row of cells for a taxon object retrieved from species search, or other. At minimum, objSpc
-// must be {key: taxonKey}
+// must be {taxonKey: key}
 async function fillRow(fCfg, objSpc, objRow, rowIdx, occs) {
   var key = objSpc.nubKey ? objSpc.nubKey : objSpc.key;
-  var res = objSpc;
-  var occ,img = {count: 'n/a'}; //initialize these to valid objects in case GETs, below, fail
-  //var wik = {}; //wikipedia page
+  var res = objSpc; //search by query param taxonName
   if (objSpc.taxonKey) { //search by query param taxonKey
     key = objSpc.taxonKey;
     try {
@@ -166,21 +157,23 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx, occs) {
       //getTaxon failed, so leave it as initialized
     }
   }
+  let gbif = gbifCountsByDateByTaxonKey(res.key, fCfg);
+  gOccCnts = gbif;
   //console.log('gbif_species_results::fillRow','canonicalName:', objSpc.canonicalName, 'key:', objSpc.key, 'nubKey:', objSpc.nubKey, 'combinedKey:', key);
   columns.forEach(async (colNam, colIdx) => {
     let colObj = objRow.insertCell(colIdx);
     let name = res.canonicalName ? res.canonicalName : res.scientificName;
     switch(colNam) {
       case 'canonicalName':
-        //colObj.innerHTML = `<a href="${resultsUrl}?q=${name}">${name}</a>`; //call self with name
-        //colObj.innerHTML += `<a title="Wikipedia: ${name}" href="https://en.wikipedia.org/wiki/${name}">${name}</a>`; //wikipedia link to name
-        colObj.innerHTML += `<a title="VAL Species Profile: ${name}" href="${profileUrl}?siteName=${siteName}&taxonKey=${key}&taxonName=${name}&taxonRank=${res.rank}">${name}</a>`;
-        //colObj.innerHTML = `<a href="${resultsUrl}?higherTaxonKey=${key}&higherTaxonName=${name}&higherTaxonRank=${res['rank']}">${name}</a>`; //child taxa of name
-        //colObj.title = `Click '${name}' to view its profile. Click tree icon to list its child taxa.`; //apply title directly to sub-elements
+        //NOTE: now calling species profile with listKey, NOT nubKey. Species profile handles subKey disagreements, key lists, and counts.
+        colObj.innerHTML += `<a title="VAL Species Profile: ${name}" href="${profileUrl}?siteName=${siteName}&taxonKey=${res.key}&taxonName=${name}&taxonRank=${res.rank}">${name}</a>`;
         break;
-      case 'scientificName': //show scientificName but link by canonicalName
-        //colObj.innerHTML += `<a title="Wikipedia: ${name}" href="https://en.wikipedia.org/wiki/${name}">${res.scientificName}</a>`; //wikipedia link to name
-        colObj.innerHTML += `<a title="VAL Species Profile: ${name}" href="${profileUrl}?siteName=${siteName}&taxonKey=${key}&taxonName=${name}&taxonRank=${res.rank}">${name}</a>`;
+      case 'scientificName': //show and link with canonicalName
+        //NOTE: now calling species profile with listKey, NOT nubKey. Species profile handles subKey disagreements, key lists, and counts.
+        colObj.innerHTML += `<a title="VAL Species Profile: ${name}" href="${profileUrl}?siteName=${siteName}&taxonKey=${res.key}&taxonName=${name}&taxonRank=${res.rank}">${name}</a>`;
+        break;
+      case 'wikipedia': //unused column-name to store old way of doing things
+        colObj.innerHTML += `<a title="Wikipedia: ${name}" href="https://en.wikipedia.org/wiki/${name}">${res.scientificName}</a>`; //wikipedia link to name
         break;
       case 'childTaxa':
         colObj.innerHTML += `<a title="List child taxa of ${name}" href="${resultsUrl}?q=&higherTaxonKey=${res.key}&higherTaxonName=${name}&higherTaxonRank=${res.rank}"><i class="fa-solid fa-code-branch"></i></a>`
@@ -189,8 +182,8 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx, occs) {
         let vnArr = res[colNam]; //array of vernacular columNames
         if (!vnArr) break;
         vnArr.forEach((ele, idx) => {
-          colObj.innerHTML += ele.vernacularName;
-          //colObj.innerHTML += `<a href="${resultsUrl}?q=${ele.vernacularName}">${ele.vernacularName}</a>`; //original - load self with just common name
+          //colObj.innerHTML += ele.vernacularName;
+          colObj.innerHTML += `<a href="${resultsUrl}?q=${ele.vernacularName}">${ele.vernacularName}</a>`; //original - load self with just common name
           //colObj.innerHTML += `<a title="Wikipedia: ${ele.vernacularName}" href="https://en.wikipedia.org/wiki/${ele.vernacularName}">${ele.vernacularName}</a>`; //modified - wikipedia link common name
           if (idx < Object.keys(vnArr).length-1) {colObj.innerHTML += ', ';}
         })
@@ -222,13 +215,19 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx, occs) {
         if (res.family) {colObj.innerHTML += `, <a title="Species Explorer: Family ${res.family}" href="${resultsUrl}?q=${res.family}">${res.family}</a>`;}
         if (res.genus) {colObj.innerHTML += `, <a title="Species Explorer: Genus ${res.genus}" href="${resultsUrl}?q=${res.genus}">${res.genus}</a>`;}
         if (res.species) {colObj.innerHTML += `, <a title="Species Explorer: Species ${res.species}" href="${resultsUrl}?q=${res.species}">${res.species}</a>`;}
+        //NOTE: GBIF species/search often does not return a parent SPECIES for a SUBSPECIES taxon, which is why it doesn't show up.
         break;
       case 'occurrences':
         colObj.innerHTML = `<i class="fa fa-spinner fa-spin" style="font-size:18px"></i>`;
+        gbif.then(gbif => {
+          colObj.innerHTML = `<a href="${exploreUrl}?${gbif.search}&view=MAP">${nFmt.format(gbif.total)}</a>`;
+        })
+/*
         //occs.then(occs => {
         getStoredOccCnts(fCfg, `taxonKey=${res.nubKey}`).then(occs => {
           colObj.innerHTML += `<a href="${exploreUrl}?taxonKey=${key}&view=MAP">${nFmt.format(occs[key]?occs[key]:0)}</a>`;
           //console.log('nubKey', res.nubKey, 'speciesListKey', res.key, res);
+          //NOTE: must restrict to accepted species & subspecies for now - it double-counts some sub-taxa for genus and above
           if (res.key != res.nubKey && !res.acceptedKey && ('SPECIES'==res.rank.toUpperCase() || 'SUBSPECIES'==res.rank.toUpperCase())) {
             sumSubTaxonOccs(fCfg, occs, res.key, res.nubKey).then(res => {
               let top = occs[key]?occs[key]:0;
@@ -241,6 +240,7 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx, occs) {
             colObj.innerHTML = `<a href="${exploreUrl}?taxonKey=${key}&view=MAP">${nFmt.format(occs[key]?occs[key]:0)}</a>`;
           }
         }).catch(err => {colObj.innerHTML = ''; console.log(`ERROR in occurrence counts:`, err);})
+*/
         break;
       case 'iconImage':
         colObj.innerHTML = `<i class="fa fa-spinner fa-spin" style="font-size:18px"></i>`;
@@ -262,8 +262,11 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx, occs) {
       case 'images':
         colObj.innerHTML = `<i class="fa fa-spinner fa-spin" style="font-size:18px"></i>`;
         try {
-          img = await getImgCount(dataConfig, key);
-          colObj.innerHTML = `<a href="${exploreUrl}?taxonKey=${key}&view=GALLERY">${nFmt.format(img.count)}</a>`;
+          let img = await getImgCount(dataConfig, key);
+          gImgCnts = img;
+          gbif.then(gbif => {
+            colObj.innerHTML = `<a href="${exploreUrl}?${gbif.search}&view=GALLERY">${nFmt.format(img.count)}</a>`;
+          })
         } catch (err) {colObj.innerHTML = ''; console.log(`ERROR in getImageCount:`, err);}
         break;
       case 'taxonomicStatus':
@@ -471,12 +474,13 @@ if (document.getElementById("download-csv")) {
       }
     });}
 //using search term and other query parameters, download all species data by page and concatenate into a single array of objects
-async function getAllDataPages(q=qParm, lim=limit, qf=qField, oth=other) {
+//NOTE: function arguments are all initialized to global values!
+async function getAllDataPages(fCfg, q=qParm, lim=limit, qf=qField, oth=other) {
   var res = []; var page = {}; var off = 0; var fatalError = 0;
   eleDwn.style.display = 'block'; eleOvr.style.display = 'block';
   do {
     try {
-      page = await speciesSearch(dataConfig, q, off, lim, qf, oth);
+      page = await speciesSearch(fCfg.dataConfig, q, off, lim, qf, oth);
       await page.results.forEach(async oSpc => {
       //for (var i=0; i<page.results.length; i++) { //blocking for-loop
         //let oSpc = page.results[i];
@@ -506,18 +510,20 @@ async function getAllDataPages(q=qParm, lim=limit, qf=qField, oth=other) {
     }
   } while (!page.endOfRecords && !fatalError);
   console.log('getAllDataPages | result size', res.length);
-  if (!fatalError) {
-    //if (dataConfig.downloadOccurrenceCounts) {
+  if (!fatalError && downloadOccurrenceCounts) {
      for (var i=0; i<res.length; i++) {
       let oSpc = res[i];
       let key = oSpc.nubKey ? oSpc.nubKey : oSpc.key;
+      /*
       gOccCnts.then(occCnts => { //
         oSpc[`${dataConfig.atlasAbbrev}-Occurrences`] = occCnts[key] ? occCnts[key] : 0;
       }).catch(err => {
         console.log(`Unable to retrieve occurrence counts.`);
       })
+      */
+      let gbif = await gbifCountsByDateByTaxonKey(key, fCfg);//This call must be synchronous. And so we await.
+      oSpc[`${dataConfig.atlasAbbrev}-Occurrences`] = gbif.total;
      }
-    //}
     eleDwn.style.display = 'none'; eleOvr.style.display = 'none';
   }
   return res;
@@ -525,20 +531,23 @@ async function getAllDataPages(q=qParm, lim=limit, qf=qField, oth=other) {
 
 //Download qParm full-result set as csv (type==0) or json (type==1)
 async function getDownloadData(type=0) {
-  let spc = await getAllDataPages(); //returns just an array of taxa, not a decorated object
-  let dsi = await getDatasetInfo(speciesDatasetKey); //returns a single object
-  var name = `${dataConfig.atlasAbbrev}_taxa`; //download file name
-  if (qParm) {name += `_${qParm}`;} //add search term to download file name
-  Object.keys(objOther).forEach(key => {name += `_${objOther[key]}`;}) //add query params to download file name
-  if (type) { //json-download
-    var res = {citation: dsi.citation.text, taxa: spc}; console.log('JSON Download:', res);
-    var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(res));
-    downloadData(dataStr, name + ".json") ;
-  } else { //csv-download
-    var res = dsi.citation.text + '\r\n' + jsonToCsv(spc);
-    var dataStr = "data:text/csv;charset=utf-8," + encodeURIComponent(res);
-    downloadData(dataStr, name + ".csv") ;
-  }
+  import(`../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`)
+  .then(async fCfg => {
+    let spc = await getAllDataPages(fCfg); //returns just an array of taxa, not a decorated object
+    let dsi = await getDatasetInfo(fCfg.dataConfig.speciesDatasetKey); //returns a single object
+    var name = `${dataConfig.atlasAbbrev}_taxa`; //download file name
+    if (qParm) {name += `_${qParm}`;} //add search term to download file name
+    Object.keys(objOther).forEach(key => {name += `_${objOther[key]}`;}) //add query params to download file name
+    if (type) { //json-download
+      var res = {citation: dsi.citation.text, taxa: spc}; console.log('JSON Download:', res);
+      var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(res));
+      downloadData(dataStr, name + ".json") ;
+    } else { //csv-download
+      var res = dsi.citation.text + '\r\n' + jsonToCsv(spc);
+      var dataStr = "data:text/csv;charset=utf-8," + encodeURIComponent(res);
+      downloadData(dataStr, name + ".csv") ;
+    }
+  })
 }
 
 //do the download
@@ -645,7 +654,8 @@ async function startUp(fileConfig) {
   }
 
   $('#species-table').ready(() => {
-    gOccCnts.then(() => {
+    Promise.all([gOccCnts, gImgCnts]).then(() => {
+    //gOccCnts.then(() => {
       let excludeColumnIds = [columnIds['childTaxa'], columnIds['iconImage'], columnIds['images']]; //images, iconImage, childTaxa
       tableSortHeavy('species-table', columnIds['occurrences'], excludeColumnIds);
       //tableSortSimple('species-table');

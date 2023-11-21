@@ -1,5 +1,3 @@
-//import { siteConfig } from './gbifSiteConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_config.js"></script>
-//import { dataConfig } from '../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=mva';
 /*
 localStorage is a property that allows JavaScript sites and apps to save key-value pairs in a web browser with no expiration date. 
 This means the data stored persists even after the user closes the browser or restarts the computer.
@@ -28,17 +26,18 @@ export async function getStoredOccCnts(fileConfig, searchTerm='') {
 }
 
 /*
-    NOTE: You MUST use nubKeys returned from query b/c occCnts uses nubKeys
+    For a given species-list higherTaxonKey, get a list of all its species-list sub-taxonKeys. 
+    This is primarily used to sum occurrence counts across ACCEPTED and NON-ACCEPTED taxa when 
+    GBIF does not agree with the species-list's taxon definitions.
 
-    For a given taxonKey, get a list of all its sub-taxonKeys. This is primarily used to
-    sum occurrence counts across ACCEPTED and NON-ACCEPTED taxa when GBIF does not agree
-    with VAL's taxon definitions.
+    NOTE: We MUST return the nubKeys of the returned results b/c occCnts uses nubKeys,
+    and the GBIF occurrence/search api only works with nubKeys.
 
     We already do this elsewhere, like this:
 
     https://api.gbif.org/v1/species/search?datasetKey=73eb16f0-4b06-4347-8069-459bc2d96ddb&higherTaxonKey=177419414
 */
-export async function getSubTaxonKeys(fileConfig, higherTaxonKey) {
+export async function getListSubTaxonKeys(fileConfig, higherTaxonKey) {
     let speciesFilter = fileConfig.dataConfig.speciesFilter;
     let reqHost = gbifApi;
     let reqRoute = "/species/search";
@@ -49,22 +48,27 @@ export async function getSubTaxonKeys(fileConfig, higherTaxonKey) {
     try {
         let res = await fetch(enc);
         let json = await res.json();
-        //console.log(`getSubTaxonKeys(${speciesFilter}, ${higherTaxonKey}) QUERY:`, enc);
-        //console.log(`getSubTaxonKeys(${speciesFilter}, ${higherTaxonKey}) RESULT:`, json);
+        //console.log(`getListSubTaxonKeys(${speciesFilter}, ${higherTaxonKey}) QUERY:`, enc);
+        //console.log(`getListSubTaxonKeys(${speciesFilter}, ${higherTaxonKey}) RESULT:`, json);
         let arr = [];
         for (const idx in json.results) { //returns array indexes of array of objects
             //console.log(`element of array:`, idx);
             if (json.results[idx].nubKey) {arr.push(json.results[idx].nubKey);}
         }
-        console.log(`getSubTaxonKeys(${speciesFilter}, ${higherTaxonKey})`, arr);
+        console.log(`getListSubTaxonKeys(${speciesFilter}, ${higherTaxonKey})`, arr);
         return {'keys':arr, 'query':enc};
     } catch (err) {
         err.query = enc;
-        console.log(`getSubTaxonKeys(${speciesFilter}, ${higherTaxonKey}) ERROR:`, err);
+        console.log(`getListSubTaxonKeys(${speciesFilter}, ${higherTaxonKey}) ERROR:`, err);
         return new Error(err)
     }
 }
-export async function getSubNubTaxonKeys(higherTaxonKey) {
+/*
+    For a given GBIF backbone higherTaxonKey, get a list of all its backbone sub-taxonKeys. 
+    This is used as a list of keys to remove from a retrieved list of species-list keys NOT
+    recognized by the GBIF backbone.
+*/
+export async function getBoneSubTaxonKeys(higherTaxonKey) {
     let reqHost = gbifApi;
     let reqRoute = "/species/search";
     let reqFilter = `?higherTaxonKey=${higherTaxonKey}`;
@@ -74,31 +78,32 @@ export async function getSubNubTaxonKeys(higherTaxonKey) {
     try {
         let res = await fetch(enc);
         let json = await res.json();
-        //console.log(`getSubNubTaxonKeys(${higherTaxonKey}) QUERY:`, enc);
-        //console.log(`getSubNubTaxonKeys(${higherTaxonKey}) RESULT:`, json);
+        //console.log(`getBoneSubTaxonKeys(${higherTaxonKey}) QUERY:`, enc);
+        //console.log(`getBoneSubTaxonKeys(${higherTaxonKey}) RESULT:`, json);
         let arr = [];
         for (const idx in json.results) { //returns array indexes of array of objects
             //console.log(`element of array:`, idx);
             if (json.results[idx].nubKey) {arr.push(json.results[idx].nubKey);}
         }
-        console.log(`getSubNubTaxonKeys(${higherTaxonKey})`, arr);
+        console.log(`getBoneSubTaxonKeys(${higherTaxonKey})`, arr);
         return {'keys':arr, 'query':enc};
     } catch (err) {
         err.query = enc;
-        console.log(`getSubNubTaxonKeys(${higherTaxonKey}) ERROR:`, err);
+        console.log(`getBoneSubTaxonKeys(${higherTaxonKey}) ERROR:`, err);
         return new Error(err)
     }
 }
 /*
 NOTE: higherTaxonKey must be from species-list overlay (NOT nubKey) but occCounts is indexed by nubKey.
 This means several things...
-- getSubTaxonKeys returns nubKeys to be used in our stored backbone indexes
+- getListSubTaxonKeys returns subTaxon nubKeys to be used in our stored backbone indexes
+- getBoneSubTaxonKeys returns subTaxon nubKeys to remove from the above list (becuase GBIF already counts them by default)
 */
 export async function sumSubTaxonOccs(fileConfig, occCounts, higherTaxonKey, nubKey=0) {
     try {
         console.log(`sumSubTaxonOccs(${higherTaxonKey}, ${nubKey})`);
-        let res = await getSubTaxonKeys(fileConfig, higherTaxonKey);
-        let nub = nubKey ? await getSubNubTaxonKeys(nubKey) : [];
+        let res = await getListSubTaxonKeys(fileConfig, higherTaxonKey);
+        let nub = nubKey ? await getBoneSubTaxonKeys(nubKey) : [];
         let sum = 0;
         for (const idx in res.keys) {
             if (nub.keys.find(ele => {return ele ==  res.keys[idx]})) {
