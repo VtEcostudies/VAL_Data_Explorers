@@ -6,7 +6,8 @@ import { tableSortSimple } from '../VAL_Web_Utilities/js/tableSortSimple.js';
 import { tableSortTrivial } from '../VAL_Web_Utilities/js/tableSortTrivial.js';
 import { tableSortHeavy } from '../VAL_Web_Utilities/js/tableSortHeavy.js';
 import { gbifCountsByDateByTaxonKey } from '../VAL_Species_Page/js/gbifCountsByDate.js';
-import { getGbifTaxonObjFromKey } from '../VAL_Web_Utilities/js/commonUtilities.js';
+import { getGbifTaxonObjFromName, getGbifTaxonObjFromKey, getParentRank } from '../VAL_Web_Utilities/js/commonUtilities.js';
+import { getInatSpecies } from '../VAL_Web_Utilities/js/inatSpeciesData.js';
 
 //const gbifApi = "https://api.gbif.org/v1";
 var siteName = siteConfig.siteName;
@@ -18,7 +19,8 @@ var resultsUrl;
 var profileUrl;
 var columns;
 var columNames;
-var gOccCnts = {}; var gImgCnts = {};
+var gOccCnts = [];
+var gImgCnts = [];
 var downloadOccurrenceCounts = 0;
 var fileConfig = false; //this global pointer used ONLY for getDownloadData
 
@@ -102,6 +104,16 @@ function remTableWait() {
   waitObj.remove();
   waitRow.remove();
 }
+
+function putErrorOnScreen(err) {
+  let objRow = eleTbl.insertRow(0);
+  let colObj = objRow.insertCell(0);
+  colObj.innerHTML = err;
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
   
 async function addHead() {
   let objHed = eleTbl.createTHead();
@@ -122,51 +134,41 @@ async function addHead() {
   });
 }
 
-async function putErrorOnScreen(err) {
-  let objRow = eleTbl.insertRow(0);
-  let colObj = objRow.insertCell(0);
-  colObj.innerHTML = err;
-}
-
 // Create table row for each taxonKey, then fill row of cells
-async function addTaxaByKeys(fCfg, occs) {
-  tKeys.forEach(async (key, rowIdx) => {
-    let objRow = eleTbl.insertRow(rowIdx);
-    await fillRow(fCfg, {taxonKey: key}, objRow, rowIdx, occs);
+async function addTaxaByKeys(fCfg, tArr) {
+  tArr.forEach(async (key, rowIdx) => {
+    let objRow = eleTbl.insertRow(-1);//(rowIdx);
+    let objSpc = await getTaxon(key); //get taxon object from GBIF 1st
+    let rowProm = fillRow(fCfg, objSpc, objRow, rowIdx);
+    gOccCnts.push(rowProm);
   })
+  Promise.all(gOccCnts).then(() => {columnSort()}); //array of promises used by column sort to wait for all data before sorting
 }
 
 // Create table row for each array element, then fill row of cells
-async function addTaxaFromArr(fCfg, sArr, occs) {
+async function addTaxaFromArr(fCfg, sArr) {
   sArr.forEach(async (objSpc, rowIdx) => {
-    let objRow = eleTbl.insertRow(rowIdx);
-    await fillRow(fCfg, objSpc, objRow, rowIdx, occs);
+    let objRow = eleTbl.insertRow(-1);//(rowIdx);
+    let rowProm = fillRow(fCfg, objSpc, objRow, rowIdx);
+    gOccCnts.push(rowProm);
   })
+  Promise.all(gOccCnts).then(() => {columnSort()}); //array of promises used by column sort to wait for all data before sorting
 }
 
 // Fill a row of cells for a taxon object retrieved from species search, or other. At minimum, objSpc
 // must be {taxonKey: key}
-async function fillRow(fCfg, objSpc, objRow, rowIdx, occs) {
+async function fillRow(fCfg, objSpc, objRow, rowIdx) {
   var key = objSpc.nubKey ? objSpc.nubKey : objSpc.key;
-  var res = objSpc; //search by query param taxonName
-  var txn = {};
-  if (objSpc.taxonKey) { //search by query param taxonKey
-    key = objSpc.taxonKey;
-    try {
-      res = await getTaxon(key);
-      key = res.nubKey ? res.nubKey : res.key; //must again resolve key to nubKey if exists
-    } catch (err) {
-      //getTaxon failed, so leave it as initialized
-    }
-  } else {
-    txn = await getGbifTaxonObjFromKey(objSpc.key); //get taxonObj for species-list key to obtain its view of taxonomy
-  }
+  var res = objSpc;
+  let txn = await getGbifTaxonObjFromKey(objSpc.key); //get taxonObj for species-list key to obtain its view of taxonomy
+  let name = res.canonicalName ? res.canonicalName : res.scientificName;
+  let inat = await getInatSpecies(name, res.rank, res.parent, getParentRank(res.rank));
+  let wiki = await getWikiPage(name);
   let gbif = gbifCountsByDateByTaxonKey(res.key, fCfg);
-  gOccCnts = gbif;
+  gOccCnts.push(gbif); //new promise with each row. a dubious construct.
   //console.log('gbif_species_results::fillRow','canonicalName:', objSpc.canonicalName, 'key:', objSpc.key, 'nubKey:', objSpc.nubKey, 'combinedKey:', key);
   columns.forEach(async (colNam, colIdx) => {
     let colObj = objRow.insertCell(colIdx);
-    let name = res.canonicalName ? res.canonicalName : res.scientificName;
     switch(colNam) {
       case 'canonicalName':
         //NOTE: now calling species profile with listKey, NOT nubKey. Species profile handles subKey disagreements, key lists, and counts.
@@ -198,6 +200,7 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx, occs) {
             vnObj[ele.vernacularName] = res.key;
           })
         }
+        if (inat.preferred_common_name) {vnObj[inat.preferred_common_name] = res.key;}
         Object.keys(vnObj).forEach((key, idx) => {
           if (key) {
             colObj.innerHTML += `<a title="VAL Species Explorer: ${key}" href="${resultsUrl}?q=${key}">${key}</a>`;
@@ -243,7 +246,7 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx, occs) {
           colObj.innerHTML = `<a href="${exploreUrl}?${gbif.search}&view=MAP">${nFmt.format(gbif.total)}</a>`;
         })
 /*
-        //occs.then(occs => {
+        //gOccCnts.then(occs => {
         getStoredOccCnts(fCfg, `taxonKey=${res.nubKey}`).then(occs => {
           colObj.innerHTML += `<a href="${exploreUrl}?taxonKey=${key}&view=MAP">${nFmt.format(occs[key]?occs[key]:0)}</a>`;
           //console.log('nubKey', res.nubKey, 'speciesListKey', res.key, res);
@@ -263,21 +266,30 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx, occs) {
 */
         break;
       case 'iconImage':
-        colObj.innerHTML = `<i class="fa fa-spinner fa-spin" style="font-size:18px"></i>`;
-        try {
-          let wik = await getWikiPage(name);
-          colObj.innerHTML = '';
-          if (wik.thumbnail) {
-            let iconImg = document.createElement("img");
-            iconImg.src = wik.thumbnail.source;
-            iconImg.alt = name;
-            iconImg.className = "icon-image";
-            iconImg.width = "30"; 
-            iconImg.height = "30";
-            iconImg.onclick = function() {modalDiv.style.display = "block"; modalImg.src = wik.originalimage.source; modalCap.innerHTML = this.alt;}
-            colObj.appendChild(iconImg);
+        let imgInfo = false;
+        if (wiki.thumbnail) {
+          imgInfo = {
+            iconSrc: wiki.thumbnail.source,
+            overSrc: wiki.originalimage.source,
+            attrib: ''
           }
-        } catch(err) {colObj.innerHTML = ''; console.log(`ERROR in getWikiPage:`, err);}
+        } else if (inat.default_photo) {
+          imgInfo = {
+            iconSrc: inat.default_photo.medium_url,
+            overSrc: inat.default_photo.medium_url,
+            attrib: inat.default_photo.attribution
+          }
+        }
+        if (imgInfo) {
+          let iconImg = document.createElement("img");
+          iconImg.src = imgInfo.iconSrc;
+          iconImg.alt = `${name} ${imgInfo.attrib}`;
+          iconImg.className = "icon-image";
+          iconImg.width = "30"; 
+          iconImg.height = "30";
+          iconImg.onclick = function() {modalDiv.style.display = "block"; modalImg.src = imgInfo.overSrc; modalImg.alt = imgInfo.attrib; modalCap.innerHTML = this.alt;}
+          colObj.appendChild(iconImg);
+        }
         break;
       case 'images':
         colObj.innerHTML = `<i class="fa fa-spinner fa-spin" style="font-size:18px"></i>`;
@@ -607,8 +619,8 @@ async function startUp(fileConfig) {
     if (tKeys.length) {
       try {
         addTableWait();
-        gOccCnts = getStoredOccCnts(fileConfig);
-        await addTaxaByKeys(fileConfig, gOccCnts);
+        //gOccCnts = getStoredOccCnts(fileConfig);
+        await addTaxaByKeys(fileConfig, tKeys);
         await addHead();
         if (eleLbl) {
           eleLbl.innerHTML = "Showing results for taxon keys: ";
@@ -618,7 +630,7 @@ async function startUp(fileConfig) {
           })
           if (eleLb2) {eleLb2.innerHTML = eleLbl.innerHTML;}
         }
-        remTableWait();
+        Promise.all(gOccCnts).then(() => {remTableWait()});
       } catch (err) {
         putErrorOnScreen(err);
       }
@@ -633,10 +645,12 @@ async function startUp(fileConfig) {
       }
       try {
         addTableWait();
-        gOccCnts = getStoredOccCnts(fileConfig);
+        //gOccCnts = getStoredOccCnts(fileConfig);
         let spcs = await speciesSearch(dataConfig, qParm, offset, limit, qField, other);
         count = spcs.count;
-        await addTaxaFromArr(fileConfig, spcs.results, gOccCnts);
+        if (spcs.count) {
+          await addTaxaFromArr(fileConfig, spcs.results);
+        } else {putErrorOnScreen('No data found.')}
         await addHead();
         let finish = (offset+limit)>count ? count : offset+limit;
         if (eleLbl) {
@@ -651,7 +665,7 @@ async function startUp(fileConfig) {
           });
           if (eleLb2) {eleLb2.innerHTML = eleLbl.innerHTML;}
         }
-        remTableWait();
+        Promise.all(gOccCnts).then(() => {remTableWait()});
       } catch (err) {
         putErrorOnScreen(err);
       }
@@ -672,14 +686,21 @@ async function startUp(fileConfig) {
       eleHlp.style.display = 'none';
     }
   }
-
-  $('#species-table').ready(() => {
-    Promise.all([gOccCnts, gImgCnts]).then(() => {
-    //gOccCnts.then(() => {
-      let excludeColumnIds = [columnIds['childTaxa'], columnIds['iconImage'], columnIds['images']]; //images, iconImage, childTaxa
-      tableSortHeavy('species-table', columnIds['occurrences'], excludeColumnIds);
-      //tableSortSimple('species-table');
-      //tableSortTrivial('species-table');
-    })
+}
+/*
+$('#species-table').ready(() => {
+  Promise.all(gOccCnts).then(() => {
+    columnSort();
+  })
+});
+*/  
+function columnSort() {
+  Promise.all(gOccCnts).then(() => {
+    //alert(`columnSort ${JSON.stringify(columnIds)}`);
+    //let excludeColumnIds = [columnIds['childTaxa'], columnIds['iconImage'], columnIds['images']];
+    let excludeColumnIds = [columnIds['childTaxa'], columnIds['iconImage']];
+    tableSortHeavy('species-table', columnIds['occurrences'], excludeColumnIds);
+    //tableSortSimple('species-table');
+    //tableSortTrivial('species-table');
   });
 }
