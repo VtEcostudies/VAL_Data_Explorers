@@ -129,6 +129,13 @@ table td {max-width:100px; word-wrap:break-word;}
   margin-left: 5px;
 }
 
+.child-branch {
+  transform: scaleY(-1);
+}
+.parent-branch {
+  transform: scaleY(-1);
+}
+
 .icon-image {
   min-width: 30px;
   cursor: pointer;

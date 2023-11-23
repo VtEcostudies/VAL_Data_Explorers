@@ -1,8 +1,8 @@
 export const siteConfig = {
-  //siteName: 'val'
-  siteName: 'vtb'
+  siteName: 'val'
+  //siteName: 'mva'
+  //siteName: 'vtb'
   //siteName: 'ebu'
   //siteName: 'ebw'
-  //siteName: 'mva'
   //siteName: 'fma'
 }

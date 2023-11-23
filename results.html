@@ -20,8 +20,9 @@
 
 <script language="Javascript">
     var info_on = false;
-    function showInfo(text=false) {
+    function showInfo(text=false, button=false) {
       document.getElementById("information-overlay").style.display = 'flex';
+      if (!button) {document.getElementById("information-button").style.display = 'none'}
       if (text) {document.getElementById("information-content").innerText = text;}
       info_on = true;
     }
@@ -29,8 +30,9 @@
       document.getElementById("information-overlay").style.display = 'none';
       info_on = false;
     }
-    function toggleInfo(text=false) {
+    function toggleInfo(text=false, button=true) {
       var eleTxt = document.getElementById("information-content");
+      if (!button) {document.getElementById("information-button").style.display = 'none'}
       if (eleTxt) {
         if (!info_on || `${text}` != `${eleTxt.innerText}`) {showInfo(text);} else {hideInfo();}
       } else {console.log(`No element with id 'information-content'`); }
@@ -180,7 +182,7 @@
       <div id="download-overlay"></div>
 
       <div id="information-overlay">
-        <p id="information-content">
+        <p id="information-content" onclick="hideInfo();">
           Click Scientific Name to list all its child taxa.
         </p>
         <button class="btn btn-primary" id="information-button" onclick="hideInfo();">Ok</button>

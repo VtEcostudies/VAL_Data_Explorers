@@ -6,7 +6,7 @@ import { tableSortSimple } from '../VAL_Web_Utilities/js/tableSortSimple.js';
 import { tableSortTrivial } from '../VAL_Web_Utilities/js/tableSortTrivial.js';
 import { tableSortHeavy } from '../VAL_Web_Utilities/js/tableSortHeavy.js';
 import { gbifCountsByDateByTaxonKey } from '../VAL_Species_Page/js/gbifCountsByDate.js';
-import { getGbifTaxonObjFromName, getGbifTaxonObjFromKey, getParentRank } from '../VAL_Web_Utilities/js/commonUtilities.js';
+import { getGbifTaxonObjFromName, getGbifTaxonObjFromKey, getParentRank, getNextChildRank } from '../VAL_Web_Utilities/js/commonUtilities.js';
 import { getInatSpecies } from '../VAL_Web_Utilities/js/inatSpeciesData.js';
 
 //const gbifApi = "https://api.gbif.org/v1";
@@ -122,33 +122,34 @@ async function addHead() {
     console.log('addHead', hedNam, hedIdx);
     columnIds[hedNam]=hedIdx; //make an object having names as keys and index as values, for use by dataTables to enable/disable sorting
     let colObj = await hedRow.insertCell(hedIdx);
-    colObj.outerHTML = `<th>${columNames[hedNam]}</th>`
-    //colObj.innerHTML = columNames[hedNam];
-    if ("canonicalName" == hedNam) {
-      colObj.innerHTML = `
-        ${columNames[hedNam]}
-        <a href="#" onclick="toggleInfo('Click taxon name to view its profile.');">
-          <i class="fa fa-info-circle"></i>
-        </a>`;
-    }
+    //colObj.outerHTML = `<th>${columNames[hedNam]}</th>`
+    colObj.innerHTML =  `<th>${columNames[hedNam]}</th>`
+    let html;
+    if ("childTaxa" == hedNam) {html = `Click symbol for Species Explorer with ALL sub-taxa of taxon. Click named rank for Species Explorer with sub-taxa having only that rank.`}
+    if ("parent" == hedNam) {html = `Click symbol for Species Explorer with ALL children of named parent taxon. Click parent taxon name for Species Explorer with just that taxon and rank.`}
+    if ("canonicalName" == hedNam) {html = `Click taxon name to view its Species Profile.`}
+    if ("vernacularNames" == hedNam) {html = 'Click common name for Species Explorer search of that name.'}
+    if ("occurrences" == hedNam) {html = 'Counts are for taxon and sub-taxa. Click count for Occurrence Explorer.'}
+    if (html) {colObj.innerHTML += `<a href="#" onmouseover="showInfo('${html}');" onmouseout="hideInfo();"><i class="fa fa-info-circle"></i></a>`;}
   });
 }
 
 // Create table row for each taxonKey, then fill row of cells
 async function addTaxaByKeys(fCfg, tArr) {
   tArr.forEach(async (key, rowIdx) => {
-    let objRow = eleTbl.insertRow(-1);//(rowIdx);
+    let objRow = eleTbl.insertRow(-1);//add row to end
     let objSpc = await getTaxon(key); //get taxon object from GBIF 1st
     let rowProm = fillRow(fCfg, objSpc, objRow, rowIdx);
     gOccCnts.push(rowProm);
   })
+  await sleep(100);
   Promise.all(gOccCnts).then(() => {columnSort()}); //array of promises used by column sort to wait for all data before sorting
 }
 
 // Create table row for each array element, then fill row of cells
 async function addTaxaFromArr(fCfg, sArr) {
   sArr.forEach(async (objSpc, rowIdx) => {
-    let objRow = eleTbl.insertRow(-1);//(rowIdx);
+    let objRow = eleTbl.insertRow(-1);//add row to end;
     let rowProm = fillRow(fCfg, objSpc, objRow, rowIdx);
     gOccCnts.push(rowProm);
   })
@@ -164,6 +165,7 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
   let name = res.canonicalName ? res.canonicalName : res.scientificName;
   let inat = await getInatSpecies(name, res.rank, res.parent, getParentRank(res.rank));
   let wiki = await getWikiPage(name);
+  //getStoredOccCnts(fCfg, `taxonKey=${res.nubKey}`)
   let gbif = gbifCountsByDateByTaxonKey(res.key, fCfg);
   gOccCnts.push(gbif); //new promise with each row. a dubious construct.
   //console.log('gbif_species_results::fillRow','canonicalName:', objSpc.canonicalName, 'key:', objSpc.key, 'nubKey:', objSpc.nubKey, 'combinedKey:', key);
@@ -172,47 +174,58 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
     switch(colNam) {
       case 'canonicalName':
         //NOTE: now calling species profile with listKey, NOT nubKey. Species profile handles subKey disagreements, key lists, and counts.
-        colObj.innerHTML += `<a title="VAL Species Profile: ${name}" href="${profileUrl}?siteName=${siteName}&taxonKey=${res.key}&taxonName=${name}&taxonRank=${res.rank}">${name}</a>`;
+        colObj.innerHTML += `<a title="Species Profile: ${name}" href="${profileUrl}?siteName=${siteName}&taxonKey=${res.key}&taxonName=${name}&taxonRank=${res.rank}">${name}</a>`;
         break;
       case 'scientificName': //show and link with canonicalName
         //NOTE: now calling species profile with listKey, NOT nubKey. Species profile handles subKey disagreements, key lists, and counts.
-        colObj.innerHTML += `<a title="VAL Species Profile: ${name}" href="${profileUrl}?siteName=${siteName}&taxonKey=${res.key}&taxonName=${name}&taxonRank=${res.rank}">${name}</a>`;
+        colObj.innerHTML += `<a title="Species Profile: ${name}" href="${profileUrl}?siteName=${siteName}&taxonKey=${res.key}&taxonName=${name}&taxonRank=${res.rank}">${name}</a>`;
         break;
       case 'wikipedia': //unused column-name to store old way of doing things
         colObj.innerHTML += `<a title="Wikipedia: ${name}" href="https://en.wikipedia.org/wiki/${name}">${res.scientificName}</a>`; //wikipedia link to name
         break;
       case 'childTaxa':
-        colObj.innerHTML += `<a title="List child taxa of ${name}" href="${resultsUrl}?q=&higherTaxonKey=${res.key}&higherTaxonName=${name}&higherTaxonRank=${res.rank}"><i class="fa-solid fa-code-branch"></i></a>`
+        //new idea: just get child taxa one rank lower
+        if ('SUBSPECIES' != res.rank && 'VARIETY' != res.rank) {
+          let ncRank = getNextChildRank(res.rank);
+          colObj.innerHTML += `<a title="Species Explorer: ALL sub-taxa of ${res.rank} ${name}" href="${resultsUrl}?q=&higherTaxonKey=${res.key}&higherTaxonName=${name}&higherTaxonRank=${res.rank}"><i class="fa-solid fa-code-branch child-branch"></i></a>`
+          colObj.innerHTML += ` | <a title="Species Explorer: ${ncRank} sub-taxa of ${res.rank} ${name}" href="${resultsUrl}?q=&higherTaxonKey=${res.key}&higherTaxonName=${name}&higherTaxonRank=${res.rank}&rank=${ncRank}">${ncRank}</a>`
+        }
+        //colObj.innerHTML += `<a title="List child taxa of ${name}" href="${resultsUrl}?q=&higherTaxonKey=${res.key}&higherTaxonName=${name}&higherTaxonRank=${res.rank}"><i class="fa-solid fa-code-branch"></i></a>`
         break;
       case 'vernacularNames':
         let vnObj = {};
         if (txn.vernacularName) { //taxon by key from /species/{key}?datasetKey=species-list-key
-          txn.vernacularName = decodeURI(txn.vernacularName);
+          txn.vernacularName = txn.vernacularName.replace(`'S`,`'s`);
           vnObj[txn.vernacularName] = txn.key;
         } 
         if (res.vernacularName) { //taxon by key from species/search
-          res.vernacularName = decodeURI(res.vernacularName);
+          res.vernacularName = res.vernacularName.replace(`'S`,`'s`);
           vnObj[res.vernacularName] = res.key;
         }
         if (res.vernacularNames) {
           res.vernacularNames.forEach((ele, idx) => {
-            ele.vernacularName = decodeURI(ele.vernacularName);
+            ele.vernacularName = ele.vernacularName.replace(`'S`,`'s`);
             vnObj[ele.vernacularName] = res.key;
           })
         }
         if (inat.preferred_common_name) {vnObj[inat.preferred_common_name] = res.key;}
         Object.keys(vnObj).forEach((key, idx) => {
           if (key) {
-            colObj.innerHTML += `<a title="VAL Species Explorer: ${key}" href="${resultsUrl}?q=${key}">${key}</a>`;
+            colObj.innerHTML += `<a title="Species Explorer: ${key}" href="${resultsUrl}?q=${key}">${key}</a>`;
             if (idx < Object.keys(vnObj).length-1) {colObj.innerHTML += ', ';}
           }
         })
         break;
-      case 'scientificName': case 'parent': case 'vernacularName':
-        colObj.innerHTML = res[colNam] ? `<a title="VAL Species Explorer: ${res[colNam]}" href="${resultsUrl}?q=${res[colNam]}">${res[colNam]}</a>` : null;
+      case 'scientificName': case 'vernacularName':
+        colObj.innerHTML = res[colNam] ? `<a title="Species Explorer: ${res[colNam]}" href="${resultsUrl}?q=${res[colNam]}">${res[colNam]}</a>` : null;
+        break;
+      case 'parent':
+        //colObj.innerHTML = res[colNam] ? `<a title="Species Explorer: Explore parent taxon ${res[colNam]}" href="${resultsUrl}?q=${res[colNam]}">${res[colNam]}</a>` : null;
+        colObj.innerHTML += res[colNam] ? `<a title="Species Explorer: ALL sub-taxa of parent taxon ${res[colNam]}" href="${resultsUrl}?q=${res[colNam]}"><i class="fa-solid fa-code-branch parent-branch"></i></a>` : null;
+        colObj.innerHTML += res[colNam] ? ` | <a title="Species Explorer: Parent taxon ${getParentRank(res.rank)} ${res[colNam]}" href="${resultsUrl}?q=${res[colNam]}&rank=${getParentRank(res.rank)}">${res[colNam]}</a>` : null;
         break;
       case 'parentKey':
-        colObj.innerHTML = res[colNam] ? `<a title="VAL Species Explorer: ${res[colNam]}" href="${resultsUrl}?taxonKey=${res[colNam]}">${res[colNam]}</a>` : null;
+        colObj.innerHTML = res[colNam] ? `<a title="Species Explorer: ${res[colNam]}" href="${resultsUrl}?taxonKey=${res[colNam]}">${res[colNam]}</a>` : null;
         break;
       case 'key': case 'nubKey':
         //colObj.innerHTML = res[colNam] ? `<a href="${resultsUrl}?taxonKey=${res[colNam]}">${res[colNam]}</a>` : null;
@@ -225,7 +238,7 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
         let tree = res[colNam]; //object of upper taxa like {123456:Name,234567:Name,...}
         if (!tree) break;
         Object.keys(tree).forEach((key, idx) => {
-          colObj.innerHTML += `<a title="VAL Species Explorer: ${tree[key]}" href="${resultsUrl}?q=${tree[key]}">${tree[key]}</a>`; //load self with just parent taxon
+          colObj.innerHTML += `<a title="Species Explorer: ${tree[key]}" href="${resultsUrl}?q=${tree[key]}">${tree[key]}</a>`; //load self with just parent taxon
           //colObj.innerHTML += `<a title="Wikipedia: ${tree[key]}" href="https://en.wikipedia.org/wiki/${tree[key]}">${tree[key]}</a>`; //wikipedia: parent taxon
           if (idx < Object.keys(tree).length-1) {colObj.innerHTML += ', ';}
         })
@@ -243,7 +256,9 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
       case 'occurrences':
         colObj.innerHTML = `<i class="fa fa-spinner fa-spin" style="font-size:18px"></i>`;
         gbif.then(gbif => {
-          colObj.innerHTML = `<a href="${exploreUrl}?${gbif.search}&view=MAP">${nFmt.format(gbif.total)}</a>`;
+          let title = `Occurrence Explorer: ${name}`;
+          if (gbif.names) {title += `, ${gbif.names.join(", ")}`};
+          colObj.innerHTML = `<a title="${title}" href="${exploreUrl}?${gbif.search}&view=MAP">${nFmt.format(gbif.total)}</a>`;
         })
 /*
         //gOccCnts.then(occs => {
@@ -287,7 +302,11 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
           iconImg.className = "icon-image";
           iconImg.width = "30"; 
           iconImg.height = "30";
-          iconImg.onclick = function() {modalDiv.style.display = "block"; modalImg.src = imgInfo.overSrc; modalImg.alt = imgInfo.attrib; modalCap.innerHTML = this.alt;}
+          iconImg.onclick = function() {
+            modalDiv.style.display = "block"; 
+            modalImg.src = imgInfo.overSrc; 
+            modalImg.alt = imgInfo.attrib; 
+            modalCap.innerHTML = this.alt;}
           colObj.appendChild(iconImg);
         }
         break;
