@@ -136,13 +136,15 @@ async function addHead() {
 
 // Create table row for each taxonKey, then fill row of cells
 async function addTaxaByKeys(fCfg, tArr) {
-  tArr.forEach(async (key, rowIdx) => {
+  //tArr.forEach(async (key, rowIdx) => {
+  for (const key of tArr) {
     let objRow = eleTbl.insertRow(-1);//add row to end
     let objSpc = await getTaxon(key); //get taxon object from GBIF 1st
-    let rowProm = fillRow(fCfg, objSpc, objRow, rowIdx);
+    //let rowProm = fillRow(fCfg, objSpc, objRow, rowIdx);
+    let rowProm = fillRow(fCfg, objSpc, objRow);
     gOccCnts.push(rowProm);
-  })
-  await sleep(100);
+  }//)
+  //await sleep(100); //addByKeys is too fast
   Promise.all(gOccCnts).then(() => {columnSort()}); //array of promises used by column sort to wait for all data before sorting
 }
 
