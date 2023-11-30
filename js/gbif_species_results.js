@@ -165,7 +165,8 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
   var res = objSpc;
   let txn = await getGbifTaxonObjFromKey(objSpc.key); //get taxonObj for species-list key to obtain its view of taxonomy
   let name = res.canonicalName ? res.canonicalName : res.scientificName;
-  let inat = await getInatSpecies(name, res.rank, res.parent, getParentRank(res.rank));
+  let inat; try {inat = await getInatSpecies(name, res.rank, res.parent, getParentRank(res.rank));} catch(err) {inat={};}
+  console.log(`gbif_species_results=>getInatSpecies(${name}, ${res.rank}, ${res.parent}, ${getParentRank(res.rank)})`, inat)
   let wiki = await getWikiPage(name);
   //getStoredOccCnts(fCfg, `taxonKey=${res.nubKey}`)
   let gbif = gbifCountsByDateByTaxonKey(res.key, fCfg);
