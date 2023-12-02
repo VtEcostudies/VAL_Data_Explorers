@@ -1,6 +1,6 @@
 import { siteConfig } from './gbifSiteConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_config.js"></script>
-//import { predicateToQueries } from '../VAL_Web_Utilities/js/gbifDataConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_widget.js"></script>
 import { speciesSearch } from './gbif_species_search.js';
+import { getAggOccCounts } from '../VAL_Web_Utilities/js/gbifOccFacetCounts.js';
 
 import(`../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteConfig.siteName}`)
   .then(fileConfig => {
@@ -8,183 +8,48 @@ import(`../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteConfig.siteName
     startUp(fileConfig);
   })
 
-//const speciesDatasetKey = dataConfig.speciesDatasetKey; //'0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
-//const qrys = predicateToQueries(); //['?state_province=Vermont&hasCoordinate=false', '?gadmGid=USA.46_1'];
-//console.log('gbif_data_stats.js | rootPredicate converted to http query parameters:');
-//console.dir(qrys);
-
-var begEvent = new Event('xhttpBeg');
-var endEvent = new Event('xhttpEnd');
-var xhrTimeout = 10000;
-var occs = 0;
-var sets = {};//[]; //use object. array.find is waaaay slower than obj[value]
-var spcs = {};//[]; //ditto
-var pubs = {};//[]; //ditto
 var nFmt = new Intl.NumberFormat(); //use this to format numbers by locale... automagically?
 
-/*
-  this is now called for each value in global array 'qrys', but here's example query:
-  https://api.gbif.org/v1/occurrence/search?stateProvince=Vermont&limit=0
-*/
-function occStats(reqQuery) {
-    var xmlhttp = new XMLHttpRequest();
-    var reqHost = "https://api.gbif.org/v1";
-    var reqRoute = "/occurrence/search";
-    //var reqQuery = "?state_province=Vermont";
-    reqQuery = `?${reqQuery}`;
-    var reqLimit = "&limit=0";
-    var reqAll = reqHost+reqRoute+reqQuery+reqLimit;
-    var elem = document.getElementById("count-occurrences");
-
-    document.dispatchEvent(begEvent);
-
-    xmlhttp.onreadystatechange = function() {
-        if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
-            if (xmlhttp.status == 200) {
-                var res = JSON.parse(xmlhttp.responseText);
-                console.log(`OCCURRENCES => ${reqAll} occurrences: ${res.count}`);
-                occs += res.count;
-                if (elem) {
-                  elem.innerHTML = nFmt.format(occs);// numeral(occs).format('0,0');
-                } else {
-                  console.log('HTML element id="count-occurrences" NOT found.')
-                }
-            } else {
-                console.log(`An http ${xmlhttp.status} result was returned from ${reqHost}.`);
-                if (elem) {
-                  elem.style="font-size:8pt";
-                  elem.innerHTML = `(http ${xmlhttp.status} from ${reqAll})`;
-                } else {
-                  console.log('HTML element id="count-occurrences" NOT found.')
-                }
-            }
-            document.dispatchEvent(endEvent);
-        }
-    };
-
-    console.log('AJAX GET request:', reqHost+reqRoute+reqQuery+reqLimit);
-
-    xmlhttp.open("GET", reqHost+reqRoute+reqQuery+reqLimit, true);
-    //xmlhttp.setRequestHeader("Content-type", "application/json; charset=utf-8");
-    //xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    //xmlhttp.setRequestHeader("Accept", "*/*");
-    //xmlhttp.setRequestHeader("Cache-Control", "no-cache");
-    xmlhttp.timeout = xhrTimeout; // Set timeout to 10 seconds
-    xmlhttp.ontimeout = function () { console.log(`AJAX GET request ${reqHost+reqRoute} timed out. (${xhrTimeout/1000} seconds).`); }
-    xmlhttp.async = true;
-    xmlhttp.send();
+function occStats(fileConfig) {
+  var elem = document.getElementById("count-occurrences");
+  let occs = getAggOccCounts(fileConfig, false, []); //get just top-level all-taxon agg occ counts w/o taxon-breakout
+  occs.then(occs => {
+    elem.innerHTML = nFmt.format(occs.total);
+  }).catch(err =>{
+    elem.innerHTML = err.message;
+  })
 }
-
 /*
-  this is now called for each value in global array 'qrys', but here's example query:
-  https://api.gbif.org/v1/occurrence/search?stateProvince=Vermont&limit=0&facet=datasetKey&facetMincount=1&datasetKey.facetLimit=1000
+This occurrence facet query isn't filtered by rank and status. It's a backup species stats query used when the siteConfig
+does not contain a speciesFilter. See speciesStats function which is used when there dataConfig.speciesFilter is defined.
 */
-function datasetStats(reqQuery) {
-  var xmlhttp = new XMLHttpRequest();
-  var reqHost = "https://api.gbif.org/v1";
-  var reqRoute = "/occurrence/search";
-  //var reqQuery = "?state_province=Vermont";
-  reqQuery = `?${reqQuery}`;
-  var reqFacet = "&facet=datasetKey&facetMincount=1&datasetKey.facetLimit=10000";
-  var reqLimit = "&limit=0";
-  var reqAll = reqHost+reqRoute+reqQuery+reqFacet+reqLimit;
+function occSpeciesStats(fileConfig) {
+  var elem = document.getElementById("count-occurrences");
+  let spcs = getAggOccCounts(fileConfig, false, ['scientificName'], 'facetMincount=1&facetLimit=1199999');
+  spcs.then(spcs => {
+    elem.innerHTML = nFmt.format(Object.keys(spcs.objOcc).length);
+  }).catch(err =>{
+    elem.innerHTML = err.message;
+  })
+}
+function occDatasetStats(fileConfig) {
   var elem = document.getElementById("count-datasets");
-
-  document.dispatchEvent(begEvent);
-
-  xmlhttp.onreadystatechange = function() {
-      if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
-          if (xmlhttp.status == 200) {
-              const res = JSON.parse(xmlhttp.responseText);
-              const set = res.facets[0].counts; //array of objects haing datasetID and occurrence count, like [{name:4fa7b334-ce0d-4e88-aaae-2e0c138d049e,count:6758210},{},...]
-              set.forEach((topEle) => {
-                if (!sets[topEle.name]) {sets[topEle.name] = topEle.count}
-              });
-              var count = Object.keys(sets).length;
-              console.log(`DATASETS => This:`, set.length, 'Agg:', count, 'Query:', reqAll);
-              if (elem) {
-                elem.innerHTML = nFmt.format(count); //numeral(count).format('0,0');
-              } else {
-                console.log('HTML element id="count-datasets" NOT found.')
-              }
-          } else {
-              console.log(`An http ${xmlhttp.status} result was returned from ${reqHost}.`);
-              if (elem) {
-                elem.style="font-size:8pt";
-                elem.innerHTML = `(http ${xmlhttp.status} from ${reqAll})`;
-              } else {
-                console.log('HTML element id="count-datasets" NOT found.')
-              }
-          }
-          document.dispatchEvent(endEvent);
-      }
-  };
-
-  console.log('AJAX GET request:', reqHost+reqRoute+reqQuery+reqFacet+reqLimit);
-
-  xmlhttp.open("GET", reqHost+reqRoute+reqQuery+reqFacet+reqLimit, true);
-  xmlhttp.timeout = xhrTimeout; // Set timeout to 10 seconds
-  xmlhttp.ontimeout = function () { console.log(`AJAX GET request ${reqHost+reqRoute} timed out. (${xhrTimeout/1000} seconds).`); }
-  xmlhttp.async = true;
-  xmlhttp.send();
+  let dsts = getAggOccCounts(fileConfig, false, ['datasetKey'], 'facetMincount=1&facetLimit=1199999');
+  dsts.then(dsts => {
+    elem.innerHTML = nFmt.format(Object.keys(dsts.objOcc).length);
+  }).catch(err =>{
+    elem.innerHTML = err.message;
+  })
 }
-
-/*
-  this is now called for each value in global array 'qrys', but here's example query:
-  https://api.gbif.org/v1/occurrence/search?state_province=Vermont&limit=0&facet=scientificName&facetMincount=1&scientificName.facetOffset=0&scientificName.facetLimit=30000
-*/
-function speciesOccStats(reqQuery) {
-  var speciesOffset = 0;;
-  var speciesLimit = 1199999; //1.2M is hard limit on facets. This won't work for large scope root predicates having more than 1.19M unique names.
-  var xmlhttp = new XMLHttpRequest();
-  var reqHost = "https://api.gbif.org/v1";
-  var reqRoute = "/occurrence/search";
-  //var reqQuery = "?state_province=Vermont"
-  reqQuery = `?${reqQuery}`;
-  var reqFacet = `&facet=scientificName&facetMincount=1&scientificName.facetOffset=${speciesOffset}&scientificName.facetLimit=${speciesLimit}`;
-  var reqLimit = "&limit=0";
-  var reqAll = reqHost+reqRoute+reqQuery+reqFacet+reqLimit;
-  var elem = document.getElementById("count-species");
-
-  document.dispatchEvent(begEvent);
-
-  xmlhttp.onreadystatechange = function() {
-      if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
-          if (xmlhttp.status == 200) {
-              const res = JSON.parse(xmlhttp.responseText);
-              const spc = res.facets[0].counts; //array of objects having sciName and occurrence count, like [{name:4fa7b334-ce0d-4e88-aaae-2e0c138d049e,count:6758210},{},...]
-              spc.forEach((topEle) => {
-                if (!spcs[topEle.name]) {spcs[topEle.name] = topEle.count}
-              })
-              var count = Object.keys(spcs).length;
-              console.log(`SPECIES => This:`, spc.length, 'Agg:', count, 'Query:', reqAll);
-              if (elem) {
-                elem.innerHTML = nFmt.format(speciesOffset+count); //numeral(speciesOffset+count).format('0,0');
-              } else {
-                console.log('HTML element id="count-species" NOT found.')
-              }
-          } else {
-              console.log(`An http ${xmlhttp.status} result was returned from ${reqHost}.`);
-              if (elem) {
-                elem.style="font-size:8pt";
-                elem.innerHTML = `(http ${xmlhttp.status} from ${reqHost+reqRoute+reqQuery+reqFacet+reqLimit})`;
-              } else {
-                console.log('HTML element id="count-species" NOT found.')
-              }
-          }
-          document.dispatchEvent(endEvent);
-      }
-  };
-
-  console.log('AJAX GET request:', reqHost+reqRoute+reqQuery+reqFacet+reqLimit);
-
-  xmlhttp.open("GET", reqHost+reqRoute+reqQuery+reqFacet+reqLimit, true);
-  xmlhttp.timeout = xhrTimeout; // Set timeout to 10 seconds
-  xmlhttp.ontimeout = function () { console.log(`AJAX GET request ${reqHost+reqRoute+reqQuery+reqFacet+reqLimit} timed out. (${xhrTimeout/1000} seconds).`); }
-  xmlhttp.async = true;
-  xmlhttp.send();
+function occPublisherStats(fileConfig) {
+  var elem = document.getElementById("count-publishers");
+  let pbls = getAggOccCounts(fileConfig, false, ['publishingOrg'], 'facetMincount=1&facetLimit=1199999');
+  pbls.then(pbls => {
+    elem.innerHTML = nFmt.format(Object.keys(pbls.objOcc).length);
+  }).catch(err =>{
+    elem.innerHTML = err.message;
+  })
 }
-
 /*
   Get a count of accepted species and set speciesCount html element value
   Using speciesSearch, count rank=SPECIES & status=ACCEPTED
@@ -192,8 +57,7 @@ function speciesOccStats(reqQuery) {
 async function speciesStats(dataConfig, reqQuery="") {
   reqQuery += `&rank=SPECIES&status=ACCEPTED`;
   let spcs = await speciesSearch(dataConfig, reqQuery, 0, 0);
-  let lmId = 'count-species';
-  let elem = document.getElementById(lmId);
+  let elem = document.getElementById('count-species');
   console.log(`gbif_data_stats.js::speciesStats(${reqQuery})|`, spcs);
   if (elem) {
     elem.innerHTML = nFmt.format(spcs.count);
@@ -202,70 +66,12 @@ async function speciesStats(dataConfig, reqQuery="") {
   }
 }
 
-/*
-  this is now called for each value in global array 'qrys', but here's example query:
-  https://api.gbif.org/v1/occurrence/search?state_province=Vermont&limit=0&facet=publishingOrg&facetMincount=1&publishingOrg.facetLimit=1000
-
-  UPDATE: Publisher stats are a separate API - literature. If we have a publishingOrgKey, don't use occurrence API
-  https://api.gbif.org/v1/literature/search?contentType=literature&publishingOrganizationKey=${dataConfig.publishingOrgKey}
-*/
-function publisherOccStats(reqQuery) {
-  var xmlhttp = new XMLHttpRequest();
-  var reqHost = "https://api.gbif.org/v1";
-  var reqRoute = "/occurrence/search";
-  //var reqQuery = "?state_province=Vermont"
-  reqQuery = `?${reqQuery}`;
-  var reqFacet = "&facet=publishingOrg&facetMincount=1&publishingOrg.facetLimit=1000";
-  var reqLimit = "&limit=0";
-  var reqAll = reqHost+reqRoute+reqQuery+reqFacet+reqLimit;
-  var elem = document.getElementById("count-publishers");
-
-  document.dispatchEvent(begEvent);
-
-  xmlhttp.onreadystatechange = function() {
-      if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
-          if (xmlhttp.status == 200) {
-              const res = JSON.parse(xmlhttp.responseText);
-              const spc = res.facets[0].counts; //array of objects having count-publishers and occurrence count, like [{name:4fa7b334-ce0d-4e88-aaae-2e0c138d049e,count:6758210},{},...]
-              spc.forEach((topEle) => {
-                if (!pubs[topEle.name]) {pubs[topEle.name] = topEle.count}
-              })
-              var count = Object.keys(pubs).length;
-              console.log(`PUBLISHERS => This:`, spc.length, 'Agg:', count, 'Query:', reqAll);
-              if (elem) {
-                elem.innerHTML = nFmt.format(count); //numeral(count).format('0,0');
-              } else {
-                console.log('HTML element id="count-publishers" NOT found.')
-              }
-          } else {
-              console.log(`An http ${xmlhttp.status} result was returned from ${reqHost}.`);
-              if (elem) {
-                elem.style="font-size:8pt";
-                elem.innerHTML = `(http ${xmlhttp.status} from ${reqHost+reqRoute+reqQuery+reqFacet+reqLimit})`;
-              } else {
-                console.log('HTML element id="count-publishers" NOT found.')
-              }
-          }
-          document.dispatchEvent(endEvent);
-      }
-  };
-
-  console.log('AJAX GET request:', reqHost+reqRoute+reqQuery+reqFacet+reqLimit);
-
-  xmlhttp.open("GET", reqHost+reqRoute+reqQuery+reqFacet+reqLimit, true);
-  xmlhttp.timeout = xhrTimeout; // Set timeout to 10 seconds
-  xmlhttp.ontimeout = function () { console.log(`AJAX GET request ${reqHost+reqRoute+reqQuery+reqFacet+reqLimit} timed out. (${xhrTimeout/1000} seconds).`); }
-  xmlhttp.async = true;
-  xmlhttp.send();
-}
-
-export async function publisherStats(publOrgKey=false) {
+export async function publisherStats(dataConfig) {
 
   var elem = document.getElementById("count-citations"); //To-Do: which is it?
-  //elem = document.getElementById("count-publishers"); //To-Do: which is it?
 
-  if (!publOrgKey) {publOrgKey = dataConfig.publishingOrgKey;}
-
+  let publOrgKey = dataConfig.publishingOrgKey;
+  
   let reqHost = dataConfig.gbifApi;
   let reqRoute = "/literature/search";
   let reqQuery = `?contentType=literature`;
@@ -290,16 +96,6 @@ export async function publisherStats(publOrgKey=false) {
     err.query = enc;
     console.log(`publisherStats(${publOrgKey}) ERROR:`, err);
     throw new Error(err)
-  }
-}
-
-function otherStats() {
-  var elemSpAccounts = document.getElementById("count-species_accounts");
-  var spAcCount = 0;
-  if(elemSpAccounts) {
-    //elemSpAccounts.innerHTML = nFmt.format(spAcCount); //numeral(spAcCount).format('0,0');
-    elemSpAccounts.innerHTML = "(coming soon)";
-    elemSpAccounts.style="font-size:8pt";
   }
 }
 
@@ -405,7 +201,7 @@ function changeStyle(selectorText='page-template-page-species-explorer-2022', pr
 }
 /*
   There are 2 sets of html elements to manipulate on the home page, 
-  counts and links. We set the counts' values and the links' hrefs.
+  counts and links. Here we set the links' hrefs.
 */
 function setContext(dataConfig) {
   //Attempt to change background image for atlas
@@ -418,11 +214,6 @@ function setContext(dataConfig) {
     changeStyle('.page-template-page-species-explorer-2022 .hero', 'background-image', dataConfig.backgroundImageUrl.default);
   }
   let homeTitle = document.getElementById("home-title")
-  let countOccs = document.getElementById("count-occurrences");
-  let countDset = document.getElementById("count-datasets");
-  let countSpcs = document.getElementById("count-species");
-  let countCite = document.getElementById("count-citations");
-  let countPubl = document.getElementById("count-publishers");
   let linkOccs = document.getElementById("stats-records");
   let linkDset = document.getElementById("stats-datasets");
   let linkSpcs = document.getElementById("stats-species");
@@ -450,19 +241,19 @@ function setContext(dataConfig) {
 
 function startUp(fileConfig) {
   let dataConfig = fileConfig.dataConfig;
-  let qrys = fileConfig.predicateToQueries(dataConfig.rootPredicate); //['?state_province=Vermont&hasCoordinate=false', '?gadmGid=USA.46_1'];
-  console.log('gbif_data_stats.js | rootPredicate converted to http query parameters:');
-  console.dir(qrys);
   setContext(dataConfig);
-  qrys.forEach(qry => {
-    console.log('gbif_data_stats.js NOW QUERYING:', qry);
-    if (!dataConfig.speciesFilter) speciesOccStats(qry); //backup query of all unique scientificNames from occurrences
-    occStats(qry);
-    datasetStats(qry);
-    if (!dataConfig.publishingOrKey) publisherOccStats(qry); //backup query of 
-  })
-  if (dataConfig.speciesFilter) {speciesStats(dataConfig);}
-  //if (dataConfig.publishingOrgKey) {publisherStats(dataConfig.publishingOrgKey);} //this is done manually new in WordPress
-  otherStats(); //attempt to do this within WP user access so it can be easily edited
+  occStats(fileConfig);
+  if (dataConfig.speciesFilter) {
+    speciesStats(dataConfig); //species-counts based on config file speciesFilter
+  } else {
+    occSpeciesStats(fileConfig); //backup query of all unique scientificNames from occurrences
+  }
+  occDatasetStats(fileConfig); //only way to get dataset stats is from occs
+  if (dataConfig.publishingOrgKey) {
+    publisherStats(dataConfig);
+  } else {
+    //occPublisherStats(fileConfig); //this would appear to be a count of publishers for the occurrence data-scope
+    document.getElementById("count-citations").innerHTML = '0'
+  }
   addListeners(dataConfig);
 }

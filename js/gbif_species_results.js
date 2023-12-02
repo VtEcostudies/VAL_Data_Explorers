@@ -1,6 +1,6 @@
 import { siteConfig } from './gbifSiteConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_config.js"></script>
 import { speciesSearch } from './gbif_species_search.js'; //NOTE: importing just a function includes the entire module
-import { getStoredOccCnts, sumSubTaxonOccs, getImgCount } from './gbif_item_counts.js';
+import { getStoredOccCnts, getAggOccCounts } from '../VAL_Web_Utilities/js/gbifOccFacetCounts.js';
 import { getWikiPage } from '../VAL_Web_Utilities/js/wikiPageData.js';
 import { tableSortSimple } from '../VAL_Web_Utilities/js/tableSortSimple.js';
 import { tableSortTrivial } from '../VAL_Web_Utilities/js/tableSortTrivial.js';
@@ -9,10 +9,9 @@ import { gbifCountsByDateByTaxonKey } from '../VAL_Species_Page/js/gbifCountsByD
 import { getGbifTaxonObjFromName, getGbifTaxonObjFromKey, getParentRank, getNextChildRank } from '../VAL_Web_Utilities/js/commonUtilities.js';
 import { getInatSpecies } from '../VAL_Web_Utilities/js/inatSpeciesData.js';
 
-//const gbifApi = "https://api.gbif.org/v1";
+const gbifApi = "https://api.gbif.org/v1";
 var siteName = siteConfig.siteName;
 var dataConfig;
-var gbifApi;
 var speciesDatasetKey;
 var exploreUrl;
 var resultsUrl;
@@ -20,7 +19,6 @@ var profileUrl;
 var columns;
 var columNames;
 var gOccCnts = [];
-var gImgCnts = [];
 var downloadOccurrenceCounts = 0;
 var fileConfig = false; //this global pointer used ONLY for getDownloadData
 
@@ -316,10 +314,11 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
       case 'images':
         colObj.innerHTML = `<i class="fa fa-spinner fa-spin" style="font-size:18px"></i>`;
         try {
-          let img = await getImgCount(dataConfig, key);
-          gImgCnts = img;
+          let imgs = getAggOccCounts(fileConfig, `taxonKey=${key}`, 'mediaType')
           gbif.then(gbif => {
-            colObj.innerHTML = `<a href="${exploreUrl}?${gbif.search}&view=GALLERY">${nFmt.format(img.count)}</a>`;
+            imgs.then(imgs => {
+              colObj.innerHTML = `<a href="${exploreUrl}?${gbif.search}&view=GALLERY">${nFmt.format(imgs.objOcc.StillImage)}</a>`;
+            })
           })
         } catch (err) {colObj.innerHTML = ''; console.log(`ERROR in getImageCount:`, err);}
         break;
@@ -629,7 +628,6 @@ function jsonToCsv(json) {
 async function startUp(fileConfig) {
 
   dataConfig = fileConfig.dataConfig;
-  gbifApi = dataConfig.gbifApi;
   speciesDatasetKey = dataConfig.speciesDatasetKey;
   exploreUrl = dataConfig.exploreUrl;
   resultsUrl = dataConfig.resultsUrl;
