@@ -6,7 +6,7 @@ import { tableSortSimple } from '../VAL_Web_Utilities/js/tableSortSimple.js';
 import { tableSortTrivial } from '../VAL_Web_Utilities/js/tableSortTrivial.js';
 import { tableSortHeavy } from '../VAL_Web_Utilities/js/tableSortHeavy.js';
 import { gbifCountsByDateByTaxonKey } from '../VAL_Species_Page/js/gbifCountsByDate.js';
-import { getGbifTaxonObjFromName, getGbifTaxonObjFromKey, getParentRank, getNextChildRank } from '../VAL_Web_Utilities/js/commonUtilities.js';
+import { getGbifTaxonFromName, getGbifTaxonFromKey, getGbifVernacularsFromKey, getParentRank, getNextChildRank, parseNameToRank } from '../VAL_Web_Utilities/js/fetchGbifSpecies.js';
 import { getInatSpecies } from '../VAL_Web_Utilities/js/inatSpeciesData.js';
 
 const gbifApi = "https://api.gbif.org/v1";
@@ -137,9 +137,9 @@ async function addTaxaByKeys(fCfg, tArr) {
   //tArr.forEach(async (key, rowIdx) => {
   for (const key of tArr) {
     let objRow = eleTbl.insertRow(-1);//add row to end
-    let objSpc = await getTaxon(key); //get taxon object from GBIF 1st
+    //let objSpc = await getTaxon(key); //get taxon object - THIS IS REDUNDANT
     //let rowProm = fillRow(fCfg, objSpc, objRow, rowIdx);
-    let rowProm = fillRow(fCfg, objSpc, objRow);
+    let rowProm = fillRow(fCfg, {'key':key}, objRow);
     gOccCnts.push(rowProm);
   }//)
   //await sleep(100); //addByKeys is too fast
@@ -159,16 +159,20 @@ async function addTaxaFromArr(fCfg, sArr) {
 // Fill a row of cells for a taxon object retrieved from species search, or other. At minimum, objSpc
 // must be {taxonKey: key}
 async function fillRow(fCfg, objSpc, objRow, rowIdx) {
-  var key = objSpc.nubKey ? objSpc.nubKey : objSpc.key;
-  var res = objSpc;
-  let txn = await getGbifTaxonObjFromKey(objSpc.key); //get taxonObj for species-list key to obtain its view of taxonomy
+  let key = objSpc.nubKey ? objSpc.nubKey : objSpc.key;
+  let taxn = await getGbifTaxonFromKey(objSpc.key); //get taxonObj for species-list key to obtain its view of taxonomy
+  let res = {}; let vern = [];
+  if (objSpc.nubKey) {res = objSpc; vern = Promise.resolve(objSpc.vernacularNames);}
+  else {res = taxn; vern = getGbifVernacularsFromKey(objSpc.key); vern.catch(err => {});}
   let name = res.canonicalName ? res.canonicalName : res.scientificName;
-  let inat; try {inat = await getInatSpecies(name, res.rank, res.parent, getParentRank(res.rank));} catch(err) {inat={};}
-  console.log(`gbif_species_results=>getInatSpecies(${name}, ${res.rank}, ${res.parent}, ${getParentRank(res.rank)})`, inat)
-  let wiki = await getWikiPage(name);
+  //let inat; try {inat = await getInatSpecies(name, res.rank, res.parent, getParentRank(res.rank));} catch(err) {inat={};}
+  //console.log(`gbif_species_results=>getInatSpecies(${name}, ${res.rank}, ${res.parent}, ${getParentRank(res.rank)})`, inat)
+  if (typeof(res.rank) == 'undefined') {res.rank = parseNameToRank(name);}
+  let inat = getInatSpecies(name, res.rank, res.parent, getParentRank(res.rank)); inat.catch(err=> {console.log('getInatSpecies ERROR', err)});
+  let wiki = getWikiPage(name); wiki.catch(err => {console.log('getWikiPage ERROR', err)}); //await getWikiPage(name);
   //getStoredOccCnts(fCfg, `taxonKey=${res.nubKey}`)
-  let gbif = gbifCountsByDateByTaxonKey(res.key, fCfg);
-  gOccCnts.push(gbif); //new promise with each row. a dubious construct.
+  let occs = gbifCountsByDateByTaxonKey(res.key, fCfg); occs.catch(err => {});
+  gOccCnts.push(occs); //Append a new promise with each row. A dubious construct, except that it works.
   //console.log('gbif_species_results::fillRow','canonicalName:', objSpc.canonicalName, 'key:', objSpc.key, 'nubKey:', objSpc.nubKey, 'combinedKey:', key);
   columns.forEach(async (colNam, colIdx) => {
     let colObj = objRow.insertCell(colIdx);
@@ -195,9 +199,9 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
         break;
       case 'vernacularNames':
         let vnObj = {};
-        if (txn.vernacularName) { //taxon by key from /species/{key}?datasetKey=species-list-key
-          txn.vernacularName = txn.vernacularName.replace(`'S`,`'s`);
-          vnObj[txn.vernacularName] = txn.key;
+        if (taxn.vernacularName) { //taxon by key species/{key}
+          taxn.vernacularName = taxn.vernacularName.replace(`'S`,`'s`);
+          vnObj[taxn.vernacularName] = taxn.key;
         } 
         if (res.vernacularName) { //taxon by key from species/search
           res.vernacularName = res.vernacularName.replace(`'S`,`'s`);
@@ -209,12 +213,17 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
             vnObj[ele.vernacularName] = res.key;
           })
         }
-        if (inat.preferred_common_name) {vnObj[inat.preferred_common_name] = res.key;}
-        Object.keys(vnObj).forEach((key, idx) => {
-          if (key) {
-            colObj.innerHTML += `<a title="Species Explorer: ${key}" href="${resultsUrl}?q=${key}">${key}</a>`;
-            if (idx < Object.keys(vnObj).length-1) {colObj.innerHTML += ', ';}
-          }
+        vern.then(vern => {
+          vern.forEach((ele, idx) => {vnObj[ele.vernacularName.replace(`'S`,`'s`)] = ele.taxonKey})
+          inat.then(inat => {
+            if (inat.preferred_common_name) {vnObj[inat.preferred_common_name] = res.key;}
+            Object.keys(vnObj).forEach((key, idx) => {
+              if (key) {
+                colObj.innerHTML += `<a title="Species Explorer: ${key}" href="${resultsUrl}?q=${key}">${key}</a>`;
+                if (idx < Object.keys(vnObj).length-1) {colObj.innerHTML += ', ';}
+              }
+            })
+          }).catch(err=> {console.log('getInatSpecies ERROR', err)});
         })
         break;
       case 'scientificName': case 'vernacularName':
@@ -239,8 +248,8 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
         let tree = res[colNam]; //object of upper taxa like {123456:Name,234567:Name,...}
         if (!tree) break;
         Object.keys(tree).forEach((key, idx) => {
-          colObj.innerHTML += `<a title="Species Explorer: ${tree[key]}" href="${resultsUrl}?q=${tree[key]}">${tree[key]}</a>`; //load self with just parent taxon
-          //colObj.innerHTML += `<a title="Wikipedia: ${tree[key]}" href="https://en.wikipedia.org/wiki/${tree[key]}">${tree[key]}</a>`; //wikipedia: parent taxon
+          //colObj.innerHTML += `<a title="Species Explorer: ${tree[key]}" href="${resultsUrl}?q=${tree[key]}">${tree[key]}</a>`; //load self with just parent taxon
+          colObj.innerHTML += `<a title="Species Explorer: ${tree[key]}(${key})" href="${resultsUrl}?taxonKey=${key}">${tree[key]}</a>`; //load self with just parent taxon
           if (idx < Object.keys(tree).length-1) {colObj.innerHTML += ', ';}
         })
         break;
@@ -256,10 +265,10 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
         break;
       case 'occurrences':
         colObj.innerHTML = `<i class="fa fa-spinner fa-spin" style="font-size:18px"></i>`;
-        gbif.then(gbif => {
+        occs.then(occs => {
           let title = `Occurrence Explorer: ${name}`;
-          if (gbif.names) {title += `, ${gbif.names.join(", ")}`};
-          colObj.innerHTML = `<a title="${title}" href="${exploreUrl}?${gbif.search}&view=MAP">${nFmt.format(gbif.total)}</a>`;
+          if (occs.names) {title += `, ${occs.names.join(", ")}`};
+          colObj.innerHTML = `<a title="${title}" href="${exploreUrl}?${occs.search}&view=MAP">${nFmt.format(occs.total)}</a>`;
         })
 /*
         //gOccCnts.then(occs => {
@@ -283,41 +292,47 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
         break;
       case 'iconImage':
         let imgInfo = false;
-        if (wiki.thumbnail) {
-          imgInfo = {
-            iconSrc: wiki.thumbnail.source,
-            overSrc: wiki.originalimage.source,
-            attrib: ''
-          }
-        } else if (inat.default_photo) {
-          imgInfo = {
-            iconSrc: inat.default_photo.medium_url,
-            overSrc: inat.default_photo.medium_url,
-            attrib: inat.default_photo.attribution
-          }
-        }
-        if (imgInfo) {
-          let iconImg = document.createElement("img");
-          iconImg.src = imgInfo.iconSrc;
-          iconImg.alt = `${name} ${imgInfo.attrib}`;
-          iconImg.className = "icon-image";
-          iconImg.width = "30"; 
-          iconImg.height = "30";
-          iconImg.onclick = function() {
-            modalDiv.style.display = "block"; 
-            modalImg.src = imgInfo.overSrc; 
-            modalImg.alt = imgInfo.attrib; 
-            modalCap.innerHTML = this.alt;}
-          colObj.appendChild(iconImg);
-        }
+        wiki.then(wiki => {
+          inat.then(inat => {
+            if (wiki.thumbnail) {
+              imgInfo = {
+                iconSrc: wiki.thumbnail.source,
+                overSrc: wiki.originalimage.source,
+                attrib: ''
+              }
+            } else if (inat.default_photo) {
+              imgInfo = {
+                iconSrc: inat.default_photo.medium_url,
+                overSrc: inat.default_photo.medium_url,
+                attrib: inat.default_photo.attribution
+              }
+            }
+            if (imgInfo) {
+              let iconImg = document.createElement("img");
+              iconImg.src = imgInfo.iconSrc;
+              iconImg.alt = `${name} ${imgInfo.attrib}`;
+              iconImg.className = "icon-image";
+              iconImg.width = "30"; 
+              iconImg.height = "30";
+              iconImg.onclick = function() {
+                modalDiv.style.display = "block"; 
+                modalImg.src = imgInfo.overSrc; 
+                modalImg.alt = imgInfo.attrib; 
+                modalCap.innerHTML = this.alt;}
+              colObj.appendChild(iconImg);
+            }
+          }).catch(err=> {console.log('getInatSpecies ERROR', err)});
+        })
         break;
       case 'images':
         colObj.innerHTML = `<i class="fa fa-spinner fa-spin" style="font-size:18px"></i>`;
         try {
-          let imgs = getAggOccCounts(fileConfig, `taxonKey=${key}`, 'mediaType')
-          gbif.then(gbif => {
+          let imgs = getAggOccCounts(fileConfig, `taxonKey=${key}`, 'mediaType');
+          gOccCnts.push(imgs);//This keeps column-sort waiting until all the stats are loaded
+          occs.then(occs => {
             imgs.then(imgs => {
-              colObj.innerHTML = `<a href="${exploreUrl}?${gbif.search}&view=GALLERY">${nFmt.format(imgs.objOcc.StillImage)}</a>`;
+              let iCnt = imgs.objOcc.StillImage ? imgs.objOcc.StillImage : 0;
+              colObj.innerHTML = `<a href="${exploreUrl}?${occs.search}&view=GALLERY">${nFmt.format(iCnt)}</a>`;
             })
           })
         } catch (err) {colObj.innerHTML = ''; console.log(`ERROR in getImageCount:`, err);}
@@ -574,8 +589,8 @@ async function getAllDataPages(fCfg, q=qParm, lim=limit, qf=qField, oth=other) {
         console.log(`Unable to retrieve occurrence counts.`);
       })
       */
-      let gbif = await gbifCountsByDateByTaxonKey(key, fCfg);//This call must be synchronous. And so we await.
-      oSpc[`${dataConfig.atlasAbbrev}-Occurrences`] = gbif.total;
+      let occs = await gbifCountsByDateByTaxonKey(key, fCfg);//This call must be synchronous. And so we await.
+      oSpc[`${dataConfig.atlasAbbrev}-Occurrences`] = occs.total;
      }
     eleDwn.style.display = 'none'; eleOvr.style.display = 'none';
   }
@@ -657,11 +672,8 @@ async function startUp(fileConfig) {
     } else { //important: include q="" to show ALL species result
       if (!qParm) {qParm = "";}
       if ("" === qParm && !other) {
-        if ('vtb' == siteName || 'ebu' == siteName || 'ebw' == siteName) {
-          other='&rank=FAMILY'; objOther={'rank':'FAMILY'}; eleRnk.value='FAMILY';
-        } else {
-          other='&rank=KINGDOM'; objOther={'rank':'KINGDOM'}; eleRnk.value='KINGDOM';
-        }
+        let rootRank = dataConfig.rootRank;
+        other=`&rank=${rootRank}`; objOther={'rank':rootRank}; eleRnk.value=rootRank;
       }
       try {
         addTableWait();
