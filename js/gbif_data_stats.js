@@ -1,10 +1,16 @@
-import { siteConfig } from './gbifSiteConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_config.js"></script>
+import { siteConfig, siteNames } from './gbifSiteConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_config.js"></script>
 import { speciesSearch } from './gbif_species_search.js';
 import { getAggOccCounts } from '../VAL_Web_Utilities/js/gbifOccFacetCounts.js';
+import { getStoredData, setStoredData } from '../VAL_Web_Utilities/js/storedData.js';
 
-import(`../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteConfig.siteName}`)
+let siteName = siteConfig.siteName;
+let storSite = await getStoredData('siteName', '', '');
+if (storSite) {siteName = storSite;}
+let homeUrl;
+
+import(`../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`)
   .then(fileConfig => {
-    console.log('gbif_data_stats | siteName:', siteConfig.siteName, 'dataConfig:', fileConfig.dataConfig);
+    console.log('gbif_data_stats | siteName:', siteName, 'dataConfig:', fileConfig.dataConfig);
     startUp(fileConfig);
   })
 
@@ -129,53 +135,72 @@ window.onload = function() {
 // Add listeners to handle clicks on stats items
 function addListeners(dataConfig) {
 
-      /* Respond to mouse click on Occurrence Stats button */
-      if (document.getElementById("stats-records")) {
-          document.getElementById("stats-records").addEventListener("mouseup", function(e) {
-            window.location.assign(`${dataConfig.explorerUrl}?view=MAP`);
-          });
-      }
+  let eleSit = document.getElementById("siteSelect")
 
-      /* Respond to mouse click on Species Stats button */
-      if (document.getElementById("stats-species")) {
-          //document.getElementById("stats-species").href = `${dataConfig.resultsUrl}?rank=SPECIES&status=ACCEPTED`;
-          document.getElementById("stats-species").addEventListener("mouseup", function(e) {
-              window.location.assign(`${dataConfig.resultsUrl}`);
-          });
-      }
+  if (eleSit) {
+    siteNames.forEach(site => {
+      eleSit.innerHTML += `<option value=${site} ${siteName==site ? "selected=" : ""} id="option-${site}">${site}</option>`;
+    })
+    eleSit.onchange = (ev) => {
+      let val = eleSit.options[eleSit.selectedIndex].value;
+      let txt = eleSit.options[eleSit.selectedIndex].text;
+      console.log('value', val, 'text', txt, 'index', eleSit.selectedIndex);
+      setSite(val);
+    }
+  }
+  function setSite(site) {
+    console.log('setSite', site);
+    setStoredData('siteName', '', '', site);
+    window.location.href = `${homeUrl}`;
+  }
 
-      /* Respond to mouse click on Datasets Stats button */
-      if (document.getElementById("stats-datasets")) {
-          document.getElementById("stats-datasets").addEventListener("mouseup", function(e) {
-            window.location.assign(`${dataConfig.explorerUrl}?view=DATASETS`);
-          });
-      }
+  /* Respond to mouse click on Occurrence Stats button */
+  if (document.getElementById("stats-records")) {
+      document.getElementById("stats-records").addEventListener("mouseup", function(e) {
+        window.location.assign(`${dataConfig.explorerUrl}?view=MAP`);
+      });
+  }
 
-      /* Respond to mouse click on Citations Stats button */
-      if (document.getElementById("stats-citations")) {
-          document.getElementById("stats-citations").addEventListener("mouseup", function(e) {
-            /*
-            window.open(
-              `https://www.gbif.org/resource/search?contentType=literature&publishingOrganizationKey=${dataConfig.publishingOrgKey}`
-              , "_blank"
-              );
-            */
-            });
-      }
+  /* Respond to mouse click on Species Stats button */
+  if (document.getElementById("stats-species")) {
+      //document.getElementById("stats-species").href = `${dataConfig.resultsUrl}?rank=SPECIES&status=ACCEPTED`;
+      document.getElementById("stats-species").addEventListener("mouseup", function(e) {
+          window.location.assign(`${dataConfig.resultsUrl}`);
+      });
+  }
 
-      /* Respond to mouse click on Publisher Stats button */
-      if (document.getElementById("stats-publishers")) {
-        document.getElementById("stats-publishers").addEventListener("mouseup", function(e) {
-          window.location.assign(`${dataConfig.publishUrl}`);
+  /* Respond to mouse click on Datasets Stats button */
+  if (document.getElementById("stats-datasets")) {
+      document.getElementById("stats-datasets").addEventListener("mouseup", function(e) {
+        window.location.assign(`${dataConfig.explorerUrl}?view=DATASETS`);
+      });
+  }
+
+  /* Respond to mouse click on Citations Stats button */
+  if (document.getElementById("stats-citations")) {
+      document.getElementById("stats-citations").addEventListener("mouseup", function(e) {
+        /*
+        window.open(
+          `https://www.gbif.org/resource/search?contentType=literature&publishingOrganizationKey=${dataConfig.publishingOrgKey}`
+          , "_blank"
+          );
+        */
         });
-      }
+  }
 
-      /* Respond to mouse click on Species Accounts Stats button */
-      if (document.getElementById("stats-sp-accounts")) {
-          document.getElementById("stats-sp-accounts").addEventListener("mouseup", function(e) {
-              console.log('stats-sp-accounts got mouseup', e);
-          });
-      }
+  /* Respond to mouse click on Publisher Stats button */
+  if (document.getElementById("stats-publishers")) {
+    document.getElementById("stats-publishers").addEventListener("mouseup", function(e) {
+      window.location.assign(`${dataConfig.publishUrl}`);
+    });
+  }
+
+  /* Respond to mouse click on Species Accounts Stats button */
+  if (document.getElementById("stats-sp-accounts")) {
+      document.getElementById("stats-sp-accounts").addEventListener("mouseup", function(e) {
+          console.log('stats-sp-accounts got mouseup', e);
+      });
+  }
 }
 
 function changeStyle(selectorText='page-template-page-species-explorer-2022', property='background-image', value='url(../images/vermont-panorama-large.jpg)')
@@ -221,7 +246,7 @@ function setContext(dataConfig) {
   let linkPubl = document.getElementById("stats-publishers");
   if (homeTitle) {
     homeTitle.innerText = dataConfig.atlasName;
-  }
+}
   if (linkOccs) {
     linkOccs.href = dataConfig.exploreUrl + '?view=MAP';
   }
@@ -241,6 +266,8 @@ function setContext(dataConfig) {
 
 function startUp(fileConfig) {
   let dataConfig = fileConfig.dataConfig;
+  homeUrl = fileConfig.dataConfig.homeUrl;
+
   setContext(dataConfig);
   occStats(fileConfig);
   if (dataConfig.speciesFilter) {

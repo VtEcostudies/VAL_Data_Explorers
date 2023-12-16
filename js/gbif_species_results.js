@@ -1,4 +1,4 @@
-import { siteConfig } from './gbifSiteConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_config.js"></script>
+import { siteConfig, siteNames } from './gbifSiteConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_config.js"></script>
 import { speciesSearch } from './gbif_species_search.js'; //NOTE: importing just a function includes the entire module
 import { getStoredOccCnts, getAggOccCounts } from '../VAL_Web_Utilities/js/gbifOccFacetCounts.js';
 import { getWikiPage } from '../VAL_Web_Utilities/js/wikiPageData.js';
@@ -8,11 +8,14 @@ import { tableSortHeavy } from '../VAL_Web_Utilities/js/tableSortHeavy.js';
 import { gbifCountsByDateByTaxonKey } from '../VAL_Species_Page/js/gbifCountsByDate.js';
 import { getGbifTaxonFromName, getGbifTaxonFromKey, getGbifVernacularsFromKey, getParentRank, getNextChildRank, parseNameToRank } from '../VAL_Web_Utilities/js/fetchGbifSpecies.js';
 import { getInatSpecies } from '../VAL_Web_Utilities/js/inatSpeciesData.js';
+import { getStoredData, setStoredData } from '../VAL_Web_Utilities/js/storedData.js';
 
 const gbifApi = "https://api.gbif.org/v1";
 var siteName = siteConfig.siteName;
-var dataConfig;
-var speciesDatasetKey;
+let storSite = await getStoredData('siteName', '', '');
+if (storSite) {siteName = storSite;}
+//var dataConfig;
+//var speciesDatasetKey;
 var exploreUrl;
 var resultsUrl;
 var profileUrl;
@@ -20,14 +23,7 @@ var columns;
 var columNames;
 var gOccCnts = [];
 var downloadOccurrenceCounts = 0;
-var fileConfig = false; //this global pointer used ONLY for getDownloadData
-
-import(`../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`)
-  .then(fCfg => {
-    fileConfig = fCfg; //set global value
-    console.log('gbif_species_results | siteName:', siteName, 'dataConfig:', fCfg.dataConfig);
-    startUp(fCfg);
-  })
+//var fileConfig = false; //this global pointer used ONLY for getDownloadData
 
 var columnIds = {};
 const nFmt = new Intl.NumberFormat(); //use this to format numbers by locale... automagically
@@ -57,7 +53,16 @@ objUrlParams.forEach((val, key) => {
   }
 });
 
+//get atlas configuration and startup
+import(`../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`)
+  .then(fCfg => {
+    //fileConfig = fCfg; //set global value
+    console.log('gbif_species_results | siteName:', siteName, 'dataConfig:', fCfg.dataConfig);
+    startUp(fCfg);
+  })
+
 const eleTtl = document.getElementById("species-title"); //the h tag within the title
+const eleSit = document.getElementById('siteSelect');
 const eleHlp = document.getElementById("flag-issue"); //id='flag-issue' element for HelpDesk support
 const eleTxt = document.getElementById("results_search"); if (eleTxt) {eleTxt.value = qParm;}
 const elePag = document.getElementsByName("page-number"); elePag.forEach(ele => {ele.innerText = `Page ${nFmt.format(page)}`;})
@@ -163,14 +168,14 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
   let taxn = await getGbifTaxonFromKey(objSpc.key); //get taxonObj for species-list key to obtain its view of taxonomy
   let res = {}; let vern = [];
   if (objSpc.nubKey) {res = objSpc; vern = Promise.resolve(objSpc.vernacularNames);}
-  else {res = taxn; vern = getGbifVernacularsFromKey(objSpc.key); vern.catch(err => {});}
+  else {res = taxn; vern = getGbifVernacularsFromKey(objSpc.key); vern.catch(err => {console.log('getGbifVernacularsFromKey ERROR', err)});}
   let name = res.canonicalName ? res.canonicalName : res.scientificName;
   //let inat; try {inat = await getInatSpecies(name, res.rank, res.parent, getParentRank(res.rank));} catch(err) {inat={};}
   //console.log(`gbif_species_results=>getInatSpecies(${name}, ${res.rank}, ${res.parent}, ${getParentRank(res.rank)})`, inat)
   if (typeof(res.rank) == 'undefined') {res.rank = parseNameToRank(name);}
   let inat = getInatSpecies(name, res.rank, res.parent, getParentRank(res.rank)); inat.catch(err=> {console.log('getInatSpecies ERROR', err)});
   let wiki = getWikiPage(name); wiki.catch(err => {console.log('getWikiPage ERROR', err)}); //await getWikiPage(name);
-  //getStoredOccCnts(fCfg, `taxonKey=${res.nubKey}`)
+  //To-do: try getStoredOccCnts or gbifAggOcccounts for simpler query with lower overhead
   let occs = gbifCountsByDateByTaxonKey(res.key, fCfg); occs.catch(err => {});
   gOccCnts.push(occs); //Append a new promise with each row. A dubious construct, except that it works.
   //console.log('gbif_species_results::fillRow','canonicalName:', objSpc.canonicalName, 'key:', objSpc.key, 'nubKey:', objSpc.nubKey, 'combinedKey:', key);
@@ -201,25 +206,26 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
         let vnObj = {};
         if (taxn.vernacularName) { //taxon by key species/{key}
           taxn.vernacularName = taxn.vernacularName.replace(`'S`,`'s`);
-          vnObj[taxn.vernacularName] = taxn.key;
+          vnObj[taxn.vernacularName] = 'GBIF species/key vernacularName';
         } 
         if (res.vernacularName) { //taxon by key from species/search
           res.vernacularName = res.vernacularName.replace(`'S`,`'s`);
-          vnObj[res.vernacularName] = res.key;
+          vnObj[res.vernacularName] = 'GBIF species/search vernacularName';
         }
         if (res.vernacularNames) {
           res.vernacularNames.forEach((ele, idx) => {
             ele.vernacularName = ele.vernacularName.replace(`'S`,`'s`);
-            vnObj[ele.vernacularName] = res.key;
+            vnObj[ele.vernacularName] = 'GBIF species/search/vernacularNames';
           })
         }
         vern.then(vern => {
-          vern.forEach((ele, idx) => {vnObj[ele.vernacularName.replace(`'S`,`'s`)] = ele.taxonKey})
+          vern.forEach((ele, idx) => {vnObj[ele.vernacularName.replace(`'S`,`'s`)] = 'GBIF species/key/vernacularNames'})
           inat.then(inat => {
-            if (inat.preferred_common_name) {vnObj[inat.preferred_common_name] = res.key;}
+            if (inat.preferred_common_name) {vnObj[inat.preferred_common_name] = 'iNat species/key preferred_common_name';}
             Object.keys(vnObj).forEach((key, idx) => {
               if (key) {
-                colObj.innerHTML += `<a title="Species Explorer: ${key}" href="${resultsUrl}?q=${key}">${key}</a>`;
+                //colObj.innerHTML += `<a title="Species Explorer: ${key}" href="${resultsUrl}?q=${key}">${key}</a>`;
+                colObj.innerHTML += `<a title="${vnObj[key]}" href="${resultsUrl}?q=${key}">${key}</a>`;
                 if (idx < Object.keys(vnObj).length-1) {colObj.innerHTML += ', ';}
               }
             })
@@ -327,7 +333,7 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
       case 'images':
         colObj.innerHTML = `<i class="fa fa-spinner fa-spin" style="font-size:18px"></i>`;
         try {
-          let imgs = getAggOccCounts(fileConfig, `taxonKey=${key}`, 'mediaType');
+          let imgs = getAggOccCounts(fCfg, `taxonKey=${key}`, 'mediaType');
           gOccCnts.push(imgs);//This keeps column-sort waiting until all the stats are loaded
           occs.then(occs => {
             imgs.then(imgs => {
@@ -584,13 +590,13 @@ async function getAllDataPages(fCfg, q=qParm, lim=limit, qf=qField, oth=other) {
       let key = oSpc.nubKey ? oSpc.nubKey : oSpc.key;
       /*
       gOccCnts.then(occCnts => { //
-        oSpc[`${dataConfig.atlasAbbrev}-Occurrences`] = occCnts[key] ? occCnts[key] : 0;
+        oSpc[`${fCfg.dataConfig.atlasAbbrev}-Occurrences`] = occCnts[key] ? occCnts[key] : 0;
       }).catch(err => {
         console.log(`Unable to retrieve occurrence counts.`);
       })
       */
       let occs = await gbifCountsByDateByTaxonKey(key, fCfg);//This call must be synchronous. And so we await.
-      oSpc[`${dataConfig.atlasAbbrev}-Occurrences`] = occs.total;
+      oSpc[`${fCfg.dataConfig.atlasAbbrev}-Occurrences`] = occs.total;
      }
     eleDwn.style.display = 'none'; eleOvr.style.display = 'none';
   }
@@ -603,7 +609,7 @@ async function getDownloadData(type=0) {
   .then(async fCfg => {
     let spc = await getAllDataPages(fCfg); //returns just an array of taxa, not a decorated object
     let dsi = await getDatasetInfo(fCfg.dataConfig.speciesDatasetKey); //returns a single object
-    var name = `${dataConfig.atlasAbbrev}_taxa`; //download file name
+    var name = `${fCfg.dataConfig.atlasAbbrev}_taxa`; //download file name
     if (qParm) {name += `_${qParm}`;} //add search term to download file name
     Object.keys(objOther).forEach(key => {name += `_${objOther[key]}`;}) //add query params to download file name
     if (type) { //json-download
@@ -640,22 +646,22 @@ function jsonToCsv(json) {
   return csv;
 }
 
-async function startUp(fileConfig) {
+async function startUp(fCfg) {
 
-  dataConfig = fileConfig.dataConfig;
-  speciesDatasetKey = dataConfig.speciesDatasetKey;
-  exploreUrl = dataConfig.exploreUrl;
-  resultsUrl = dataConfig.resultsUrl;
-  profileUrl = dataConfig.profileUrl;
-  columns = dataConfig.columns;
-  columNames = dataConfig.columNames;
+  //dataConfig = fCfg.dataConfig;
+  //speciesDatasetKey = fCfg.dataConfig.speciesDatasetKey;
+  exploreUrl = fCfg.dataConfig.exploreUrl;
+  resultsUrl = fCfg.dataConfig.resultsUrl;
+  profileUrl = fCfg.dataConfig.profileUrl;
+  columns = fCfg.dataConfig.columns;
+  columNames = fCfg.dataConfig.columNames;
     
   if (eleTbl) { //results are displayed in a table with id="species-table". we need that to begin.
     if (tKeys.length) {
       try {
         addTableWait();
-        //gOccCnts = getStoredOccCnts(fileConfig);
-        await addTaxaByKeys(fileConfig, tKeys);
+        //gOccCnts = getStoredOccCnts(fCfg);
+        await addTaxaByKeys(fCfg, tKeys);
         await addHead();
         if (eleLbl) {
           eleLbl.innerHTML = "Showing results for taxon keys: ";
@@ -672,16 +678,16 @@ async function startUp(fileConfig) {
     } else { //important: include q="" to show ALL species result
       if (!qParm) {qParm = "";}
       if ("" === qParm && !other) {
-        let rootRank = dataConfig.rootRank;
+        let rootRank = fCfg.dataConfig.rootRank;
         other=`&rank=${rootRank}`; objOther={'rank':rootRank}; eleRnk.value=rootRank;
       }
       try {
         addTableWait();
-        //gOccCnts = getStoredOccCnts(fileConfig);
-        let spcs = await speciesSearch(dataConfig, qParm, offset, limit, qField, other);
+        //gOccCnts = getStoredOccCnts(fCfg);
+        let spcs = await speciesSearch(fCfg.dataConfig, qParm, offset, limit, qField, other);
         count = spcs.count;
         if (spcs.count) {
-          await addTaxaFromArr(fileConfig, spcs.results);
+          await addTaxaFromArr(fCfg, spcs.results);
         } else {putErrorOnScreen('No data found.')}
         await addHead();
         let finish = (offset+limit)>count ? count : offset+limit;
@@ -707,18 +713,36 @@ async function startUp(fileConfig) {
   }
 
   if (eleTtl) {
-    eleTtl.innerText = `${dataConfig.atlasPlace} Species Explorer`;
+    eleTtl.innerText = `${fCfg.dataConfig.atlasPlace} Species Explorer`;
   }
 
+  if (eleSit) {
+    siteNames.forEach(site => {
+      eleSit.innerHTML += `<option value=${site} ${siteName==site ? "selected=" : ""} id="option-${site}">${site}</option>`;
+    })
+    eleSit.onchange = (ev) => {
+      let val = eleSit.options[eleSit.selectedIndex].value;
+      let txt = eleSit.options[eleSit.selectedIndex].text;
+      console.log('value', val, 'text', txt, 'index', eleSit.selectedIndex);
+      setSite(val);
+    }
+  }
+  function setSite(site) {
+    console.log('setSite', site);
+    setStoredData('siteName', '', '', site);
+    window.location.href = `${resultsUrl}`;
+  }
+  
   if (eleHlp) {
-    if (dataConfig.helpDeskUrl) {
+    if (fCfg.dataConfig.helpDeskUrl) {
       eleHlp.style.display = 'inline';
-      eleHlp.href = dataConfig.helpDeskUrl;
+      eleHlp.href = fCfg.dataConfig.helpDeskUrl;
     } else {
       eleHlp.style.display = 'none';
     }
   }
-}
+} //end Startup
+
 /*
 $('#species-table').ready(() => {
   Promise.all(gOccCnts).then(() => {
