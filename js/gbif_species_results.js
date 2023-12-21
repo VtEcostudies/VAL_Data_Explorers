@@ -128,11 +128,11 @@ async function addHead() {
     //colObj.outerHTML = `<th>${columNames[hedNam]}</th>`
     colObj.innerHTML =  `<th>${columNames[hedNam]}</th>`
     let html;
-    if ("childTaxa" == hedNam) {html = `Click symbol for Species Explorer with ALL sub-taxa of taxon. Click named rank for Species Explorer with sub-taxa having only that rank.`}
+    if ("childTaxa" == hedNam) {html = `Click symbol to explore ALL sub-taxa of taxon. Click named rank to explore sub-taxa having only that rank.`}
     if ("parent" == hedNam) {html = `Click symbol for Species Explorer with ALL children of named parent taxon. Click parent taxon name for Species Explorer with just that taxon and rank.`}
     if ("canonicalName" == hedNam) {html = `Click taxon name to view its Species Profile.`}
     if ("vernacularNames" == hedNam) {html = 'Click common name for Species Explorer search of that name.'}
-    if ("occurrences" == hedNam) {html = 'Counts are for taxon and sub-taxa. Click count for Occurrence Explorer.'}
+    if ("occurrences" == hedNam) {html = 'Counts are for taxon and sub-taxa. ACCEPTED name counts include their SYNONYMS. SYNONYM counts do not include their ACCEPTED names. Click count for Occurrence Explorer.'}
     if (html) {colObj.innerHTML += `<a href="#" onmouseover="showInfo('${html}');" onmouseout="hideInfo();"><i class="fa fa-info-circle"></i></a>`;}
   });
 }

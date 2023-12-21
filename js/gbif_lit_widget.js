@@ -12,7 +12,7 @@ if (storSite) {siteName = storSite;}
 import(`../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`).then(fileConfig => {
   let dataConfig = fileConfig.dataConfig
 
-  alert( `gbif_lit_widget publishingOrKey: ${dataConfig.publishingOrgKey}`);
+  //console.log( `gbif_lit_widget publishingOrKey: ${dataConfig.publishingOrgKey}`);
 
   var widgetLocale = 'en';
 
