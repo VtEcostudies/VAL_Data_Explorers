@@ -32,7 +32,8 @@
     }
     function toggleInfo(text=false, button=true) {
       var eleTxt = document.getElementById("information-content");
-      if (!button) {document.getElementById("information-button").style.display = 'none'}
+      if (!button) {document.getElementById("information-button").style.display = 'none';}
+      else {document.getElementById("information-button").style.display = 'block';}
       if (eleTxt) {
         if (!info_on || `${text}` != `${eleTxt.innerText}`) {showInfo(text);} else {hideInfo();}
       } else {console.log(`No element with id 'information-content'`); }
@@ -51,7 +52,7 @@
 
       <div class="hero-header-info-icon">
   		  <h2 id="species-title" style="display: inline-block;">Species Explorer</h2>
-        <a id="species-info" href="#" onclick="toggleInfo('The Species Explorer does a full text search of the Atlas Species Checklist on GBIF. Text is searched against Scientific Name, Common Name, and Species Description.');"
+        <a id="species-info" href="#" onclick="toggleInfo('The Species Explorer does a full text search of the Atlas Species Checklist on GBIF. Text is searched against Scientific Name, Common Name, and Species Description.', true);"
           style="display: inline-block; vertical-align: top;">
           <i class="fa fa-info-circle"></i>
         </a>;

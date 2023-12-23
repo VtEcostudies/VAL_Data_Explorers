@@ -1,14 +1,14 @@
 import { siteConfig, siteNames } from './gbifSiteConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_config.js"></script>
 import { speciesSearch } from './gbif_species_search.js';
-import { getAggOccCounts } from '../VAL_Web_Utilities/js/gbifOccFacetCounts.js';
-import { getStoredData, setStoredData } from '../VAL_Web_Utilities/js/storedData.js';
+import { getAggOccCounts } from '../../VAL_Web_Utilities/js/gbifOccFacetCounts.js';
+import { getStoredData, setStoredData } from '../../VAL_Web_Utilities/js/storedData.js';
 
 let siteName = siteConfig.siteName;
 let storSite = await getStoredData('siteName', '', '');
 if (storSite) {siteName = storSite;}
 let homeUrl;
 
-import(`../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`)
+import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`)
   .then(fileConfig => {
     console.log('gbif_data_stats | siteName:', siteName, 'dataConfig:', fileConfig.dataConfig);
     startUp(fileConfig);
@@ -236,7 +236,8 @@ function setContext(dataConfig) {
     console.log('background element', eleBody);
     //eleBody.style.backgroundImage=`url(${dataConfig.backgroundImageUrl.default})`;
     //eleBody.classList.remove('page-template-page-species-explorer-2022')
-    changeStyle('.page-template-page-species-explorer-2022 .hero', 'background-image', dataConfig.backgroundImageUrl.default);
+    //NOTE: changeStyle causes cross-origin stylesheet error in Wordpress
+    //changeStyle('.page-template-page-species-explorer-2022 .hero', 'background-image', dataConfig.backgroundImageUrl.default);
   }
   let homeTitle = document.getElementById("home-title")
   let linkOccs = document.getElementById("stats-records");

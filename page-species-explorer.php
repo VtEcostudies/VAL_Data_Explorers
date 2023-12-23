@@ -7,22 +7,24 @@
 <?php get_header(); the_post(); ?>
 
 <script language="Javascript">
-	var info_on = false;
-	function showInfo(text=false) {
-		document.getElementById("information-overlay").style.display = 'flex';
-		if (text) {document.getElementById("information-content").innerText = text;}
-		info_on = true;
-	}
-	function hideInfo() {
-		document.getElementById("information-overlay").style.display = 'none';
-		info_on = false;
-	}
-	function toggleInfo(text=false) {
-		var eleTxt = document.getElementById("information-content");
-		if (eleTxt) {
-			if (!info_on || `${text}` != `${eleTxt.innerText}`) {showInfo(text);} else {hideInfo();}
-		} else {console.log(`No element with id 'information-content'`); }
-	}
+    var info_on = false;
+    function showInfo(text=false, button=false) {
+      document.getElementById("information-overlay").style.display = 'flex';
+      if (!button) {document.getElementById("information-button").style.display = 'none'}
+      if (text) {document.getElementById("information-content").innerText = text;}
+      info_on = true;
+    }
+    function hideInfo() {
+      document.getElementById("information-overlay").style.display = 'none';
+      info_on = false;
+    }
+    function toggleInfo(text=false, button=true) {
+      var eleTxt = document.getElementById("information-content");
+      if (!button) {document.getElementById("information-button").style.display = 'none'}
+      if (eleTxt) {
+        if (!info_on || `${text}` != `${eleTxt.innerText}`) {showInfo(text);} else {hideInfo();}
+      } else {console.log(`No element with id 'information-content'`); }
+    }
 </script>
 
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" rel="stylesheet">
@@ -47,7 +49,7 @@
 
       <div class="hero-header-info-icon">
   		  <h2 style="display: inline-block;">Species Explorer</h2>
-        <a href="#" onclick="toggleInfo('The Species Explorer does a full text search of the Checklist of Vermont Species on GBIF. Text is searched against Scientific Name, Common Name, and Species Description.');"
+        <a href="#" onclick="toggleInfo('The Species Explorer does a full text search of the Checklist of Vermont Species on GBIF. Text is searched against Scientific Name, Common Name, and Species Description.', true);"
           style="display: inline-block; vertical-align: top;">
           <i class="fa fa-info-circle"></i>
         </a>`;

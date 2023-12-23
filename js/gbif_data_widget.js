@@ -3,14 +3,14 @@
 */
 
 import { siteConfig } from './gbifSiteConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_config.js"></script>
-import { getStoredData } from '../VAL_Web_Utilities/js/storedData.js';
+import { getStoredData } from '../../VAL_Web_Utilities/js/storedData.js';
 import { townsBasemap } from './gbif_vt_town_tile.js';
 
 let siteName = siteConfig.siteName;
 let storSite = await getStoredData('siteName', '', '');
 if (storSite) {siteName = storSite;}
 
-import(`../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`).then(fileConfig => {
+import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`).then(fileConfig => {
   let dataConfig = fileConfig.dataConfig
 
   var widgetLocale = 'en';

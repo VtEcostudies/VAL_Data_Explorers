@@ -7,7 +7,7 @@ var datasetKey;
 var exploreUrl;
 var resultsUrl;
 
-var fileConfig = import(`../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteConfig.siteName}`);
+var fileConfig = import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteConfig.siteName}`);
 
 /*
   https://api.gbif.org/v1/species?name=Turdus%20migratorius

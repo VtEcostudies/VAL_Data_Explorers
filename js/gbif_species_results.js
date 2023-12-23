@@ -1,14 +1,14 @@
 import { siteConfig, siteNames } from './gbifSiteConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_config.js"></script>
 import { speciesSearch } from './gbif_species_search.js'; //NOTE: importing just a function includes the entire module
-import { getStoredOccCnts, getAggOccCounts } from '../VAL_Web_Utilities/js/gbifOccFacetCounts.js';
-import { getWikiPage } from '../VAL_Web_Utilities/js/wikiPageData.js';
-import { tableSortSimple } from '../VAL_Web_Utilities/js/tableSortSimple.js';
-import { tableSortTrivial } from '../VAL_Web_Utilities/js/tableSortTrivial.js';
-import { tableSortHeavy } from '../VAL_Web_Utilities/js/tableSortHeavy.js';
-import { gbifCountsByDateByTaxonKey } from '../VAL_Species_Page/js/gbifCountsByDate.js';
-import { getGbifTaxonFromName, getGbifTaxonFromKey, getGbifVernacularsFromKey, getParentRank, getNextChildRank, parseNameToRank } from '../VAL_Web_Utilities/js/fetchGbifSpecies.js';
-import { getInatSpecies } from '../VAL_Web_Utilities/js/inatSpeciesData.js';
-import { getStoredData, setStoredData } from '../VAL_Web_Utilities/js/storedData.js';
+import { getStoredOccCnts, getAggOccCounts } from '../../VAL_Web_Utilities/js/gbifOccFacetCounts.js';
+import { getWikiPage } from '../../VAL_Web_Utilities/js/wikiPageData.js';
+import { tableSortSimple } from '../../VAL_Web_Utilities/js/tableSortSimple.js';
+import { tableSortTrivial } from '../../VAL_Web_Utilities/js/tableSortTrivial.js';
+import { tableSortHeavy } from '../../VAL_Web_Utilities/js/tableSortHeavy.js';
+import { gbifCountsByDateByTaxonKey } from '../../VAL_Species_Page/js/gbifCountsByDate.js';
+import { getGbifTaxonFromName, getGbifTaxonFromKey, getGbifVernacularsFromKey, getParentRank, getNextChildRank, parseNameToRank } from '../../VAL_Web_Utilities/js/fetchGbifSpecies.js';
+import { getInatSpecies } from '../../VAL_Web_Utilities/js/inatSpeciesData.js';
+import { getStoredData, setStoredData } from '../../VAL_Web_Utilities/js/storedData.js';
 
 const gbifApi = "https://api.gbif.org/v1";
 var siteName = siteConfig.siteName;
@@ -54,7 +54,7 @@ objUrlParams.forEach((val, key) => {
 });
 
 //get atlas configuration and startup
-import(`../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`)
+import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`)
   .then(fCfg => {
     //fileConfig = fCfg; //set global value
     console.log('gbif_species_results | siteName:', siteName, 'dataConfig:', fCfg.dataConfig);
