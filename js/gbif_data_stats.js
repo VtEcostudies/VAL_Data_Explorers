@@ -277,11 +277,13 @@ function startUp(fileConfig) {
     occSpeciesStats(fileConfig); //backup query of all unique scientificNames from occurrences
   }
   occDatasetStats(fileConfig); //only way to get dataset stats is from occs
-  if (dataConfig.publishingOrgKey) {
-    publisherStats(dataConfig);
-  } else {
-    //occPublisherStats(fileConfig); //this would appear to be a count of publishers for the occurrence data-scope
-    document.getElementById("count-citations").innerHTML = '0'
+  if ('val.vtecostudies.org' != dataConfig.hostUrl) {
+    if (dataConfig.publishingOrgKey) {
+      publisherStats(dataConfig);
+    } else {
+      //occPublisherStats(fileConfig); //this would appear to be a count of publishers for the occurrence data-scope
+      document.getElementById("count-citations").innerHTML = '0'
+    }
   }
   addListeners(dataConfig);
 }
