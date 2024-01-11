@@ -9,12 +9,12 @@ export const siteConfig = {
   //siteName: 'fieldMuseum'
 }
 export const siteNames = [
-  'val',
-  'mval',
-  'vtButterflies',
-  'vtMammals',
-  'vtFungi',
-  'eButterfly',
-  //'wwButterfly',
-  //'fieldMuseum'
+  'val'
+  ,'mval'
+  ,'vtButterflies'
+  ,'vtMammals'
+  ,'vtFungi'
+  //,'eButterfly',
+  //,'wwButterfly',
+  //,'fieldMuseum'
 ]
