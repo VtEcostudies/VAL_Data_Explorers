@@ -7,6 +7,14 @@ let siteName = siteConfig.siteName;
 let storSite = await getStoredData('siteName', '', '');
 if (storSite) {siteName = storSite;}
 let homeUrl;
+//Get siteName query param and set localStorage siteName here
+const objUrlParams = new URLSearchParams(window.location.search);
+let qSite = objUrlParams.get('siteName');
+console.log('qSite', qSite, 'includes', siteNames.includes(qSite))
+if (siteNames.includes(qSite)) {
+  siteName = qSite;
+  setStoredData('siteName', false, false, siteName);
+}
 
 import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`)
   .then(fileConfig => {
