@@ -1,9 +1,14 @@
 import { siteConfig } from './gbifSiteConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_config.js"></script>
+import { getStoredData } from '../../VAL_Web_Utilities/js/storedData.js';
+
 const filterAtlasSpecies = true;
 const listElementId = 'gbif_autocomplete_list'; //the Id of the datalist attached to the input (required)
 var inputElementId = null; //the Id of the text input to have autoComplete. only put one on a page, multiple is not tested.
 
-let fileConfig = import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteConfig.siteName}`); //promise handled below
+let siteName = siteConfig.siteName; //default Atlas Site
+let storSite = await getStoredData('siteName', '', ''); //param-set or user-selected Atlas Site
+if (storSite) {siteName = storSite;}
+let fileConfig = import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`); //promise handled below
 
 fileConfig.then(fileConfig => {
     console.log('gbif_auto_complete | siteName:', siteConfig.siteName, 'dataConfig:', fileConfig.dataConfig);

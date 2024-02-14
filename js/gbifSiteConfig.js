@@ -1,10 +1,10 @@
 export const siteConfig = {
-  siteName: 'val'
+  //siteName: 'val'
   //siteName: 'mva'
-  //siteName: 'vtButterflies',
-  //siteName: 'vtBees',
-  //siteName: 'vtMammals',
-  //siteName: 'vtFungi',
+  //siteName: 'vtButterflies'
+  //siteName: 'vtBees'
+  siteName: 'vtMammals'
+  //siteName: 'vtFungi'
   //siteName: 'eButterfly'
   //siteName: 'wwButterfly'
   //siteName: 'fieldMuseum'

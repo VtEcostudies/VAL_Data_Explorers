@@ -2,19 +2,40 @@ import { siteConfig, siteNames } from './gbifSiteConfig.js'; //in html must decl
 import { speciesSearch } from './gbif_species_search.js';
 import { getAggOccCounts } from '../../VAL_Web_Utilities/js/gbifOccFacetCounts.js';
 import { getStoredData, setStoredData } from '../../VAL_Web_Utilities/js/storedData.js';
+import { getGbifRecordedBy, getInatObserverStats, getEbirdUsers, getEbutterflyUsers } from '../../VAL_Web_Utilities/js/fetchObservers.js';
 
 let siteName = siteConfig.siteName;
-let storSite = await getStoredData('siteName', '', '');
-if (storSite) {siteName = storSite;}
-let homeUrl;
-//Get siteName query param and set localStorage siteName here
-const objUrlParams = new URLSearchParams(window.location.search);
-let qSite = objUrlParams.get('siteName');
-console.log('qSite', qSite, 'includes', siteNames.includes(qSite))
-if (siteNames.includes(qSite)) {
-  siteName = qSite;
+console.log('gbif_data_stats.js retrieved gbifSiteConfig.siteName', siteName);
+
+const metaUrl = new URL(import.meta.url); //lower case '.url' is a property
+const metaSite = metaUrl.searchParams.get('siteName'); //calling modules do this: import { dataConfig } from '../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=val'
+//Get siteName meta param and set localStorage siteName here
+if (metaSite) {
+  siteName = metaSite; 
+  console.log('gbif_data_stats.js called by module metaParam with siteName', metaSite);
   setStoredData('siteName', false, false, siteName);
 }
+
+const storSite = await getStoredData('siteName', '', '');
+if (storSite) {siteName = storSite; console.log('gbif_data_stats.js retrieved localStorage siteName', storSite);}
+
+const objUrlParams = new URLSearchParams(window.location.search);
+const httpSite = objUrlParams.get('siteName');
+//Get siteName query param and set localStorage siteName here
+if (siteNames.includes(httpSite)) {
+  siteName = httpSite;
+  console.log('gbif_data_stats.js called with http param siteName', httpSite);
+  setStoredData('siteName', false, false, siteName);
+}
+
+let homeUrl;
+
+let eleCountOccs = document.getElementById("count-occurrences");
+let eleCountDset = document.getElementById("count-datasets");
+let eleCountSpcs = document.getElementById('count-species');
+let eleCountPubs = document.getElementById("count-publishers");
+let eleCountCite = document.getElementById("count-citations");
+let eleCountObsv = document.getElementById('count-observers');
 
 import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`)
   .then(fileConfig => {
@@ -25,7 +46,7 @@ import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`)
 var nFmt = new Intl.NumberFormat(); //use this to format numbers by locale... automagically?
 
 function occStats(fileConfig) {
-  var elem = document.getElementById("count-occurrences");
+  var elem = eleCountOccs;
   let occs = getAggOccCounts(fileConfig, false, []); //get just top-level all-taxon agg occ counts w/o taxon-breakout
   occs.then(occs => {
     elem.innerHTML = nFmt.format(occs.total);
@@ -38,7 +59,7 @@ This occurrence facet query isn't filtered by rank and status. It's a backup spe
 does not contain a speciesFilter. See speciesStats function which is used when there dataConfig.speciesFilter is defined.
 */
 function occSpeciesStats(fileConfig) {
-  var elem = document.getElementById("count-occurrences");
+  var elem = eleCountOccs;
   let spcs = getAggOccCounts(fileConfig, false, ['scientificName'], 'facetMincount=1&facetLimit=1199999');
   spcs.then(spcs => {
     elem.innerHTML = nFmt.format(Object.keys(spcs.objOcc).length);
@@ -47,7 +68,7 @@ function occSpeciesStats(fileConfig) {
   })
 }
 function occDatasetStats(fileConfig) {
-  var elem = document.getElementById("count-datasets");
+  var elem = eleCountDset;
   let dsts = getAggOccCounts(fileConfig, false, ['datasetKey'], 'facetMincount=1&facetLimit=1199999');
   dsts.then(dsts => {
     elem.innerHTML = nFmt.format(Object.keys(dsts.objOcc).length);
@@ -56,7 +77,7 @@ function occDatasetStats(fileConfig) {
   })
 }
 function occPublisherStats(fileConfig) {
-  var elem = document.getElementById("count-publishers");
+  var elem = eleCountPubs;
   let pbls = getAggOccCounts(fileConfig, false, ['publishingOrg'], 'facetMincount=1&facetLimit=1199999');
   pbls.then(pbls => {
     elem.innerHTML = nFmt.format(Object.keys(pbls.objOcc).length);
@@ -69,20 +90,48 @@ function occPublisherStats(fileConfig) {
   Using speciesSearch, count rank=SPECIES & status=ACCEPTED
 */
 async function speciesStats(dataConfig, reqQuery="") {
+  let elem = eleCountSpcs;
   reqQuery += `&rank=SPECIES&status=ACCEPTED`;
   let spcs = await speciesSearch(dataConfig, reqQuery, 0, 0);
-  let elem = document.getElementById('count-species');
   console.log(`gbif_data_stats.js::speciesStats(${reqQuery})|`, spcs);
   if (elem) {
     elem.innerHTML = nFmt.format(spcs.count);
   } else {
-    console.log(`HTML element id="${lmId}" NOT found.`)
+    console.log(`speciesStats HTML element id="${elem}" NOT found.`)
+  }
+}
+
+/*
+  Load observer stats. This idea was partly implemented and abandoned in favor of
+  just entering a WP-editable number on the WordPress site.
+
+  On vtatlasoflife.org, just GBIF implemented.
+*/
+async function observerStats(dataConfig) {
+  let elem = eleCountObsv;
+  let elel = document.getElementById('label-observers');
+  if (elem) {
+    if (dataConfig.gadmGid) {
+      let gbif = await getGbifRecordedBy(dataConfig.gadmGid);
+      elem.innerHTML = `${nFmt.format(gbif.count_users)}`;
+      //elel.innerHTML = `GBIF ${elel.innerHTML}`;
+    } else {elem.innerHTML = 'N/A';}
+    if (dataConfig.inatPlaceId) {
+      //let inat = await getInatObserverStats();
+      //elem.innerHTML += ` ${nFmt.format(inat.total)} (iNat)`;
+    }
+    //let eBrd = await getEbirdUsers();
+    //let eBut = await getEbutterflyUsers();
+    //elem.innerHTML += ` ${nFmt.format(eBrd.count)} (eBird)`;
+    //elem.innerHTML += ` ${nFmt.format(eBut.count)} (eButterfly)`;
+  } else {
+    console.log(`observerStats HTML element id="${elem}" NOT found.`)
   }
 }
 
 export async function publisherStats(dataConfig) {
 
-  var elem = document.getElementById("count-citations"); //To-Do: which is it?
+  let elem = eleCountCite;
 
   let publOrgKey = dataConfig.publishingOrgKey;
   
@@ -162,51 +211,63 @@ function addListeners(dataConfig) {
     window.location.href = `${homeUrl}`;
   }
 
-  /* Respond to mouse click on Occurrence Stats button */
+  // Respond to mouse click on Occurrence Stats button
   if (document.getElementById("stats-records")) {
       document.getElementById("stats-records").addEventListener("mouseup", function(e) {
-        window.location.assign(`${dataConfig.explorerUrl}?view=MAP`);
+        if (0 == e.button) {
+          window.location.assign(`${dataConfig.explorerUrl}?view=MAP`);
+        }
       });
   }
 
-  /* Respond to mouse click on Species Stats button */
+  // Respond to mouse click on Species Stats button 
   if (document.getElementById("stats-species")) {
-      //document.getElementById("stats-species").href = `${dataConfig.resultsUrl}?rank=SPECIES&status=ACCEPTED`;
       document.getElementById("stats-species").addEventListener("mouseup", function(e) {
+        if (0 == e.button) {
           window.location.assign(`${dataConfig.resultsUrl}`);
+        }
       });
   }
 
-  /* Respond to mouse click on Datasets Stats button */
+  // Respond to mouse click on Datasets Stats button 
   if (document.getElementById("stats-datasets")) {
       document.getElementById("stats-datasets").addEventListener("mouseup", function(e) {
-        window.location.assign(`${dataConfig.explorerUrl}?view=DATASETS`);
+        if (0 == e.button) {
+          window.location.assign(`${dataConfig.explorerUrl}?view=DATASETS`);
+        }
       });
   }
 
-  /* Respond to mouse click on Citations Stats button */
+  // Respond to mouse click on Citations Stats button
   if (document.getElementById("stats-citations")) {
       document.getElementById("stats-citations").addEventListener("mouseup", function(e) {
-        /*
-        window.open(
-          `https://www.gbif.org/resource/search?contentType=literature&publishingOrganizationKey=${dataConfig.publishingOrgKey}`
-          , "_blank"
-          );
-        */
+        if (0 == e.button) {
+          window.location.assign(`${dataConfig.literatUrl}`);
+          /*
+          window.open(
+            `https://www.gbif.org/resource/search?contentType=literature&publishingOrganizationKey=${dataConfig.publishingOrgKey}`
+            , "_blank"
+            );
+          */
+          }
         });
   }
 
-  /* Respond to mouse click on Publisher Stats button */
+  // Respond to mouse click on Publisher Stats button
   if (document.getElementById("stats-publishers")) {
     document.getElementById("stats-publishers").addEventListener("mouseup", function(e) {
-      window.location.assign(`${dataConfig.publishUrl}`);
+      if (0 == e.button) {
+        window.location.assign(`${dataConfig.publishUrl}`);
+      }
     });
   }
 
-  /* Respond to mouse click on Species Accounts Stats button */
+  // Respond to mouse click on Species Accounts Stats button
   if (document.getElementById("stats-sp-accounts")) {
       document.getElementById("stats-sp-accounts").addEventListener("mouseup", function(e) {
-          console.log('stats-sp-accounts got mouseup', e);
+        if (0 == e.button) {
+          console.log('stats-sp-accounts got mouseup from primary button', e);
+        }
       });
   }
 }
@@ -279,19 +340,23 @@ function startUp(fileConfig) {
 
   setContext(dataConfig);
   occStats(fileConfig);
+  occDatasetStats(fileConfig); //only way to get dataset stats is from occs
+
   if (dataConfig.speciesFilter) {
     speciesStats(dataConfig); //species-counts based on config file speciesFilter
   } else {
     occSpeciesStats(fileConfig); //backup query of all unique scientificNames from occurrences
   }
-  occDatasetStats(fileConfig); //only way to get dataset stats is from occs
+
+  //things to do on vtatlasoflife.org but not on val.vtecostudies.org
   if ('val.vtecostudies.org' != dataConfig.hostUrl) {
     if (dataConfig.publishingOrgKey) {
       publisherStats(dataConfig);
     } else {
       //occPublisherStats(fileConfig); //this would appear to be a count of publishers for the occurrence data-scope
-      document.getElementById("count-citations").innerHTML = '0'
+      if (eleCountCite) {eleCountCite.innerHTML = '0';}
     }
+    observerStats(dataConfig);
   }
   addListeners(dataConfig);
 }

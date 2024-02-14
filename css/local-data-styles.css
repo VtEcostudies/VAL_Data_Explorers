@@ -259,10 +259,10 @@ table td {max-width:100px; word-wrap:break-word;}
 
 @media screen and (min-width: 680px) { .page-template-page-species-explorer-2022 .hero .hero-stats-wrap { max-width: 500px; grid-gap: 40px; } }
 
-.page-template-page-species-explorer-2022 .hero .hero-stats-wrap a.hero-stats-item { margin-bottom: 20px; line-height: 1.8em; text-decoration: none; color: #fff; }
-
+.page-template-page-species-explorer-2022 .hero .hero-stats-wrap a.hero-stats-item { margin-bottom: 20px; /*line-height: 1.8em;*/ text-decoration: none; color: #fff; }
+/*
 @media screen and (min-width: 680px) { .page-template-page-species-explorer-2022 .hero .hero-stats-wrap a.hero-stats-item { display: grid; grid-template-columns: 1fr 5fr; justify-items: start; grid-gap: 15px; text-align: left; } .page-template-page-species-explorer-2022 .hero .hero-stats-wrap a.hero-stats-item:first-of-type { width: 275px; } .page-template-page-species-explorer-2022 .hero .hero-stats-wrap a.hero-stats-item:last-of-type { width: 200px; } }
-
+*/
 .page-template-page-species-explorer-2022 .hero .hero-stats-wrap a.hero-stats-item:hover .stats { background: rgba(255, 255, 255, 0.2); }
 
 .page-template-page-species-explorer-2022 .hero .hero-stats-wrap a.hero-stats-item i.stats-icon { display: block; margin: 0 0 5px 0; font-family: "Font Awesome 5 Pro"; font-size: 2.75em; }

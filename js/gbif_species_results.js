@@ -1,5 +1,5 @@
 import { siteConfig, siteNames } from './gbifSiteConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_config.js"></script>
-import { speciesSearch } from './gbif_species_search.js'; //NOTE: importing just a function includes the entire module
+import { speciesSearch } from './DEPRECATED_gbif_species_search.js'; //NOTE: importing just a function includes the entire module
 import { getStoredOccCnts, getAggOccCounts } from '../../VAL_Web_Utilities/js/gbifOccFacetCounts.js';
 import { getWikiPage } from '../../VAL_Web_Utilities/js/wikiPageData.js';
 import { tableSortSimple } from '../../VAL_Web_Utilities/js/tableSortSimple.js';
@@ -584,20 +584,22 @@ async function getAllDataPages(fCfg, q=qParm, lim=limit, qf=qField, oth=other) {
     }
   } while (!page.endOfRecords && !fatalError);
   console.log('getAllDataPages | result size', res.length);
-  if (!fatalError && downloadOccurrenceCounts) {
-     for (var i=0; i<res.length; i++) {
-      let oSpc = res[i];
-      let key = oSpc.nubKey ? oSpc.nubKey : oSpc.key;
-      /*
-      gOccCnts.then(occCnts => { //
-        oSpc[`${fCfg.dataConfig.atlasAbbrev}-Occurrences`] = occCnts[key] ? occCnts[key] : 0;
-      }).catch(err => {
-        console.log(`Unable to retrieve occurrence counts.`);
-      })
-      */
-      let occs = await gbifCountsByDateByTaxonKey(key, fCfg);//This call must be synchronous. And so we await.
-      oSpc[`${fCfg.dataConfig.atlasAbbrev}-Occurrences`] = occs.total;
+  if (!fatalError) {
+    if (downloadOccurrenceCounts) {
+      for (var i=0; i<res.length; i++) {
+        let oSpc = res[i];
+        let key = oSpc.nubKey ? oSpc.nubKey : oSpc.key;
+        /*
+        gOccCnts.then(occCnts => { //
+          oSpc[`${fCfg.dataConfig.atlasAbbrev}-Occurrences`] = occCnts[key] ? occCnts[key] : 0;
+        }).catch(err => {
+          console.log(`Unable to retrieve occurrence counts.`);
+        })
+        */
+        let occs = await gbifCountsByDateByTaxonKey(key, fCfg);//This call must be synchronous. And so we await.
+        oSpc[`${fCfg.dataConfig.atlasAbbrev}-Occurrences`] = occs.total;
      }
+    }
     eleDwn.style.display = 'none'; eleOvr.style.display = 'none';
   }
   return res;
