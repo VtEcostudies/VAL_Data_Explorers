@@ -361,8 +361,8 @@
 
 </section>
 
-<script src="/wp-content/themes/val/VAL_Data_Explorers/js/gbif_data_stats.js" type="module"></script>
-<script src="/wp-content/themes/val/VAL_Data_Explorers/js/gbif_species_search.js" type="module"></script>
-<script src="/wp-content/themes/val/VAL_Data_Explorers/js/gbif_auto_complete.js" type="module"></script>
+<script src="<?php echo get_template_directory_uri(); ?>/VAL_Data_Explorers/js/gbif_data_stats.js" type="module"></script>
+<script src="<?php echo get_template_directory_uri(); ?>/VAL_Data_Explorers/js/gbif_species_search.js" type="module"></script>
+<script src="<?php echo get_template_directory_uri(); ?>/VAL_Data_Explorers/js/gbif_auto_complete.js" type="module"></script>
 
 <?php get_footer(); ?>

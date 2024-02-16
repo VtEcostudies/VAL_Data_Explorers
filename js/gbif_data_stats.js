@@ -48,11 +48,13 @@ var nFmt = new Intl.NumberFormat(); //use this to format numbers by locale... au
 function occStats(fileConfig) {
   var elem = eleCountOccs;
   let occs = getAggOccCounts(fileConfig, false, []); //get just top-level all-taxon agg occ counts w/o taxon-breakout
-  occs.then(occs => {
-    elem.innerHTML = nFmt.format(occs.total);
-  }).catch(err =>{
-    elem.innerHTML = err.message;
-  })
+  if (elem) {
+    occs.then(occs => {
+      elem.innerHTML = nFmt.format(occs.total);
+    }).catch(err =>{
+      elem.innerHTML = `<a title="${err.message}" href="${err.query}">(Error)</a>`;
+    })
+  }
 }
 /*
 This occurrence facet query isn't filtered by rank and status. It's a backup species stats query used when the siteConfig
@@ -60,30 +62,36 @@ does not contain a speciesFilter. See speciesStats function which is used when t
 */
 function occSpeciesStats(fileConfig) {
   var elem = eleCountOccs;
-  let spcs = getAggOccCounts(fileConfig, false, ['scientificName'], 'facetMincount=1&facetLimit=1199999');
-  spcs.then(spcs => {
-    elem.innerHTML = nFmt.format(Object.keys(spcs.objOcc).length);
-  }).catch(err =>{
-    elem.innerHTML = err.message;
-  })
+  if (elem) {
+    let spcs = getAggOccCounts(fileConfig, false, ['scientificName'], 'facetMincount=1&facetLimit=1199999');
+    spcs.then(spcs => {
+      elem.innerHTML = nFmt.format(Object.keys(spcs.objOcc).length);
+    }).catch(err =>{
+      elem.innerHTML = `<a title="${err.message}" href="${err.query}">(Error)</a>`;
+    })
+  }
 }
 function occDatasetStats(fileConfig) {
   var elem = eleCountDset;
-  let dsts = getAggOccCounts(fileConfig, false, ['datasetKey'], 'facetMincount=1&facetLimit=1199999');
-  dsts.then(dsts => {
-    elem.innerHTML = nFmt.format(Object.keys(dsts.objOcc).length);
-  }).catch(err =>{
-    elem.innerHTML = err.message;
-  })
+  if (elem) {
+    let dsts = getAggOccCounts(fileConfig, false, ['datasetKey'], 'facetMincount=1&facetLimit=1199999');
+    dsts.then(dsts => {
+      elem.innerHTML = nFmt.format(Object.keys(dsts.objOcc).length);
+    }).catch(err =>{
+      elem.innerHTML = `<a title="${err.message}" href="${err.query}">(Error)</a>`;
+    })
+  }
 }
 function occPublisherStats(fileConfig) {
   var elem = eleCountPubs;
-  let pbls = getAggOccCounts(fileConfig, false, ['publishingOrg'], 'facetMincount=1&facetLimit=1199999');
-  pbls.then(pbls => {
-    elem.innerHTML = nFmt.format(Object.keys(pbls.objOcc).length);
-  }).catch(err =>{
-    elem.innerHTML = err.message;
-  })
+  if (elem) {
+    let pbls = getAggOccCounts(fileConfig, false, ['publishingOrg'], 'facetMincount=1&facetLimit=1199999');
+    pbls.then(pbls => {
+      elem.innerHTML = nFmt.format(Object.keys(pbls.objOcc).length);
+    }).catch(err =>{
+      elem.innerHTML = `<a title="${err.message}" href="${err.query}">(Error)</a>`;
+    })
+  }
 }
 /*
   Get a count of accepted species and set speciesCount html element value
@@ -91,13 +99,14 @@ function occPublisherStats(fileConfig) {
 */
 async function speciesStats(dataConfig, reqQuery="") {
   let elem = eleCountSpcs;
-  reqQuery += `&rank=SPECIES&status=ACCEPTED`;
-  let spcs = await speciesSearch(dataConfig, reqQuery, 0, 0);
-  console.log(`gbif_data_stats.js::speciesStats(${reqQuery})|`, spcs);
   if (elem) {
-    elem.innerHTML = nFmt.format(spcs.count);
-  } else {
-    console.log(`speciesStats HTML element id="${elem}" NOT found.`)
+    reqQuery += `&rank=SPECIES&status=ACCEPTED`;
+    let spcs = speciesSearch(dataConfig, reqQuery, 0, 0);
+    spcs.then(spcs => {
+      elem.innerHTML = nFmt.format(spcs.count);
+    }).catch(err => {
+      elem.innerHTML = `<a title="${err.message}" href="${err.query}">(Error)</a>`;
+    })
   }
 }
 
@@ -112,9 +121,12 @@ async function observerStats(dataConfig) {
   let elel = document.getElementById('label-observers');
   if (elem) {
     if (dataConfig.gadmGid) {
-      let gbif = await getGbifRecordedBy(dataConfig.gadmGid);
-      elem.innerHTML = `${nFmt.format(gbif.count_users)}`;
-      //elel.innerHTML = `GBIF ${elel.innerHTML}`;
+      let gbif = getGbifRecordedBy(dataConfig.gadmGid);
+      gbif.then(gbif => {
+        elem.innerHTML = `${nFmt.format(gbif.count_users)}`;
+      }).catch(err => {
+        elem.innerHTML = `<a title="${err.message}" href="${err.query}">(Error)</a>`;
+      })
     } else {elem.innerHTML = 'N/A';}
     if (dataConfig.inatPlaceId) {
       //let inat = await getInatObserverStats();
