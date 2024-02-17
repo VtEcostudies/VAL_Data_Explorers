@@ -52,7 +52,7 @@ function occStats(fileConfig) {
     occs.then(occs => {
       elem.innerHTML = nFmt.format(occs.total);
     }).catch(err =>{
-      elem.innerHTML = `<a title="${err.message}" href="${err.query}">(Error)</a>`;
+      elem.innerHTML = `<a title="${err.message}" href="${JSON.stringify(err.arrQry)}">(Error)</a>`;
     })
   }
 }
@@ -67,7 +67,7 @@ function occSpeciesStats(fileConfig) {
     spcs.then(spcs => {
       elem.innerHTML = nFmt.format(Object.keys(spcs.objOcc).length);
     }).catch(err =>{
-      elem.innerHTML = `<a title="${err.message}" href="${err.query}">(Error)</a>`;
+      elem.innerHTML = `<a title="${err.message}" href="${JSON.stringify(err.arrQry)}">(Error)</a>`;
     })
   }
 }
@@ -78,7 +78,7 @@ function occDatasetStats(fileConfig) {
     dsts.then(dsts => {
       elem.innerHTML = nFmt.format(Object.keys(dsts.objOcc).length);
     }).catch(err =>{
-      elem.innerHTML = `<a title="${err.message}" href="${err.query}">(Error)</a>`;
+      elem.innerHTML = `<a title="${err.message}" href="${JSON.stringify(err.arrQry)}">(Error)</a>`;
     })
   }
 }
@@ -89,7 +89,7 @@ function occPublisherStats(fileConfig) {
     pbls.then(pbls => {
       elem.innerHTML = nFmt.format(Object.keys(pbls.objOcc).length);
     }).catch(err =>{
-      elem.innerHTML = `<a title="${err.message}" href="${err.query}">(Error)</a>`;
+      elem.innerHTML = `<a title="${err.message}" href="${JSON.stringify(err.arrQry)}">(Error)</a>`;
     })
   }
 }
