@@ -58,7 +58,7 @@ function occStats(fileConfig) {
 }
 /*
 This occurrence facet query isn't filtered by rank and status. It's a backup species stats query used when the siteConfig
-does not contain a speciesFilter. See speciesStats function which is used when there dataConfig.speciesFilter is defined.
+does not contain a speciesFilter. See speciesStats function which is used when the dataConfig.speciesFilter is defined.
 */
 function occSpeciesStats(fileConfig) {
   var elem = eleCountOccs;
@@ -201,26 +201,31 @@ window.onload = function() {
     });
 };
 
+function setSite(site) {
+  console.log('setSite', site);
+  setStoredData('siteName', '', '', site);
+  window.location.href = homeUrl;
+}
+
 // Add listeners to handle clicks on stats items
 function addListeners(dataConfig) {
 
-  let eleSit = document.getElementById("siteSelect")
+  let eleSite = document.getElementById("siteSelect")
 
-  if (eleSit) {
+  console.log('siteNames before loop', eleSite.innerHTML);
+
+  if (eleSite) { //siteNames drop-down list
+    eleSite.innerHTML = '';
     siteNames.forEach(site => {
-      eleSit.innerHTML += `<option value=${site} ${siteName==site ? "selected=" : ""} id="option-${site}">${site}</option>`;
+      eleSite.innerHTML += `<option value=${site} ${siteName==site ? "selected=" : ""} id="option-${site}">${site}</option>`;
+      console.log('siteName', site);
     })
-    eleSit.onchange = (ev) => {
-      let val = eleSit.options[eleSit.selectedIndex].value;
-      let txt = eleSit.options[eleSit.selectedIndex].text;
-      console.log('value', val, 'text', txt, 'index', eleSit.selectedIndex);
+    eleSite.onchange = (ev) => {
+      let val = eleSite.options[eleSite.selectedIndex].value;
+      let txt = eleSite.options[eleSite.selectedIndex].text;
+      console.log('value', val, 'text', txt, 'index', eleSite.selectedIndex);
       setSite(val);
     }
-  }
-  function setSite(site) {
-    console.log('setSite', site);
-    setStoredData('siteName', '', '', site);
-    window.location.href = `${homeUrl}`;
   }
 
   // Respond to mouse click on Occurrence Stats button

@@ -14,8 +14,7 @@ const gbifApi = "https://api.gbif.org/v1";
 var siteName = siteConfig.siteName;
 let storSite = await getStoredData('siteName', '', '');
 if (storSite) {siteName = storSite;}
-//var dataConfig;
-//var speciesDatasetKey;
+var homeUrl;
 var exploreUrl;
 var resultsUrl;
 var profileUrl;
@@ -62,6 +61,7 @@ import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`)
   })
 
 const eleTtl = document.getElementById("species-title"); //the h tag within the title
+const eleHom = document.getElementById('homeLink');
 const eleSit = document.getElementById('siteSelect');
 const eleHlp = document.getElementById("flag-issue"); //id='flag-issue' element for HelpDesk support
 const eleTxt = document.getElementById("results_search"); if (eleTxt) {eleTxt.value = qParm;}
@@ -650,8 +650,7 @@ function jsonToCsv(json) {
 
 async function startUp(fCfg) {
 
-  //dataConfig = fCfg.dataConfig;
-  //speciesDatasetKey = fCfg.dataConfig.speciesDatasetKey;
+  homeUrl = fCfg.dataConfig.homeUrl;
   exploreUrl = fCfg.dataConfig.exploreUrl;
   resultsUrl = fCfg.dataConfig.resultsUrl;
   profileUrl = fCfg.dataConfig.profileUrl;
@@ -735,6 +734,10 @@ async function startUp(fCfg) {
     window.location.href = `${resultsUrl}`;
   }
   
+  if (eleHom) {
+    eleHom.href = homeUrl;
+  }
+
   if (eleHlp) {
     if (fCfg.dataConfig.helpDeskUrl) {
       eleHlp.style.display = 'inline';
