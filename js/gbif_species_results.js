@@ -205,29 +205,31 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
       case 'vernacularNames':
         let vnObj = {};
         if (taxn.vernacularName) { //taxon by key species/{key}
-          taxn.vernacularName = taxn.vernacularName.replace(`'S`,`'s`);
+          taxn.vernacularName = taxn.vernacularName.replace(`’`,`'`).replace(`'S`,`'s`);
           vnObj[taxn.vernacularName] = 'GBIF species/key vernacularName';
         } 
         if (res.vernacularName) { //taxon by key from species/search
-          res.vernacularName = res.vernacularName.replace(`'S`,`'s`);
+          res.vernacularName = res.vernacularName.replace(`’`,`'`).replace(`'S`,`'s`);
           vnObj[res.vernacularName] = 'GBIF species/search vernacularName';
         }
         if (res.vernacularNames) {
           res.vernacularNames.forEach((ele, idx) => {
-            ele.vernacularName = ele.vernacularName.replace(`'S`,`'s`);
+            ele.vernacularName = ele.vernacularName.replace(`’`,`'`).replace(`'S`,`'s`);
             vnObj[ele.vernacularName] = 'GBIF species/search/vernacularNames';
           })
         }
         vern.then(vern => {
-          vern.forEach((ele, idx) => {vnObj[ele.vernacularName.replace(`'S`,`'s`)] = 'GBIF species/key/vernacularNames'})
+          vern.forEach((ele, idx) => {
+            let name = ele.vernacularName.replace(`’`,`'`).replace(`'S`,`'s`); //OMG there are 2 apostrophes?!
+            //console.log('vernacularNames:', ele.vernacularName, name);
+            vnObj[name] = 'GBIF species/key/vernacularNames'
+          })
           inat.then(inat => {
             if (inat.preferred_common_name) {vnObj[inat.preferred_common_name] = 'iNat species/key preferred_common_name';}
             Object.keys(vnObj).forEach((key, idx) => {
-              if (key) {
-                //colObj.innerHTML += `<a title="Species Explorer: ${key}" href="${resultsUrl}?q=${key}">${key}</a>`;
-                colObj.innerHTML += `<a title="${vnObj[key]}" href="${resultsUrl}?q=${key}">${key}</a>`;
-                if (idx < Object.keys(vnObj).length-1) {colObj.innerHTML += ', ';}
-              }
+              //console.log('vernacularListKey:', key, vnObj[key]);
+              colObj.innerHTML += `<a title="${vnObj[key]}" href="${resultsUrl}?q=${key}">${key}</a>`;
+              if (idx < Object.keys(vnObj).length-1) {colObj.innerHTML += ', ';}
             })
           }).catch(err=> {console.log('getInatSpecies ERROR', err)});
         })
