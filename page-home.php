@@ -88,16 +88,12 @@
 			</a>
 
 			<a id="stats-observers" class="hero-stats-item" href="#">
-			<!--
-			<a id="stats-observers" class="hero-stats-item" href="<?/*php the_field('observers-link');*/ ?>">
-			<a id="stats-observers" class="hero-stats-item" href="https://val.vtecostudies.org/about/publications/">
-			-->
 
 				<i class="stats-icon fa-regular fa-binoculars"></i>
 
 				<div class="stats">
 
-					<span id="count-observers" class="stats-count">
+					<span id="count-observers" class="stats-count stats-count-observers">
 						<!--
 							Use this if we return to an automated API value
 							<i class="far fa-compass"></i>
@@ -105,7 +101,7 @@
 						<?php the_field('observers-count'); ?>
 					</span>
 
-					<span class="stats-desc">observers</span>
+					<span class="stats-desc">contributors</span>
 
 				</div>
 
