@@ -4,6 +4,27 @@
 */
 ?>
 
+<style>
+
+#stats-nothing    { grid-area: top0; }
+#stats-records    { grid-area: top1; }
+#stats-datasets   { grid-area: top2; }
+#stats-species    { grid-area: bot1; }
+#stats-citations  { grid-area: bot2; }
+#stats-observers  { grid-area: bot3; }
+
+.hero-stats-container {
+	display: grid;
+	grid-template-columns: auto !important;
+	grid-template-areas:
+		'top0 top1 top1 top2 top2 top2'
+		'bot1 bot1 bot2 bot2 bot3 bot3';
+	gap: 10px;
+	padding: 10px;
+}
+
+</style>
+
 <?php get_header(); the_post(); ?>
 
 <section class="hero">
@@ -14,7 +35,9 @@
 
 		<h2><?php the_field('heading-2'); ?></h2>
 
-		<div class="hero-stats-wrap">
+		<div class="hero-stats-wrap hero-stats-container">
+
+			<p id="stats-nothing"></p> <!-- placeholder hack to offset top row of css 5-item, 2-row grid -->
 
 			<a id="stats-records" class="hero-stats-item" href="<?php site_url(); ?>gbif-explorer?view=MAP">
 

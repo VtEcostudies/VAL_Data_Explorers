@@ -1,15 +1,5 @@
-/*
-These were created to style a new field 'observers' with more content
-.stats-observers { width:500px; display: inline; }
-*/
-/*
-#count-observers { 
-    font-size: 0.8em; 
-    padding-top: 0px;
-    padding-bottom: 0px;
-}
-*/
 
+#stats-nothing    { grid-area: top0; }
 #stats-records    { grid-area: top1; }
 #stats-datasets   { grid-area: top2; }
 #stats-species    { grid-area: bot1; }
@@ -17,14 +7,11 @@ These were created to style a new field 'observers' with more content
 #stats-observers  { grid-area: bot3; }
 
 .hero-stats-container {
-  display: grid;
-  grid-template-areas:
-    'top1 top1 top1 top2 top2 top2'
-    'bot1 bot1 bot2 bot2 bot3 bot3';
-    gap: 10px;
-    padding: 10px;
+	display: grid;
+	grid-template-columns: auto !important;
+	grid-template-areas:
+		'top0 top1 top1 top2 top2 top2'
+		'bot1 bot1 bot2 bot2 bot3 bot3';
+	gap: 10px;
+	padding: 10px;
 }
-
-/* override this CSS
-.page-template-page-species-explorer-2022 .hero .hero-stats-wrap a.hero-stats-item
-*/
