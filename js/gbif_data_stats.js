@@ -212,9 +212,8 @@ function addListeners(dataConfig) {
 
   let eleSite = document.getElementById("siteSelect")
 
-  console.log('siteNames before loop', eleSite.innerHTML);
-
   if (eleSite) { //siteNames drop-down list
+    console.log('siteNames before loop', eleSite.innerHTML);
     eleSite.innerHTML = '';
     siteNames.forEach(site => {
       eleSite.innerHTML += `<option value=${site} ${siteName==site ? "selected=" : ""} id="option-${site}">${site}</option>`;
