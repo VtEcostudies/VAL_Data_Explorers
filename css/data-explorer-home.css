@@ -1,4 +1,6 @@
-
+/*
+    This is a temporary hack to pull data-explorer-home styles from combined styles.css for MVAL dev site
+*/
 .page-template-page-data-explorer-2022 .hero-stats-wrap { grid-template-columns: 1fr 1fr; }
 
 @media screen and (min-width: 550px) { .page-template-page-data-explorer-2022 .hero-stats-wrap { grid-template-columns: 1fr 1fr 1fr; } }
@@ -50,12 +52,3 @@
 @media screen and (min-width: 680px) { .home .hero .hero-stats-wrap a.hero-stats-item span.stats-count { font-weight: 600; } }
 
 .home .hero .hero-stats-wrap a.hero-stats-item span.stats-count i { opacity: 0.7; animation: rotation 1s infinite ease; }
-
-
-
-.page-template-page-data-explorer-2022 .hero-stats-wrap { grid-template-columns: 1fr 1fr; }
-
-@media screen and (min-width: 550px) { .page-template-page-data-explorer-2022 .hero-stats-wrap { grid-template-columns: 1fr 1fr 1fr; } }
-
-
-
