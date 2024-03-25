@@ -17,7 +17,7 @@ table td {max-width:100px; word-wrap:break-word;}
   table td {max-width:100%;}
   thead {display: none;}
   tr:nth-child(odd) td:first-child {
-    background: lightblue;
+    background: white;
     font-weight:bold;
     font-size:1.3em;
   }
@@ -33,7 +33,7 @@ table td {max-width:100px; word-wrap:break-word;}
       text-align:center;
   }
   tbody tr:nth-child(odd) {
-    background-color: lightblue !important;
+    background-color: white !important;
   }
   tbody tr:nth-child(even) {
     background-color: lightgray !important;
