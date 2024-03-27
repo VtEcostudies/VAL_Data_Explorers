@@ -35,7 +35,8 @@ let eleCountDset = document.getElementById("count-datasets");
 let eleCountSpcs = document.getElementById('count-species');
 let eleCountPubs = document.getElementById("count-publishers");
 let eleCountCite = document.getElementById("count-citations");
-let eleCountObsv = document.getElementById('count-observers');
+let eleCountObsv = document.getElementById('count-observers');  //not fully defined. initially, an admin-defined count
+let eleCountCntb = document.getElementById('count-contributors'); //used to count GBIF recordedBy
 
 import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`)
   .then(fileConfig => {
@@ -114,11 +115,29 @@ async function speciesStats(dataConfig, reqQuery="") {
   Load observer stats. This idea was partly implemented and abandoned in favor of
   just entering a WP-editable number on the WordPress site.
 
-  On vtatlasoflife.org, just GBIF implemented.
+  See contributor Stats.
 */
 async function observerStats(dataConfig) {
   let elem = eleCountObsv;
-  let elel = document.getElementById('label-observers');
+  if (elem) {
+    if (dataConfig.inatPlaceId) {
+      let inat = await getInatObserverStats(dataConfig.inatPlaceId);
+      elem.innerHTML += ` ${nFmt.format(inat.total)} (iNat)`;
+    } else {elem.innerHTML = 'N/A';}
+    //let eBrd = await getEbirdUsers();
+    //let eBut = await getEbutterflyUsers();
+    //elem.innerHTML += ` ${nFmt.format(eBrd.count)} (eBird)`;
+    //elem.innerHTML += ` ${nFmt.format(eBut.count)} (eButterfly)`;
+  } else {
+    console.log(`observerStats HTML element id="${elem}" NOT found.`)
+  }
+}
+
+/*
+  Load contributor stats, which initially is just a GBIF facet-count on the recordedBy field.
+*/
+async function contributorStats(dataConfig) {
+  let elem = eleCountCntb;
   if (elem) {
     if (dataConfig.gadmGid) {
       let gbif = getGbifRecordedBy(dataConfig.gadmGid);
@@ -128,16 +147,8 @@ async function observerStats(dataConfig) {
         elem.innerHTML = `<a title="${err.message}" href="${err.query}">(Error)</a>`;
       })
     } else {elem.innerHTML = 'N/A';}
-    if (dataConfig.inatPlaceId) {
-      //let inat = await getInatObserverStats();
-      //elem.innerHTML += ` ${nFmt.format(inat.total)} (iNat)`;
-    }
-    //let eBrd = await getEbirdUsers();
-    //let eBut = await getEbutterflyUsers();
-    //elem.innerHTML += ` ${nFmt.format(eBrd.count)} (eBird)`;
-    //elem.innerHTML += ` ${nFmt.format(eBut.count)} (eButterfly)`;
   } else {
-    console.log(`observerStats HTML element id="${elem}" NOT found.`)
+    console.log(`contributor Stats HTML element id="${elem}" NOT found.`)
   }
 }
 
@@ -373,6 +384,7 @@ function startUp(fileConfig) {
       if (eleCountCite) {eleCountCite.innerHTML = '0';}
     }
     observerStats(dataConfig);
+    contributorStats(dataConfig);
   }
   addListeners(dataConfig);
 }
