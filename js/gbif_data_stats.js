@@ -136,17 +136,16 @@ async function observerStats(dataConfig) {
 /*
   Load contributor stats, which initially is just a GBIF facet-count on the recordedBy field.
 */
-async function contributorStats(dataConfig) {
+async function contributorStats(fileConfig) {
+  let dataConfig = fileConfig.dataConfig;
   let elem = eleCountCntb;
   if (elem) {
-    if (dataConfig.gadmGid) {
-      let gbif = getGbifRecordedBy(dataConfig.gadmGid);
-      gbif.then(gbif => {
-        elem.innerHTML = `${nFmt.format(gbif.count_users)}`;
-      }).catch(err => {
-        elem.innerHTML = `<a title="${err.message}" href="${err.query}">(Error)</a>`;
-      })
-    } else {elem.innerHTML = 'N/A';}
+    let ctrb = getAggOccCounts(fileConfig, false, ['recordedBy'], 'facetMincount=1&facetLimit=1199999');
+    ctrb.then(ctrb => {
+      elem.innerHTML = nFmt.format(Object.keys(ctrb.objOcc).length);
+    }).catch(err =>{
+      elem.innerHTML = `<a title="${err.message}" href="${JSON.stringify(err.arrQry)}">(Error)</a>`;
+    })
   } else {
     console.log(`contributor Stats HTML element id="${elem}" NOT found.`)
   }
@@ -384,7 +383,7 @@ function startUp(fileConfig) {
       if (eleCountCite) {eleCountCite.innerHTML = '0';}
     }
     observerStats(dataConfig);
-    contributorStats(dataConfig);
+    contributorStats(fileConfig);
   }
   addListeners(dataConfig);
 }
