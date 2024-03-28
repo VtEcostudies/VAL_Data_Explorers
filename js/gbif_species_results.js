@@ -46,7 +46,7 @@ console.log('Query param q:', qParm, 'offset:', offset, 'limit:', limit, 'page:'
 //get other query params (there are many, and they are necessary. eg. higherTaxonRank)
 var other = ''; var objOther = {};
 objUrlParams.forEach((val, key) => {
-  if ('taxonKey'!=key && 'q'!=key && 'offset'!=key && 'limit'!=key && 'qField'!=key) {
+  if ('siteName'!=key && 'taxonKey'!=key && 'q'!=key && 'offset'!=key && 'limit'!=key && 'qField'!=key) {
     other += `&${key}=${val}`;
     objOther[key] = val;
   }
@@ -197,10 +197,10 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
         //new idea: just get child taxa one rank lower
         if ('SUBSPECIES' != res.rank && 'VARIETY' != res.rank) {
           let ncRank = getNextChildRank(res.rank);
-          colObj.innerHTML += `<a title="Species Explorer: ALL sub-taxa of ${res.rank} ${name}" href="${resultsUrl}?q=&higherTaxonKey=${res.key}&higherTaxonName=${name}&higherTaxonRank=${res.rank}"><i class="fa-solid fa-code-branch child-branch"></i></a>`
-          colObj.innerHTML += ` | <a title="Species Explorer: ${ncRank} sub-taxa of ${res.rank} ${name}" href="${resultsUrl}?q=&higherTaxonKey=${res.key}&higherTaxonName=${name}&higherTaxonRank=${res.rank}&rank=${ncRank}">${ncRank}</a>`
+          colObj.innerHTML += `<a title="Species Explorer: ALL sub-taxa of ${res.rank} ${name}" href="${resultsUrl}?siteName=${siteName}&q=&higherTaxonKey=${res.key}&higherTaxonName=${name}&higherTaxonRank=${res.rank}"><i class="fa-solid fa-code-branch child-branch"></i></a>`
+          colObj.innerHTML += ` | <a title="Species Explorer: ${ncRank} sub-taxa of ${res.rank} ${name}" href="${resultsUrl}?siteName=${siteName}&q=&higherTaxonKey=${res.key}&higherTaxonName=${name}&higherTaxonRank=${res.rank}&rank=${ncRank}">${ncRank}</a>`
         }
-        //colObj.innerHTML += `<a title="List child taxa of ${name}" href="${resultsUrl}?q=&higherTaxonKey=${res.key}&higherTaxonName=${name}&higherTaxonRank=${res.rank}"><i class="fa-solid fa-code-branch"></i></a>`
+        //colObj.innerHTML += `<a title="List child taxa of ${name}" href="${resultsUrl}?siteName=${siteName}&q=&higherTaxonKey=${res.key}&higherTaxonName=${name}&higherTaxonRank=${res.rank}"><i class="fa-solid fa-code-branch"></i></a>`
         break;
       case 'vernacularNames':
         let vnObj = {};
@@ -228,26 +228,26 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
             if (inat.preferred_common_name) {vnObj[inat.preferred_common_name] = 'iNat species/key preferred_common_name';}
             Object.keys(vnObj).forEach((key, idx) => {
               //console.log('vernacularListKey:', key, vnObj[key]);
-              colObj.innerHTML += `<a title="${vnObj[key]}" href="${resultsUrl}?q=${key}">${key}</a>`;
+              colObj.innerHTML += `<a title="${vnObj[key]}" href="${resultsUrl}?siteName=${siteName}&q=${key}">${key}</a>`;
               if (idx < Object.keys(vnObj).length-1) {colObj.innerHTML += ', ';}
             })
           }).catch(err=> {console.log('getInatSpecies ERROR', err)});
         })
         break;
       case 'scientificName': case 'vernacularName':
-        colObj.innerHTML = res[colNam] ? `<a title="Species Explorer: ${res[colNam]}" href="${resultsUrl}?q=${res[colNam]}">${res[colNam]}</a>` : null;
+        colObj.innerHTML = res[colNam] ? `<a title="Species Explorer: ${res[colNam]}" href="${resultsUrl}?siteName=${siteName}&q=${res[colNam]}">${res[colNam]}</a>` : null;
         break;
       case 'parent':
-        //colObj.innerHTML = res[colNam] ? `<a title="Species Explorer: Explore parent taxon ${res[colNam]}" href="${resultsUrl}?q=${res[colNam]}">${res[colNam]}</a>` : null;
-        colObj.innerHTML += res[colNam] ? `<a title="Species Explorer: ALL sub-taxa of parent taxon ${res[colNam]}" href="${resultsUrl}?q=${res[colNam]}"><i class="fa-solid fa-code-branch parent-branch"></i></a>` : null;
-        colObj.innerHTML += res[colNam] ? ` | <a title="Species Explorer: Parent taxon ${getParentRank(res.rank)} ${res[colNam]}" href="${resultsUrl}?q=${res[colNam]}&rank=${getParentRank(res.rank)}">${res[colNam]}</a>` : null;
+        //colObj.innerHTML = res[colNam] ? `<a title="Species Explorer: Explore parent taxon ${res[colNam]}" href="${resultsUrl}?siteName=${siteName}&q=${res[colNam]}">${res[colNam]}</a>` : null;
+        colObj.innerHTML += res[colNam] ? `<a title="Species Explorer: ALL sub-taxa of parent taxon ${res[colNam]}" href="${resultsUrl}?siteName=${siteName}&q=${res[colNam]}"><i class="fa-solid fa-code-branch parent-branch"></i></a>` : null;
+        colObj.innerHTML += res[colNam] ? ` | <a title="Species Explorer: Parent taxon ${getParentRank(res.rank)} ${res[colNam]}" href="${resultsUrl}?siteName=${siteName}&q=${res[colNam]}&rank=${getParentRank(res.rank)}">${res[colNam]}</a>` : null;
         break;
       case 'parentKey':
-        colObj.innerHTML = res[colNam] ? `<a title="Species Explorer: ${res[colNam]}" href="${resultsUrl}?taxonKey=${res[colNam]}">${res[colNam]}</a>` : null;
+        colObj.innerHTML = res[colNam] ? `<a title="Species Explorer: ${res[colNam]}" href="${resultsUrl}?siteName=${siteName}&taxonKey=${res[colNam]}">${res[colNam]}</a>` : null;
         break;
       case 'key': case 'nubKey':
-        //colObj.innerHTML = res[colNam] ? `<a href="${resultsUrl}?taxonKey=${res[colNam]}">${res[colNam]}</a>` : null;
-        //colObj.innerHTML = `<a href="${resultsUrl}?q=&higherTaxonKey=${res[colNam]}&higherTaxonName=${name}&higherTaxonRank=${res['rank']}">${res[colNam]}</a>`;
+        //colObj.innerHTML = res[colNam] ? `<a href="${resultsUrl}?siteName=${siteName}&taxonKey=${res[colNam]}">${res[colNam]}</a>` : null;
+        //colObj.innerHTML = `<a href="${resultsUrl}?siteName=${siteName}&q=&higherTaxonKey=${res[colNam]}&higherTaxonName=${name}&higherTaxonRank=${res['rank']}">${res[colNam]}</a>`;
         //colObj.title = `List child taxa of '${name}' with key ${res[colNam]}`;
         colObj.innerHTML = res[colNam] ? `<a href="https://www.gbif.org/species/${res[colNam]}">${res[colNam]}</a>` : null;
         colObj.title = `View '${name}' with key ${res[colNam]} on GBIF`;
@@ -256,19 +256,19 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
         let tree = res[colNam]; //object of upper taxa like {123456:Name,234567:Name,...}
         if (!tree) break;
         Object.keys(tree).forEach((key, idx) => {
-          //colObj.innerHTML += `<a title="Species Explorer: ${tree[key]}" href="${resultsUrl}?q=${tree[key]}">${tree[key]}</a>`; //load self with just parent taxon
-          colObj.innerHTML += `<a title="Species Explorer: ${tree[key]}(${key})" href="${resultsUrl}?taxonKey=${key}">${tree[key]}</a>`; //load self with just parent taxon
+          //colObj.innerHTML += `<a title="Species Explorer: ${tree[key]}" href="${resultsUrl}?siteName=${siteName}&q=${tree[key]}">${tree[key]}</a>`; //load self with just parent taxon
+          colObj.innerHTML += `<a title="Species Explorer: ${tree[key]}(${key})" href="${resultsUrl}?siteName=${siteName}&taxonKey=${key}">${tree[key]}</a>`; //load self with just parent taxon
           if (idx < Object.keys(tree).length-1) {colObj.innerHTML += ', ';}
         })
         break;
       case 'parentTaxa':
-        if (res.kingdom) {colObj.innerHTML += `<a title="Species Explorer: Kingdom ${res.kingdom}" href="${resultsUrl}?q=${res.kingdom}">${res.kingdom}</a>`;}
-        if (res.phylum) {colObj.innerHTML += `, <a title="Species Explorer: Phylum ${res.phylum}" href="${resultsUrl}?q=${res.phylum}">${res.phylum}</a>`;}
-        if (res.class) {colObj.innerHTML += `, <a title="Species Explorer: Class ${res.class}" href="${resultsUrl}?q=${res.class}">${res.class}</a>`;}
-        if (res.order) {colObj.innerHTML += `, <a title="Species Explorer: Order ${res.order}" href="${resultsUrl}?q=${res.order}">${res.order}</a>`;}
-        if (res.family) {colObj.innerHTML += `, <a title="Species Explorer: Family ${res.family}" href="${resultsUrl}?q=${res.family}">${res.family}</a>`;}
-        if (res.genus) {colObj.innerHTML += `, <a title="Species Explorer: Genus ${res.genus}" href="${resultsUrl}?q=${res.genus}">${res.genus}</a>`;}
-        if (res.species) {colObj.innerHTML += `, <a title="Species Explorer: Species ${res.species}" href="${resultsUrl}?q=${res.species}">${res.species}</a>`;}
+        if (res.kingdom) {colObj.innerHTML += `<a title="Species Explorer: Kingdom ${res.kingdom}" href="${resultsUrl}?siteName=${siteName}&q=${res.kingdom}">${res.kingdom}</a>`;}
+        if (res.phylum) {colObj.innerHTML += `, <a title="Species Explorer: Phylum ${res.phylum}" href="${resultsUrl}?siteName=${siteName}&q=${res.phylum}">${res.phylum}</a>`;}
+        if (res.class) {colObj.innerHTML += `, <a title="Species Explorer: Class ${res.class}" href="${resultsUrl}?siteName=${siteName}&q=${res.class}">${res.class}</a>`;}
+        if (res.order) {colObj.innerHTML += `, <a title="Species Explorer: Order ${res.order}" href="${resultsUrl}?siteName=${siteName}&q=${res.order}">${res.order}</a>`;}
+        if (res.family) {colObj.innerHTML += `, <a title="Species Explorer: Family ${res.family}" href="${resultsUrl}?siteName=${siteName}&q=${res.family}">${res.family}</a>`;}
+        if (res.genus) {colObj.innerHTML += `, <a title="Species Explorer: Genus ${res.genus}" href="${resultsUrl}?siteName=${siteName}&q=${res.genus}">${res.genus}</a>`;}
+        if (res.species) {colObj.innerHTML += `, <a title="Species Explorer: Species ${res.species}" href="${resultsUrl}?siteName=${siteName}&q=${res.species}">${res.species}</a>`;}
         //NOTE: GBIF species/search often does not return a parent SPECIES for a SUBSPECIES taxon, which is why it doesn't show up.
         break;
       case 'occurrences':
@@ -276,12 +276,12 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
         occs.then(occs => {
           let title = `Occurrence Explorer: ${name}`;
           if (occs.names) {title += `, ${occs.names.join(", ")}`};
-          colObj.innerHTML = `<a title="${title}" href="${exploreUrl}?${occs.search}&view=MAP">${nFmt.format(occs.total)}</a>`;
+          colObj.innerHTML = `<a title="${title}" href="${exploreUrl}?siteName=${siteName}&${occs.search}&view=MAP">${nFmt.format(occs.total)}</a>`;
         })
 /*
         //gOccCnts.then(occs => {
         getStoredOccCnts(fCfg, `taxonKey=${res.nubKey}`).then(occs => {
-          colObj.innerHTML += `<a href="${exploreUrl}?taxonKey=${key}&view=MAP">${nFmt.format(occs[key]?occs[key]:0)}</a>`;
+          colObj.innerHTML += `<a href="${exploreUrl}?siteName=${siteName}&taxonKey=${key}&view=MAP">${nFmt.format(occs[key]?occs[key]:0)}</a>`;
           //console.log('nubKey', res.nubKey, 'speciesListKey', res.key, res);
           //NOTE: must restrict to accepted species & subspecies for now - it double-counts some sub-taxa for genus and above
           if (res.key != res.nubKey && !res.acceptedKey && ('SPECIES'==res.rank.toUpperCase() || 'SUBSPECIES'==res.rank.toUpperCase())) {
@@ -290,10 +290,10 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
               let sum = top + res.sum;
               let keys = res.keys.map(key => {console.log('mapkey', key); return `&taxonKey=${key}`;}); //returns array. use .join('') for string
               console.log('sumAllTaxonOccs | parent:', occs[key], 'subSum:', res.sum, 'subKeys:', keys);
-              colObj.innerHTML = `<a href="${exploreUrl}?taxonKey=${key}${keys.join('')}&view=MAP">${nFmt.format(sum?sum:0)}</a>`;  
+              colObj.innerHTML = `<a href="${exploreUrl}?siteName=${siteName}&taxonKey=${key}${keys.join('')}&view=MAP">${nFmt.format(sum?sum:0)}</a>`;  
             }).catch(err => {colObj.innerHTML = ''; console.log(`ERROR in sumSubTAxonOccs:`, err);})
           } else {
-            colObj.innerHTML = `<a href="${exploreUrl}?taxonKey=${key}&view=MAP">${nFmt.format(occs[key]?occs[key]:0)}</a>`;
+            colObj.innerHTML = `<a href="${exploreUrl}?siteName=${siteName}&taxonKey=${key}&view=MAP">${nFmt.format(occs[key]?occs[key]:0)}</a>`;
           }
         }).catch(err => {colObj.innerHTML = ''; console.log(`ERROR in occurrence counts:`, err);})
 */
@@ -340,15 +340,15 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
           occs.then(occs => {
             imgs.then(imgs => {
               let iCnt = imgs.objOcc.StillImage ? imgs.objOcc.StillImage : 0;
-              colObj.innerHTML = `<a href="${exploreUrl}?${occs.search}&view=GALLERY">${nFmt.format(iCnt)}</a>`;
+              colObj.innerHTML = `<a href="${exploreUrl}?siteName=${siteName}&${occs.search}&view=GALLERY">${nFmt.format(iCnt)}</a>`;
             })
           })
         } catch (err) {colObj.innerHTML = ''; console.log(`ERROR in getImageCount:`, err);}
         break;
       case 'taxonomicStatus':
         if (res.accepted) {
-          //colObj.innerHTML += `<a title="Species Explorer ACCEPTED name: ${res.accepted}" href="${resultsUrl}?q=${res.accepted}">${res[colNam]}</a>`;
-          colObj.innerHTML += `<a title="Species Explorer ACCEPTED name: ${res.accepted}" href="${resultsUrl}?taxonKey=${res.acceptedKey}">${res[colNam]}</a>`;
+          //colObj.innerHTML += `<a title="Species Explorer ACCEPTED name: ${res.accepted}" href="${resultsUrl}?siteName=${siteName}&q=${res.accepted}">${res[colNam]}</a>`;
+          colObj.innerHTML += `<a title="Species Explorer ACCEPTED name: ${res.accepted}" href="${resultsUrl}?siteName=${siteName}&taxonKey=${res.acceptedKey}">${res[colNam]}</a>`;
         } else {
           colObj.innerHTML = res[colNam] ? res[colNam] : null;
         }
@@ -429,13 +429,13 @@ export function SamePage(newParm=qParm, newLimit=limit, newOffset=offset, newQFi
   offset = newOffset;
   qField = newQField;
   other = newOther;
-  window.location.assign(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}&qField=${qField}${other}`);
+  window.location.assign(`${resultsUrl}?siteName=${siteName}&q=${qParm}&offset=${offset}&limit=${limit}&qField=${qField}${other}`);
 }
 export function PrevPage() {
   if (offset > 0) {
     offset = offset - limit;
-    //alert(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}`);
-    window.location.assign(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}${other}`);
+    //alert(`${resultsUrl}?siteName=${siteName}&q=${qParm}&offset=${offset}&limit=${limit}`);
+    window.location.assign(`${resultsUrl}?siteName=${siteName}&q=${qParm}&offset=${offset}&limit=${limit}${other}`);
   }
 }
 export function NextPage() {
@@ -443,13 +443,13 @@ export function NextPage() {
     alert(`GBIF species results are limited to 10,000 records. Please focus your search terms to reduce data scope.`);
   } else if ((offset + limit) < count) {
     offset = offset + limit;
-    //alert(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}`);
-    window.location.assign(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}${other}`);
+    //alert(`${resultsUrl}?siteName=${siteName}&q=${qParm}&offset=${offset}&limit=${limit}`);
+    window.location.assign(`${resultsUrl}?siteName=${siteName}&q=${qParm}&offset=${offset}&limit=${limit}${other}`);
   }
 }
 export function FirstPage() {
-  //alert(`${resultsUrl}?q=${qParm}&offset=0&limit=${limit}`);
-  window.location.assign(`${resultsUrl}?q=${qParm}&offset=0&limit=${limit}${other}`);
+  //alert(`${resultsUrl}?siteName=${siteName}&q=${qParm}&offset=0&limit=${limit}`);
+  window.location.assign(`${resultsUrl}?siteName=${siteName}&q=${qParm}&offset=0&limit=${limit}${other}`);
 }
 export function LastPage() {
   //alert(`LastPage() | count:${count}, limit:${limit}, offset:${offset}`);
@@ -458,8 +458,8 @@ export function LastPage() {
   } else  if (count > limit) {
     offset = Math.floor(count/limit)*limit;
     if (offset >= count) {offset = offset - limit;}
-    //alert(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}`);
-    window.location.assign(`${resultsUrl}?q=${qParm}&offset=${offset}&limit=${limit}${other}`);
+    //alert(`${resultsUrl}?siteName=${siteName}&q=${qParm}&offset=${offset}&limit=${limit}`);
+    window.location.assign(`${resultsUrl}?siteName=${siteName}&q=${qParm}&offset=${offset}&limit=${limit}${other}`);
   }
 }
 if (document.getElementById("results_search")) {
@@ -759,10 +759,8 @@ $('#species-table').ready(() => {
 */  
 function columnSort() {
   Promise.all(gOccCnts).then(() => {
-    //alert(`columnSort ${JSON.stringify(columnIds)}`);
-    //let excludeColumnIds = [columnIds['childTaxa'], columnIds['iconImage'], columnIds['images']];
     let excludeColumnIds = [columnIds['childTaxa'], columnIds['iconImage']];
-    tableSortHeavy('species-table', columnIds['occurrences'], excludeColumnIds);
+    tableSortHeavy('species-table', [columnIds['occurrences'],'desc'], excludeColumnIds);
     //tableSortSimple('species-table');
     //tableSortTrivial('species-table');
   });

@@ -11,7 +11,7 @@ const metaUrl = new URL(import.meta.url); //lower case '.url' is a property
 const metaSite = metaUrl.searchParams.get('siteName'); //calling modules do this: import { dataConfig } from '../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=val'
 //Get siteName meta param and set localStorage siteName here
 if (metaSite) {
-  siteName = metaSite; 
+  siteName = metaSite;
   console.log('gbif_data_stats.js called by module metaParam with siteName', metaSite);
   setStoredData('siteName', false, false, siteName);
 }
@@ -250,7 +250,7 @@ function addListeners(dataConfig) {
   if (document.getElementById("stats-species")) {
       document.getElementById("stats-species").addEventListener("mouseup", function(e) {
         if (0 == e.button) {
-          window.location.assign(`${dataConfig.resultsUrl}`);
+          window.location.assign(`${dataConfig.resultsUrl}?siteName=${siteName}`);
         }
       });
   }
@@ -259,7 +259,7 @@ function addListeners(dataConfig) {
   if (document.getElementById("stats-datasets")) {
       document.getElementById("stats-datasets").addEventListener("mouseup", function(e) {
         if (0 == e.button) {
-          window.location.assign(`${dataConfig.explorerUrl}?view=DATASETS`);
+          window.location.assign(`${dataConfig.explorerUrl}?siteName=${siteName}&view=DATASETS`);
         }
       });
   }
@@ -268,7 +268,7 @@ function addListeners(dataConfig) {
   if (document.getElementById("stats-citations")) {
       document.getElementById("stats-citations").addEventListener("mouseup", function(e) {
         if (0 == e.button) {
-          window.location.assign(`${dataConfig.literatUrl}`);
+          window.location.assign(`${dataConfig.literatUrl}?siteName=${siteName}`);
           /*
           window.open(
             `https://www.gbif.org/resource/search?contentType=literature&publishingOrganizationKey=${dataConfig.publishingOrgKey}`
@@ -283,7 +283,7 @@ function addListeners(dataConfig) {
   if (document.getElementById("stats-publishers")) {
     document.getElementById("stats-publishers").addEventListener("mouseup", function(e) {
       if (0 == e.button) {
-        window.location.assign(`${dataConfig.publishUrl}`);
+        window.location.assign(`${dataConfig.publishUrl}?siteName=${siteName}`);
       }
     });
   }
@@ -344,19 +344,19 @@ function setContext(dataConfig) {
     homeTitle.innerText = dataConfig.atlasName;
 }
   if (linkOccs) {
-    linkOccs.href = dataConfig.exploreUrl + '?view=MAP';
+    linkOccs.href = dataConfig.exploreUrl + `?siteName=${siteName}&view=MAP`;
   }
   if (linkDset) {
-    linkDset.href = dataConfig.exploreUrl + '?view=DATASETS';
+    linkDset.href = dataConfig.exploreUrl + `?siteName=${siteName}&view=DATASETS`;
   }
   if (linkSpcs) {
-    linkSpcs.href = dataConfig.resultsUrl; // + '?rank=SPECIES&status=ACCEPTED'; //production site shows KINGDOMs for blank search
+    linkSpcs.href = dataConfig.resultsUrl + `?siteName=${siteName}`;
   }
   if (linkCite) {
-    //linkCite.href = dataConfig.literatUrl; //this is now defined manually in WordPress
+    //linkCite.href = dataConfig.literatUrl + `?siteName=${siteName}`; //this is now defined manually in WordPress
   }
   if (linkPubl) {
-    linkPubl.href = dataConfig.publishUrl;
+    linkPubl.href = dataConfig.publishUrl + `?siteName=${siteName}`;
   }
 }
 

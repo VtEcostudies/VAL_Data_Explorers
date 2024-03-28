@@ -112,7 +112,7 @@ import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`).then
     if (history.replaceState) {
       console.log(`gbif_data_widget | GBIF OccurrenceSearch RECEIVED queryParam 'gbif-year' | REPLACING WITH 'year'...`)
       url.searchParams.set('year', gbifYear);
-      url.searchParams.delete('gbif-year');
+      //url.searchParams.delete('gbif-year');
       history.replaceState({}, "", url);  
     } else {
       let msg = `WEB BROWSER IS NOT HTML5 COMPATIBLE. CANNOT RELOAD PAGE CONTENTS REPLACING 'gbif-year' WITH 'year'.`
