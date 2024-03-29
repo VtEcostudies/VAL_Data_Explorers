@@ -10,6 +10,31 @@ let siteName = siteConfig.siteName;
 let storSite = await getStoredData('siteName', '', '');
 if (storSite) {siteName = storSite;}
 
+/*
+  Wordpress reserves the query parameter 'year' so we can't use it directly.
+  Instead, pass the param 'gbif-year'. Here we replace it with 'year' just
+  before invoking the OcurrenceSearch widget.
+*/
+let url = new URL(location);
+let gbifYear = url.searchParams.get('gbif-year');
+if (gbifYear) {
+  if (history.replaceState) {
+    console.log(`gbif_data_widget | GBIF OccurrenceSearch RECEIVED queryParam 'gbif-year' | REPLACING WITH 'year'...`)
+    url.searchParams.set('year', gbifYear);
+    //url.searchParams.delete('gbif-year');
+    history.replaceState({}, "", url);  
+  } else {
+    let msg = `WEB BROWSER IS NOT HTML5 COMPATIBLE. CANNOT RELOAD PAGE CONTENTS REPLACING 'gbif-year' WITH 'year'.`
+    console.log(`gbif_data_widget | ${msg}`);
+    alert(msg);
+    //location.url = url;
+  }
+}
+let latitude = Number(url.searchParams.get('lat'));
+let longitude = Number(url.searchParams.get('lon'));
+let zoomLevel = Number(url.searchParams.get('zoom'));
+console.log('gbifDataWidget MAP QUERY PARAMS', latitude, longitude, zoomLevel);
+
 import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`).then(fileConfig => {
   let dataConfig = fileConfig.dataConfig
 
@@ -64,9 +89,26 @@ import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`).then
       }
     }
   }
+  /*
+    mapSettings: {
+      lat: 43.858297,
+      lng: -72.446594,
+      zoom: 7.75
+    }
+  */
+  let mapSettings = dataConfig.mapSettings;
+  
+  console.log('gbifDataWidget dataConfig.mapSettings', mapSettings);
+  if (latitude && longitude) {
+    mapSettings.lat = Number(latitude); 
+    mapSettings.lng = Number(longitude);
+  }
+  if (zoomLevel) {mapSettings.zoom = zoomLevel;}
+  
+  console.log('gbifDataWidget mapSettings', mapSettings);
 
   var occurrence = {
-      mapSettings: dataConfig.mapSettings,
+      mapSettings: mapSettings,
       rootPredicate: dataConfig.rootPredicate,
       highlightedFilters: ['q','taxonKey','gadmGid','locality','elevation','year','recordedBy','publishingOrg','datasetName'],
       excludedFilters: ['stateProvince', 'continent', 'country', 'publishingCountry', 'hostingOrganization', 'networkKey', 'publishingProtocol'],
@@ -98,27 +140,6 @@ import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`).then
           }
         }
       }
-    }
-  }
-
-  /*
-    Wordpress reserves the query parameter 'year' so we can't use it directly.
-    Instead, pass the param 'gbif-year'. Here we replace it with 'year' just
-    before invoking the OcurrenceSearch widget.
-  */
-  let url = new URL(location);
-  let gbifYear = url.searchParams.get('gbif-year');
-  if (gbifYear) {
-    if (history.replaceState) {
-      console.log(`gbif_data_widget | GBIF OccurrenceSearch RECEIVED queryParam 'gbif-year' | REPLACING WITH 'year'...`)
-      url.searchParams.set('year', gbifYear);
-      //url.searchParams.delete('gbif-year');
-      history.replaceState({}, "", url);  
-    } else {
-      let msg = `WEB BROWSER IS NOT HTML5 COMPATIBLE. CANNOT RELOAD PAGE CONTENTS REPLACING 'gbif-year' WITH 'year'.`
-      console.log(`gbif_data_widget | ${msg}`);
-      alert(msg);
-      //location.url = url;
     }
   }
 

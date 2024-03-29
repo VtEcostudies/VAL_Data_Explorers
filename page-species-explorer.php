@@ -52,7 +52,7 @@
         <a href="#" onclick="toggleInfo('The Species Explorer does a full text search of the Checklist of Vermont Species on GBIF. Text is searched against Scientific Name, Common Name, and Species Description.', true);"
           style="display: inline-block; vertical-align: top;">
           <i class="fa fa-info-circle"></i>
-        </a>`;
+        </a>
       </div>
 
   		<form id="searchform" onsubmit="return false;" >

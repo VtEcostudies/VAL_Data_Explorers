@@ -39,6 +39,7 @@ var limit = objUrlParams.get('limit'); limit = Number(limit) ? Number(limit) : 2
 var rank =  objUrlParams.get('rank'); rank = rank ? rank.toUpperCase() : 'ALL';
 var status =  objUrlParams.get('status'); status = status ? status.toUpperCase() : 'ALL';
 var qField =  objUrlParams.get('qField'); qField = qField ? qField.toUpperCase() : 'ALL';
+var drillRanks = objUrlParams.get('drillRanks');
 var count = 0; //this is set elsewhere after loading data. initialize here.
 var page = offset / limit + 1;
 console.log('Query param q:', qParm, 'offset:', offset, 'limit:', limit, 'page:', page, 'qField:', qField, 'Other:', other);
