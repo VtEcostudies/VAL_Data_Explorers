@@ -35,7 +35,7 @@ let eleCountDset = document.getElementById("count-datasets");
 let eleCountSpcs = document.getElementById('count-species');
 let eleCountPubs = document.getElementById("count-publishers");
 let eleCountCite = document.getElementById("count-citations");
-let eleCountObsv = document.getElementById('count-observers');  //not fully defined. initially, an admin-defined count
+let eleCountObsv = document.getElementById('count-observers');  //not fully defined. initially, iNat count
 let eleCountCntb = document.getElementById('count-contributors'); //used to count GBIF recordedBy
 
 import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`)
@@ -139,6 +139,7 @@ async function observerStats(dataConfig) {
 async function contributorStats(fileConfig) {
   let dataConfig = fileConfig.dataConfig;
   let elem = eleCountCntb;
+  console.log('gbif_data_stats.js=>contributorStats=>contributorCountElement:', elem);
   if (elem) {
     let ctrb = getAggOccCounts(fileConfig, false, ['recordedBy'], 'facetMincount=1&facetLimit=1199999');
     ctrb.then(ctrb => {
