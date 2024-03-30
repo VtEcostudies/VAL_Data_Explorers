@@ -137,9 +137,7 @@ async function observerStats(dataConfig) {
   Load contributor stats, which initially is just a GBIF facet-count on the recordedBy field.
 */
 async function contributorStats(fileConfig) {
-  let dataConfig = fileConfig.dataConfig;
   let elem = eleCountCntb;
-  console.log('gbif_data_stats.js=>contributorStats=>contributorCountElement:', elem);
   if (elem) {
     let ctrb = getAggOccCounts(fileConfig, false, ['recordedBy'], 'facetMincount=1&facetLimit=1199999');
     ctrb.then(ctrb => {
@@ -383,8 +381,8 @@ function startUp(fileConfig) {
       //occPublisherStats(fileConfig); //this would appear to be a count of publishers for the occurrence data-scope
       if (eleCountCite) {eleCountCite.innerHTML = '0';}
     }
-    observerStats(dataConfig);
-    contributorStats(fileConfig);
   }
+  observerStats(dataConfig);
+  contributorStats(fileConfig);
   addListeners(dataConfig);
 }
