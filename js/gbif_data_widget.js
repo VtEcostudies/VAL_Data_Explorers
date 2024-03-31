@@ -6,6 +6,8 @@ import { siteConfig } from './gbifSiteConfig.js'; //in html must declare this as
 import { getStoredData } from '../../VAL_Web_Utilities/js/storedData.js';
 import { townsBasemap } from './gbif_vt_town_tile.js';
 
+var Storage = window.sessionStorage ? sessionStorage : false;
+
 let siteName = siteConfig.siteName;
 let storSite = await getStoredData('siteName', '', '');
 if (storSite) {siteName = storSite;}
@@ -97,7 +99,7 @@ import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`).then
     }
   */
   let mapSettings = dataConfig.mapSettings;
-  
+  /*
   console.log('gbifDataWidget dataConfig.mapSettings', mapSettings);
   if (latitude && longitude) {
     mapSettings.lat = Number(latitude); 
@@ -106,6 +108,17 @@ import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`).then
   if (zoomLevel) {mapSettings.zoom = zoomLevel;}
   
   console.log('gbifDataWidget mapSettings', mapSettings);
+  */
+  //Far better: set map zoom by setting sessionStorage values:
+  if (Storage) {
+    if (latitude && longitude) {
+      Storage.setItem('mapLat', JSON.stringify(latitude));
+      Storage.setItem('mapLng', JSON.stringify(longitude));
+    }
+    if (zoomLevel) {
+      Storage.setItem('mapZoom', JSON.stringify(zoomLevel));
+    }
+  }
 
   var occurrence = {
       mapSettings: mapSettings,
@@ -124,7 +137,7 @@ import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`).then
   var maps = {
     locale: 'en', // what language should be used for GBIF base maps? See https://tile.gbif.org/ui/ for available languages in basemaps
     defaultProjection: 'MERCATOR', // what is the default projection
-    defaultMapStyle: 'NATURAL', // what is the default style
+    defaultMapStyle: 'SATELLITE', // what is the default style
     mapStyles: {
       MERCATOR: ['NATURAL', 'SATELLITE', 'BRIGHT', 'DARK'],
       PLATE_CAREE: ['NATURAL', 'BRIGHT', 'DARK']
