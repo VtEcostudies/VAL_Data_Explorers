@@ -12,6 +12,7 @@ export const siteConfig = {
 export const siteNames = [
   'val'
   ,'mval'
+  ,'vtLadyBeetles'
   ,'vtButterflies'
   ,'vtBees',
   ,'vtMammals'
