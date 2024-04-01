@@ -303,19 +303,19 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
         let imgInfo = false;
         wiki.then(wiki => {
           inat.then(inat => {
-            if (wiki.thumbnail) {
-              imgInfo = {
-                iconSrc: wiki.thumbnail.source,
-                overSrc: wiki.originalimage.source,
-                attrib: ''
-              }
-            } else if (inat.default_photo) {
+            if (inat.default_photo) {
               imgInfo = {
                 iconSrc: inat.default_photo.medium_url,
                 overSrc: inat.default_photo.medium_url,
                 attrib: inat.default_photo.attribution
               }
-            }
+            } else if (wiki.thumbnail) {
+              imgInfo = {
+                iconSrc: wiki.thumbnail.source,
+                overSrc: wiki.originalimage.source,
+                attrib: ''
+              }
+            } 
             if (imgInfo) {
               let iconImg = document.createElement("img");
               iconImg.src = imgInfo.iconSrc;
