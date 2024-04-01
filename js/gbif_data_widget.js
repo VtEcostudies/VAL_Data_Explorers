@@ -99,6 +99,7 @@ import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`).then
     }
   */
   let mapSettings = dataConfig.mapSettings;
+  //Map-view option 1: use mapSettings. Problem: map-view is stored in sessionStorage, so this only works on _blank invocation.
   /*
   console.log('gbifDataWidget dataConfig.mapSettings', mapSettings);
   if (latitude && longitude) {
@@ -106,10 +107,9 @@ import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`).then
     mapSettings.lng = Number(longitude);
   }
   if (zoomLevel) {mapSettings.zoom = zoomLevel;}
-  
   console.log('gbifDataWidget mapSettings', mapSettings);
   */
-  //Far better: set map zoom by setting sessionStorage values:
+  //Map-view option 1: Set map view by setting sessionStorage values. This is far better because it works on any invocation.
   if (Storage) {
     if (latitude && longitude) {
       Storage.setItem('mapLat', JSON.stringify(latitude));
