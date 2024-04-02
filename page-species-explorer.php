@@ -48,7 +48,7 @@
   	<div class="content">
 
       <div class="hero-header-info-icon">
-  		  <h2 style="display: inline-block;">Species Explorer</h2>
+  		  <h2 id="species-title" style="display: inline-block;">Species Explorer</h2>
         <a href="#" onclick="toggleInfo('The Species Explorer does a full text search of the Checklist of Vermont Species on GBIF. Text is searched against Scientific Name, Common Name, and Species Description.', true);"
           style="display: inline-block; vertical-align: top;">
           <i class="fa fa-info-circle"></i>
