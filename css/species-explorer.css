@@ -196,11 +196,17 @@
   }
   /* 100% Image Width on Smaller Screens */
   @media only screen and (max-width: 700px) {
-  .modal-content {
-  width: 100%;
+    .modal-content {
+    width: 100%;
+    }
   }
-  }
-  
+.pagination li select {
+  overflow: hidden;
+}
+.pagination li select option {
+  /*background-color: gold;*/
+}
+
 /* lines 28 - 52 in style.css */
 /*** all displays ***/
 @media only screen and (-webkit-min-device-pixel-ratio: 2), only screen and (min-resolution: 192dpi) {

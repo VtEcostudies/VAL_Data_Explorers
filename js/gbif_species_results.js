@@ -1,4 +1,5 @@
 import { siteConfig, siteNames } from './gbifSiteConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_config.js"></script>
+import { getSite } from '../../VAL_Web_Utilities/js/gbifDataConfig.js';
 import { speciesSearch } from './gbif_species_search.js'; //NOTE: importing just a function includes the entire module
 import { getStoredOccCnts, getAggOccCounts } from '../../VAL_Web_Utilities/js/gbifOccFacetCounts.js';
 import { getWikiPage } from '../../VAL_Web_Utilities/js/wikiPageData.js';
@@ -11,9 +12,15 @@ import { getInatSpecies } from '../../VAL_Web_Utilities/js/inatSpeciesData.js';
 import { getStoredData, setStoredData } from '../../VAL_Web_Utilities/js/storedData.js';
 
 const gbifApi = "https://api.gbif.org/v1";
+/*
 var siteName = siteConfig.siteName;
 let storSite = await getStoredData('siteName', '', '');
 if (storSite) {siteName = storSite;}
+*/
+//get URL search params from calling http route address
+const pageUrl = new URL(document.URL);
+const objUrlParams = pageUrl.searchParams;
+var siteName = await getSite(pageUrl);
 var homeUrl;
 var exploreUrl;
 var resultsUrl;
@@ -22,11 +29,11 @@ var columns;
 var columNames;
 var gOccCnts = [];
 var downloadOccurrenceCounts = 0;
-//var fileConfig = false; //this global pointer used ONLY for getDownloadData
+var fileConfig = false; //this global pointer used after page is loaded for query updates by parameter (fyunction loadByQueryParams)
 
 var columnIds = {};
 const nFmt = new Intl.NumberFormat(); //use this to format numbers by locale... automagically
-const objUrlParams = new URLSearchParams(window.location.search);
+//const objUrlParams = new URLSearchParams(window.location.search);
 
 // get query params named 'taxonKey'
 let tKeys = objUrlParams.getAll('taxonKey');
@@ -36,8 +43,8 @@ console.log('Query Param(s) taxonKeys:', tKeys);
 var qParm = objUrlParams.get('q');
 var offset = objUrlParams.get('offset'); offset = Number(offset) ? Number(offset) : 0;
 var limit = objUrlParams.get('limit'); limit = Number(limit) ? Number(limit) : 20;
-var rank =  objUrlParams.get('rank'); rank = rank ? rank.toUpperCase() : 'ALL';
-var status =  objUrlParams.get('status'); status = status ? status.toUpperCase() : 'ALL';
+var ranks =  objUrlParams.getAll('rank'); ranks = ranks.length ? ranks.map((rank) => rank.toUpperCase()) : ['ALL'];
+var status =  objUrlParams.getAll('status'); status = status.length ? status.map((stat) => stat.toUpperCase()) : ['ALL'];
 var qField =  objUrlParams.get('qField'); qField = qField ? qField.toUpperCase() : 'ALL';
 var drillRanks = objUrlParams.get('drillRanks');
 var count = 0; //this is set elsewhere after loading data. initialize here.
@@ -49,17 +56,20 @@ var other = ''; var objOther = {};
 objUrlParams.forEach((val, key) => {
   if ('siteName'!=key && 'taxonKey'!=key && 'q'!=key && 'offset'!=key && 'limit'!=key && 'qField'!=key) {
     other += `&${key}=${val}`;
-    objOther[key] = val;
+    if (objOther[key]) {objOther[key].push(val);}
+    else {objOther[key] = [val];}
   }
 });
+console.log('objOther', objOther, other);
 
 //get atlas configuration and startup
 import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`)
   .then(fCfg => {
-    //fileConfig = fCfg; //set global value
+    fileConfig = fCfg; //set global value
     console.log('gbif_species_results | siteName:', siteName, 'dataConfig:', fCfg.dataConfig);
     startUp(fCfg);
   })
+  .catch(err => {console.log('gbif_species_results=>import siteConfig ERROR', err)})
 
 const eleTtl = document.getElementById("species-title"); //the h tag within the title
 const eleHom = document.getElementById('homeLink');
@@ -70,14 +80,35 @@ const elePag = document.getElementsByName("page-number"); elePag.forEach(ele => 
 const eleTbl = document.getElementById("species-table");
 const eleLbl = document.getElementById("search-value");
 const eleLb2 = document.getElementById("search-value-bot"); //a duplicate search-value display to go below the table of results
-const eleRnk = document.getElementById("taxon-rank"); if (eleRnk) {eleRnk.value =  rank;}
-const eleSts = document.getElementById("taxon-status"); if (eleSts) {eleSts.value =  status;}
+const eleRnk = document.getElementById("taxon-rank"); if (eleRnk) {setChosenMulti(eleRnk, ranks);}
+const eleSts = document.getElementById("taxon-status"); if (eleSts) {setChosenMulti(eleSts, status);}
 const eleCto = document.getElementById("compare-to"); if (eleCto) {eleCto.value =  qField;}
 const eleSiz = document.getElementById("page-size"); if (eleSiz) {eleSiz.value =  limit;}
 const eleDwn = document.getElementById("download-progress"); if (eleDwn) {eleDwn.style.display = 'none';}
 const eleOvr = document.getElementById("download-overlay"); if (eleOvr) {eleOvr.style.display = 'none';}
 //const eleInf = document.getElementById("information-overlay"); if (eleInf) {eleInf.style.display = 'none';}
-
+/* From page query parameters, set the chosen values of an (optionally) multi-select drop-down list. */
+function setChosenMulti(eleMnt, values=[]) {
+  //console.log('setChosenMulti=>eleMnt.options', eleMnt.options, '=>values', values);
+  console.log('setChosenMulti=>values', eleMnt.id, values);
+  if (eleMnt.multiple) { //Select element is in multi-select mode
+    if (0==values.length) {
+      eleMnt.value = 'ALL';
+    } else if (1==values.length) {
+      eleMnt.value = values[0];
+    } else if (values.length > 1) {
+      for (var i = 0; i < eleMnt.options.length; i++) {
+        let selected = values.indexOf(eleMnt.options[i].value) >= 0;
+        if (selected) {
+          console.log('Select:', eleMnt.options[i].value, 'Value:', values[values.indexOf(eleMnt.options[i].value)])
+        }
+        eleMnt.options[i].selected = selected;
+      }
+    }
+  } else { //Select element is in single-select mode
+    eleMnt.value = values[0];
+  }
+}
 //create DOM elements for modal image overlay (eg. shown when clicking wikiPedia image thumbnail)
 const modalDiv = document.createElement("div");
 modalDiv.id = "divModal";
@@ -118,7 +149,12 @@ function putErrorOnScreen(err) {
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
-  
+
+async function setHead() {
+  let objHed = eleTbl.getElementsByTagName("thead");
+  console.log('setHead', objHed);
+  if (!objHed.length) {return await addHead();}
+}
 async function addHead() {
   let objHed = eleTbl.createTHead();
   let hedRow = objHed.insertRow(0); //just one header objRow
@@ -475,32 +511,114 @@ if (document.getElementById("results_search_button")) {
       let newParm = document.getElementById("results_search").value;
       SamePage(newParm, limit, 0, qField, ""); //new search - remove otherParms, go to page 0, but keep user-defined limit
     });}
-if (document.getElementById("taxon-rank")) {
-    document.getElementById("taxon-rank").addEventListener("change", function(e) {
-      let newRank = document.getElementById("taxon-rank").value;
-      console.log('taxon-rank change to', newRank);
-      var newOther = "";
-      if ("ALL" != newRank) { //now we have to search the extant 'other' args for 'rank' and replace it...
-        objOther.rank = newRank; //just assign it in the object version of 'other' - this adds or replaces 'rank'
-      } else {
-        delete objOther.rank;
+if (eleRnk) { //id="taxon-rank", the taxon-rank drop-down list
+  if (eleRnk.multiple) {
+    eleRnk.options[0].innerText = '...';
+    eleRnk.addEventListener("focus", function(e) {
+      eleRnk.size=eleRnk.options.length;
+      setChosenMulti(eleRnk, objOther.rank); //this sets the list back to what was previously-selected on a click-in
+      eleRnk.options[0].innerText = 'All';
+    })
+    eleRnk.addEventListener("blur", function(e) {
+      eleRnk.size=1;
+      eleRnk.options[0].innerText = '...';
+      selectToUpdate(eleRnk, 'rank');
+    })
+  } else {
+    eleRnk.addEventListener("change", function(e) {
+        console.log('taxon-rank change', e.target.tagName, e.target.type, e.target.value, e.target);
+        //multi-select change event fires on de-selecting a value, so we can always respond
+        //single-select change event fires only on selecting a *new* value
+        selectToUpdate(eleRnk, 'rank');
+    })
+  }
+}
+/* Respond to a generic select change/update event and reload the page */
+function selectToUpdate(eleMnt, qParam) {
+  objOther[qParam] = [];
+  let newOther = "";
+  for (const option of eleMnt.options) { //rebuild objOther from drop-down selections
+    if (option.selected && 'ALL' != option.value) {objOther[qParam].push(option.value)}
+  }
+  Object.keys(objOther).forEach(key => { //rebuild entire 'other' list from objOther (not just ranks)
+    if (Array.isArray(objOther[key])) {objOther[key].forEach(val => {newOther += `&${key}=${val}`;})}
+    else {newOther += `&${key}=${objOther[key]}`}
+  })
+  console.log('selectToUpdate', newOther, objOther);
+  if (eleMnt.multiple) {
+    loadByQueryParams(false, qParm, 0, limit, qField, newOther);
+  } else {
+    SamePage(qParm, limit, 0, qField, newOther);
+  }
+}
+
+if (eleSts) { // Status drop-down, id="taxon-status"
+  if (eleSts.multiple) {
+    eleSts.options[0].innerText = '...';
+    eleSts.addEventListener("focus", function(e) {
+      eleSts.size=eleSts.options.length;
+      setChosenMulti(eleSts, objOther.status); //this sets the list back to what was previously-selected on a click-in
+      eleSts.options[0].innerText = 'All';
+    })
+    eleSts.addEventListener("blur", function(e) {
+      eleSts.size=1;
+      eleSts.options[0].innerText = '...';
+      selectToUpdate(eleSts, 'status');
+    })
+  } else {
+    eleSts.addEventListener("change", function(e) { 
+    console.log('taxon-rank change', e.target.tagName, e.target.type, e.target.value, e.target);
+    //multi-select change event fires on de-selecting a value, so we can always respond
+    //single-select change event fires only on selecting a *new* value
+    selectToUpdate(eleSts, 'status');
+    });
+  }
+  /* 
+    2nd attempt at multi-select code. Also works with single-select?
+  If multi-select, this code responds to each option change. This is too network-heavy and causes errors. 
+  */
+/*
+  eleSts.addEventListener("change", function(e) {  
+      //let newRank = eleSts.value;
+      console.log('taxon-status change', e.target.tagName, e.target.type, e.target.value, e.target);
+      //multi-select change event fires on de-selecting a value, so we can always respond
+      //single-select change event fires only on selecting a *new* value
+      objOther.status = [];
+      let newOther = "";
+      for (const option of eleSts.options) { //rebuild objOther from drop-down selections
+        if (option.selected && 'ALL' != option.value) {objOther.status.push(option.value)}
       }
-      Object.keys(objOther).forEach(key => {newOther += `&${key}=${objOther[key]}`;}) //rebuild 'other' list from 'other' object
-      SamePage(qParm, limit, 0, qField, newOther);
-    });}
-if (document.getElementById("taxon-status")) {
-    document.getElementById("taxon-status").addEventListener("change", function(e) {
-      let newStatus = document.getElementById("taxon-status").value;
-      console.log('taxon-status change to', newStatus);
-      var newOther = "";
-      if ("ALL" != newStatus) { //now we have to search the extant 'other' args for 'status' and replace it...
-        objOther.status = newStatus; //just assign it in the object version of 'other' - this adds or replaces 'status'
+      Object.keys(objOther).forEach(key => { //rebuild entire 'other' list from objOther (not just ranks)
+        if (Array.isArray(objOther[key])) {objOther[key].forEach(val => {newOther += `&${key}=${val}`;})}
+        else {newOther += `&${key}=${objOther[key]}`}
+      })
+      console.log('taxonRank', newOther, objOther);
+      if (eleSts.multiple) {
+        loadByQueryParams(false, qParm, 0, limit, qField, newOther);
       } else {
-        delete objOther.status;
+        SamePage(qParm, limit, 0, qField, newOther);
       }
-      Object.keys(objOther).forEach(key => {newOther += `&${key}=${objOther[key]}`;}) //rebuild 'other' list from 'other' object
-      SamePage(qParm, limit, 0, qField, newOther);
-    });}
+  })
+  */
+  /* Original single-select code
+  eleSts.addEventListener("change", function(e) {
+    let newStatus = eleSts.value;
+    console.log('taxon-status change to', newStatus);
+    var newOther = "";
+    if ("ALL" != newStatus) { //now we have to search the extant 'other' args for 'status' and replace it...
+      objOther.status = [newStatus]; //just assign it in the object version of 'other' - this adds or replaces 'status'
+    } else {
+      delete objOther.status;
+    }
+    Object.keys(objOther).forEach(key => {
+      objOther[key].forEach(val => {
+        newOther += `&${key}=${val}`;
+      })
+    }) //rebuild 'other' list from 'other' object
+    SamePage(qParm, limit, 0, qField, newOther);
+  });
+*/
+}
 if (document.getElementById("compare-to")) {
   document.getElementById("compare-to").addEventListener("change", function(e) {
     let newCompare = document.getElementById("compare-to").value;
@@ -616,7 +734,13 @@ async function getDownloadData(type=0) {
     let dsi = await getDatasetInfo(fCfg.dataConfig.speciesDatasetKey); //returns a single object
     var name = `${fCfg.dataConfig.atlasAbbrev}_taxa`; //download file name
     if (qParm) {name += `_${qParm}`;} //add search term to download file name
-    Object.keys(objOther).forEach(key => {name += `_${objOther[key]}`;}) //add query params to download file name
+    //Object.keys(objOther).forEach(key => {name += `_${objOther[key]}`;}) //add query params to download file name
+    Object.keys(objOther).forEach(key => {
+      objOther[key].forEach(val => {
+        name += `_${val}`;
+      })
+    }) //rebuild 'other' list from 'other' object
+
     if (type) { //json-download
       var res = {citation: dsi.citation.text, taxa: spc}; console.log('JSON Download:', res);
       var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(res));
@@ -652,7 +776,6 @@ function jsonToCsv(json) {
 }
 
 async function startUp(fCfg) {
-
   homeUrl = fCfg.dataConfig.homeUrl;
   exploreUrl = fCfg.dataConfig.exploreUrl;
   resultsUrl = fCfg.dataConfig.resultsUrl;
@@ -662,55 +785,14 @@ async function startUp(fCfg) {
     
   if (eleTbl) { //results are displayed in a table with id="species-table". we need that to begin.
     if (tKeys.length) {
-      try {
-        addTableWait();
-        //gOccCnts = getStoredOccCnts(fCfg);
-        await addTaxaByKeys(fCfg, tKeys);
-        await addHead();
-        if (eleLbl) {
-          eleLbl.innerHTML = "Showing results for taxon keys: ";
-          tKeys.forEach((key, idx) => {
-            eleLbl.innerHTML += key;
-            if (idx < tKeys.length-1) {eleLbl.innerHTML += ', ';}
-          })
-          if (eleLb2) {eleLb2.innerHTML = eleLbl.innerHTML;}
-        }
-        Promise.all(gOccCnts).then(() => {remTableWait()});
-      } catch (err) {
-        putErrorOnScreen(err);
-      }
-    } else { //important: include q="" to show ALL species result
-      if (!qParm) {qParm = "";}
-      if ("" === qParm && !other) {
+      loadByTaxonKeys(fCfg, tKeys);
+    } else {
+      if (!qParm) {qParm = "";} //important: include q="" to show ALL species results
+      if ("" === qParm && !other) { //default condition
         let rootRank = fCfg.dataConfig.rootRank;
-        other=`&rank=${rootRank}`; objOther={'rank':rootRank}; eleRnk.value=rootRank;
+        other=`&rank=${rootRank}`; objOther={'rank':[rootRank]}; eleRnk.value=rootRank;
       }
-      try {
-        addTableWait();
-        //gOccCnts = getStoredOccCnts(fCfg);
-        let spcs = await speciesSearch(fCfg.dataConfig, qParm, offset, limit, qField, other);
-        count = spcs.count;
-        if (spcs.count) {
-          await addTaxaFromArr(fCfg, spcs.results);
-        } else {putErrorOnScreen('No data found.')}
-        await addHead();
-        let finish = (offset+limit)>count ? count : offset+limit;
-        if (eleLbl) {
-          eleLbl.innerHTML = `Showing ${nFmt.format(count?offset+1:0)}-${nFmt.format(finish)} of <u><b>${nFmt.format(count)}</b></u> Results`;
-          if (qParm) {
-            eleLbl.innerHTML += ` for Search Term <u><b>'${qParm}'</b></u>`;
-          }
-          if (Object.keys(objOther).length) {eleLbl.innerHTML += ' where ';}
-          Object.keys(objOther).forEach((key, idx) => {
-            eleLbl.innerHTML += ` ${key} is <u><b>'${objOther[key]}'</b></u>`;
-            if (idx < Object.keys(objOther).length-1) {eleLbl.innerHTML += ' and ';}
-          });
-          if (eleLb2) {eleLb2.innerHTML = eleLbl.innerHTML;}
-        }
-        Promise.all(gOccCnts).then(() => {remTableWait()});
-      } catch (err) {
-        putErrorOnScreen(err);
-      }
+      loadByQueryParams(fCfg, qParm, offset, limit, qField, other);
     }
   } else {
     console.log('gbif_species_results.js requires a table having id="species-table" to operate.')
@@ -751,18 +833,72 @@ async function startUp(fCfg) {
   }
 } //end Startup
 
-/*
-$('#species-table').ready(() => {
-  Promise.all(gOccCnts).then(() => {
-    columnSort();
-  })
-});
-*/  
+async function loadByQueryParams(fCfg=false, qParm, offset, limit, qField, other) {
+  try {
+    if (!fCfg) {fCfg = fileConfig;}
+    eleTbl.innerHTML = ""; //clear the table, but not thead
+    addTableWait();
+    //gOccCnts = getStoredOccCnts(fCfg);
+    let spcs = await speciesSearch(fCfg.dataConfig, qParm, offset, limit, qField, other);
+    count = spcs.count;
+    if (spcs.count) {
+      await addTaxaFromArr(fCfg, spcs.results);
+    } else {putErrorOnScreen('No data found.')}
+    await setHead();
+    let finish = (offset+limit)>count ? count : offset+limit;
+    if (eleLbl) {
+      eleLbl.innerHTML = `Showing ${nFmt.format(count?offset+1:0)}-${nFmt.format(finish)} of <u><b>${nFmt.format(count)}</b></u> Results`;
+      if (qParm) {
+        eleLbl.innerHTML += ` for Search Term <u><b>'${qParm}'</b></u>`;
+      }
+      if (Object.keys(objOther).length) {eleLbl.innerHTML += ' where ';}
+      Object.keys(objOther).forEach((key, idx) => {
+        objOther[key].forEach((val, idy) => {
+            if (0 == idy) {eleLbl.innerHTML += ` ${key} is <u><b>'${val}'</b></u>`;}
+            else {eleLbl.innerHTML += ` <u><b>'${val}'</b></u>`;}
+            if (idy < objOther[key].length-1) {eleLbl.innerHTML += ' or ';}
+          })
+          if (idx < Object.keys(objOther).length-1) {eleLbl.innerHTML += ' and ';}
+        });
+      eleLbl.innerHTML += ` - compared to ${qField}`;
+      if ('SCIENTIFIC'==qField || 'VERNACULAR'==qField) {eleLbl.innerHTML += ' name';}
+      if (eleLb2) {eleLb2.innerHTML = eleLbl.innerHTML;}
+    }
+    Promise.all(gOccCnts).then(() => {remTableWait()});
+  } catch (err) {
+    putErrorOnScreen(err);
+  }
+}
+async function loadByTaxonKeys(fCfg, tKeys) {
+  try {
+    addTableWait();
+    //gOccCnts = getStoredOccCnts(fCfg);
+    await addTaxaByKeys(fCfg, tKeys);
+    await setHead();
+    if (eleLbl) {
+      eleLbl.innerHTML = "Showing results for taxon keys: ";
+      tKeys.forEach((key, idx) => {
+        eleLbl.innerHTML += key;
+        if (idx < tKeys.length-1) {eleLbl.innerHTML += ', ';}
+      })
+      if (eleLb2) {eleLb2.innerHTML = eleLbl.innerHTML;}
+    }
+    Promise.all(gOccCnts).then(() => {remTableWait()});
+  } catch (err) {
+    putErrorOnScreen(err);
+  }
+}
+
+let tableSort = false;
 function columnSort() {
   Promise.all(gOccCnts).then(() => {
     let excludeColumnIds = [columnIds['childTaxa'], columnIds['iconImage']];
-    tableSortHeavy('species-table', [columnIds['occurrences'],'desc'], excludeColumnIds);
-    //tableSortSimple('species-table');
-    //tableSortTrivial('species-table');
+    if (tableSort) {
+      tableSort.clear();
+      tableSort.destroy();
+      tableSort = tableSortHeavy('species-table', [columnIds['occurrences'],'desc'], excludeColumnIds);
+    } else {
+        tableSort = tableSortHeavy('species-table', [columnIds['occurrences'],'desc'], excludeColumnIds);
+    }
   });
 }
