@@ -1,8 +1,21 @@
-import { SamePage } from "./gbif_species_results.js";
+//import { SamePage } from "./gbif_species_results.js";
+import { getSite } from '../../VAL_Web_Utilities/js/gbifDataConfig.js';
+const pageUrl = new URL(document.URL);
+var siteName = await getSite(pageUrl);
 
 const eleTxt = document.getElementById("species_search");
 const eleBut = document.getElementById("species_search_button");
-const gbifApi = "https://api.gbif.org/v1";
+var gbifApi = "https://api.gbif.org/v1";
+var resultsUrl = "";
+
+//get atlas configuration and startup
+import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`)
+  .then(fCfg => {
+    console.log('gbif_species_search | siteName:', siteName);
+    startUp(fCfg);
+  })
+  .catch(err => {console.log('gbif_species_search=>import siteConfig ERROR', err)})
+
 /*
   https://api.gbif.org/v1/species?name=Turdus%20migratorius
   Lists name usages across all or some checklists that share the exact same canonical name, i.e. without authorship.
@@ -22,7 +35,7 @@ const gbifApi = "https://api.gbif.org/v1";
 
 */
 export async function speciesSearch(dataConfig, searchTerm="", offset=0, limit=20, qField='', otherParms='') {
-  console.log('gbif_species_search::speciesSearch | dataConfig:', dataConfig);
+  console.log('gbif_species_search=>speciesSearch | dataConfig:', dataConfig);
 
   let s = searchTerm.split("&"); //allow searchTerm inline query params delimited by &
   for (var i=1; i<s.length; i++) {otherParms += "&" + s[i];}
@@ -53,6 +66,11 @@ export async function speciesSearch(dataConfig, searchTerm="", offset=0, limit=2
   }
 }
 
+//this copied and simplified from gbif_species_results.js to fix bug with circular dependencies
+function SpeciesPage(qParm) {
+  window.location.assign(`${resultsUrl}?siteName=${siteName}&q=${qParm}`);
+}
+
 /*
   Add listeners to activate search results of search text on Enter key.
 */
@@ -60,19 +78,19 @@ function addListeners() {
 
   if (eleTxt) {
       eleTxt.addEventListener("keypress", function(e) {
-          //console.log('species_search got keypress', e);
-          if ("Enter" == e.key) { //(e.which == 13) {
-            let sValue = eleTxt.value;
-            SamePage(sValue);
+          if ("Enter" == e.key) {
+            SpeciesPage(eleTxt.value);
           }
       });
   }
   if (eleBut && eleTxt) {
       eleBut.addEventListener("mouseup", function(e) {
-        let sValue = eleTxt.value;
-        SamePage(sValue);
+        SpeciesPage(eleTxt.value);
       });
   }
 }
 
-addListeners();
+function startUp(fCfg) {
+  resultsUrl = fCfg.dataConfig.resultsUrl;
+  addListeners();
+}

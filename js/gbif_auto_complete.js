@@ -1,21 +1,26 @@
-import { siteConfig } from './gbifSiteConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_config.js"></script>
-import { getStoredData } from '../../VAL_Web_Utilities/js/storedData.js';
+//import { siteConfig } from './gbifSiteConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_config.js"></script>
+//import { getStoredData } from '../../VAL_Web_Utilities/js/storedData.js';
+
+import { getSite } from '../../VAL_Web_Utilities/js/gbifDataConfig.js';
+const pageUrl = new URL(document.URL);
+var siteName = await getSite(pageUrl);
 
 const filterAtlasSpecies = true;
 const listElementId = 'gbif_autocomplete_list'; //the Id of the datalist attached to the input (required)
 var inputElementId = null; //the Id of the text input to have autoComplete. only put one on a page, multiple is not tested.
 
-let siteName = siteConfig.siteName; //default Atlas Site
-let storSite = await getStoredData('siteName', '', ''); //param-set or user-selected Atlas Site
-if (storSite) {siteName = storSite;}
+//let siteName = siteConfig.siteName; //default Atlas Site
+//let storSite = await getStoredData('siteName', '', ''); //param-set or user-selected Atlas Site
+//if (storSite) {siteName = storSite;}
 let fileConfig = import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`); //promise handled below
 
 fileConfig.then(fileConfig => {
-    console.log('gbif_auto_complete | siteName:', siteConfig.siteName, 'dataConfig:', fileConfig.dataConfig);
+    console.log('gbif_auto_complete | siteName:', siteName);
     const speciesDatasetKey = fileConfig.dataConfig.speciesDatasetKey; //'0b1735ff-6a66-454b-8686-cae1cbc732a2';
+    console.log('gbif_auto_complete | speciesDatasetKey:', speciesDatasetKey);
 
     if (document.getElementById('occ_search')) {
-    listenerInit('occ_search')
+        listenerInit('occ_search')
     }
     if (document.getElementById('species_search')) {
         listenerInit('species_search')
@@ -24,25 +29,29 @@ fileConfig.then(fileConfig => {
         listenerInit('results_search')
     }
     if (document.getElementById('omni_search')) {
-        listenerInit('results_search')
+        //listenerInit('results_search')???
+        listenerInit('omni_search')
     }
       
     function listenerInit(elementId=null) {
-        window.addEventListener("load", function() {
+        console.log('gbif_auto_complete=>listenerInit (before window.load) | elementId:', elementId);
+        //window.addEventListener("load", function() {
       
             // Add a keyup event listener to our input element
             var name_input = document.getElementById(elementId);
             if (name_input) {
+              console.log(`gbif_auto_complete=>listenerInit (after window.load) | elementId:`, elementId);
               inputElementId = elementId;
               name_input.addEventListener("keyup", function(event) {gbifAutoComplete(event);});
       
               // create one global XHR object
               // this allows us to abort pending requests when a new one is made
               window.gbifXHR = new XMLHttpRequest();
-            } else {
-              console.log(`gbifAutoComplete WARNING: html element '${domElementId}' not found.`)
+            } 
+            else {
+              console.log(`gbif_auto_complete=>listenerInit WARNING: html element '${elementId}' not found.`)
             }
-        });
+        //});
       }
         
     /*
@@ -61,7 +70,7 @@ fileConfig.then(fileConfig => {
             return;
         }
 
-        // retireve the input element
+        // retrieve the input element
         input = document.getElementById(inputElementId);
 
         // retrieve the datalist element
