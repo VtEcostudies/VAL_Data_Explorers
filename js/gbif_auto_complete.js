@@ -35,6 +35,8 @@ fileConfig.then(fileConfig => {
       
     function listenerInit(elementId=null) {
         console.log('gbif_auto_complete=>listenerInit (before window.load) | elementId:', elementId);
+        //NOTE: 2024-08-29 sometimes it appears we don't get a window.load here. Maybe since we've
+        //already waited to load gbifDataConfig, it's not necessary to wait for a load event?
         //window.addEventListener("load", function() {
       
             // Add a keyup event listener to our input element
