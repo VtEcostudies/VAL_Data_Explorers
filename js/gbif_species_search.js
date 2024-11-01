@@ -60,9 +60,9 @@ export async function speciesSearch(dataConfig, searchTerm="", offset=0, limit=2
     return json;
   } catch (err) {
     err.query = enc;
-    console.log(`speciesSearch(${searchTerm}) ERROR:`, err);
-    return Promise.reject(err);
-    //throw new Error(err)
+    console.err(`speciesSearch(${searchTerm}) ERROR:`, err);
+    //return Promise.reject(err);
+    throw new Error(err)
   }
 }
 

@@ -2,6 +2,7 @@ import { siteConfig, siteNames } from './gbifSiteConfig.js'; //in html must decl
 import { getSite } from '../../VAL_Web_Utilities/js/gbifDataConfig.js';
 import { speciesSearch } from './gbif_species_search.js'; //NOTE: importing just a function includes the entire module
 import { getStoredOccCnts, getAggOccCounts } from '../../VAL_Web_Utilities/js/gbifOccFacetCounts.js';
+import { fetchOccSimpleCountByKey } from '../../VAL_Web_Utilities/js/gbifOccSimpleCounts.js';
 import { getWikiPage } from '../../VAL_Web_Utilities/js/wikiPageData.js';
 import { tableSortSimple } from '../../VAL_Web_Utilities/js/tableSortSimple.js';
 import { tableSortTrivial } from '../../VAL_Web_Utilities/js/tableSortTrivial.js';
@@ -202,18 +203,19 @@ async function addTaxaFromArr(fCfg, sArr) {
 // must be {taxonKey: key}
 async function fillRow(fCfg, objSpc, objRow, rowIdx) {
   let key = objSpc.nubKey ? objSpc.nubKey : objSpc.key;
-  let taxn = await getGbifTaxonFromKey(objSpc.key); //get taxonObj for species-list key to obtain its view of taxonomy
+  //console.log('gbif_species_results=>fillRow=>listTaxon |', objSpc.key, '|', objSpc.canonicalName, '|');
+  let taxn = {};
+  try {taxn = await getGbifTaxonFromKey(objSpc.key);} //get taxonObj for species-list key to obtain its view of taxonomy
+  catch(err) {return;} //2024-11-1 GBIF returning dupliate keys for some VAL species checklists. Abort on those.
   let res = {}; let vern = [];
   if (objSpc.nubKey) {res = objSpc; vern = Promise.resolve(objSpc.vernacularNames);}
   else {res = taxn; vern = getGbifVernacularsFromKey(objSpc.key); vern.catch(err => {console.log('getGbifVernacularsFromKey ERROR', err)});}
   let name = res.canonicalName ? res.canonicalName : res.scientificName;
-  //let inat; try {inat = await getInatSpecies(name, res.rank, res.parent, getParentRank(res.rank));} catch(err) {inat={};}
-  //console.log(`gbif_species_results=>getInatSpecies(${name}, ${res.rank}, ${res.parent}, ${getParentRank(res.rank)})`, inat)
   if (typeof(res.rank) == 'undefined') {res.rank = parseNameToRank(name);}
   let inat = getInatSpecies(name, res.rank, res.parent, getParentRank(res.rank)); inat.catch(err=> {console.log('getInatSpecies ERROR', err)});
-  let wiki = getWikiPage(name); wiki.catch(err => {console.log('getWikiPage ERROR', err)}); //await getWikiPage(name);
-  //To-do: try getStoredOccCnts or gbifAggOcccounts for simpler query with lower overhead
-  let occs = gbifCountsByDateByTaxonKey(res.key, fCfg); occs.catch(err => {});
+  let wiki = getWikiPage(name); wiki.catch(err => {console.log('getWikiPage ERROR', err)});
+  //To-do: restore the use of getStoredOccCnts for lower overhead
+  let occs = fetchOccSimpleCountByKey(res.key,fCfg); occs.catch(err => {console.log('fetchOccSimpleCountByKey ERROR:', err)});
   gOccCnts.push(occs); //Append a new promise with each row. A dubious construct, except that it works.
   //console.log('gbif_species_results::fillRow','canonicalName:', objSpc.canonicalName, 'key:', objSpc.key, 'nubKey:', objSpc.nubKey, 'combinedKey:', key);
   columns.forEach(async (colNam, colIdx) => {
@@ -315,25 +317,6 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
           if (occs.names) {title += `, ${occs.names.join(", ")}`};
           colObj.innerHTML = `<a title="${title}" href="${exploreUrl}?siteName=${siteName}&${occs.search}&view=MAP">${nFmt.format(occs.total)}</a>`;
         })
-/*
-        //gOccCnts.then(occs => {
-        getStoredOccCnts(fCfg, `taxonKey=${res.nubKey}`).then(occs => {
-          colObj.innerHTML += `<a href="${exploreUrl}?siteName=${siteName}&taxonKey=${key}&view=MAP">${nFmt.format(occs[key]?occs[key]:0)}</a>`;
-          //console.log('nubKey', res.nubKey, 'speciesListKey', res.key, res);
-          //NOTE: must restrict to accepted species & subspecies for now - it double-counts some sub-taxa for genus and above
-          if (res.key != res.nubKey && !res.acceptedKey && ('SPECIES'==res.rank.toUpperCase() || 'SUBSPECIES'==res.rank.toUpperCase())) {
-            sumSubTaxonOccs(fCfg, occs, res.key, res.nubKey).then(res => {
-              let top = occs[key]?occs[key]:0;
-              let sum = top + res.sum;
-              let keys = res.keys.map(key => {console.log('mapkey', key); return `&taxonKey=${key}`;}); //returns array. use .join('') for string
-              console.log('sumAllTaxonOccs | parent:', occs[key], 'subSum:', res.sum, 'subKeys:', keys);
-              colObj.innerHTML = `<a href="${exploreUrl}?siteName=${siteName}&taxonKey=${key}${keys.join('')}&view=MAP">${nFmt.format(sum?sum:0)}</a>`;  
-            }).catch(err => {colObj.innerHTML = ''; console.log(`ERROR in sumSubTAxonOccs:`, err);})
-          } else {
-            colObj.innerHTML = `<a href="${exploreUrl}?siteName=${siteName}&taxonKey=${key}&view=MAP">${nFmt.format(occs[key]?occs[key]:0)}</a>`;
-          }
-        }).catch(err => {colObj.innerHTML = ''; console.log(`ERROR in occurrence counts:`, err);})
-*/
         break;
       case 'iconImage':
         let imgInfo = false;
@@ -456,7 +439,7 @@ export async function getDatasetInfo(speciesDatasetKey) {
   } catch (err) {
     err.query = enc;
     console.log(`getDatasetInfo(${speciesDatasetKey}) ERROR:`, err);
-    throw new Error(err)
+    throw err
   }
 }
 
@@ -717,7 +700,8 @@ async function getAllDataPages(fCfg, q=qParm, lim=limit, qf=qField, oth=other) {
           console.log(`Unable to retrieve occurrence counts.`);
         })
         */
-        let occs = await gbifCountsByDateByTaxonKey(key, fCfg);//This call must be synchronous. And so we await.
+        //let occs = await gbifCountsByDateByTaxonKey(key, fCfg);//This call must be synchronous. And so we await.
+        let occs = await fetchOccSimpleCountByKey(res.key, fCfg);
         oSpc[`${fCfg.dataConfig.atlasAbbrev}-Occurrences`] = occs.total;
      }
     }
