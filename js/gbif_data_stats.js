@@ -178,8 +178,8 @@ export async function publisherStats(dataConfig) {
     return json;
   } catch (err) {
     err.query = enc;
-    console.err(`publisherStats(${publOrgKey}) ERROR:`, err);
-    throw new Error(err)
+    console.error(`publisherStats(${publOrgKey}) ERROR:`, err);
+    throw err
   }
 }
 
