@@ -119,14 +119,42 @@
   border-radius: 50%;
   background-color: black;
   }
-  .fa-code-branch {
+.fa-code-branch {
   margin-left: 5px;
-  }
-  
-  .icon-image {
+}
+/*flip an icon to its left-right mirror image*/
+.icon-flipped {
+    transform: scaleX(-1);
+    -moz-transform: scaleX(-1);
+    -webkit-transform: scaleX(-1);
+    -ms-transform: scaleX(-1);
+}
+/*Top parentTaxa row is Kingdom w/o marker*/
+li.parentTaxaTop::marker {
+  content: "\002B";
+}
+li.parentTaxaTop.expanded::marker {
+  content: "\2212";
+}
+/*
+Lower parentTaxa rows have arrow marker as unicode from https://unicodeplus.com/U+21B3
+Text ↳ in CSS Unicode. Use the "U+" code, but replace the "U+" with "\". e.g. "U+21B3" becomes content: "\21B3"
+*/
+li.parentTaxa::marker {
+  content: "\21B3";
+}
+/*
+li.collapsible:after {
+  content: '\002B'
+}
+.active:after {
+  content: "\2212";
+}
+*/
+.icon-image {
   min-width: 30px;
   cursor: pointer;
-  }
+}
   
   /* The Modal (background) */
   .modal-div {

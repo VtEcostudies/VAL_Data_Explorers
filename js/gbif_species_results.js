@@ -171,7 +171,8 @@ async function addHead() {
     if ("canonicalName" == hedNam) {html = `Click taxon name to view its Species Profile.`}
     if ("vernacularNames" == hedNam) {html = 'Click common name for Species Explorer search of that name.'}
     if ("occurrences" == hedNam) {html = 'Counts are for taxon and sub-taxa. ACCEPTED name counts include their SYNONYMS. SYNONYM counts do not include their ACCEPTED names. Click count for Occurrence Explorer.'}
-    if (html) {colObj.innerHTML += `<a href="#" onmouseover="showInfo('${html}');" onmouseout="hideInfo();"><i class="fa fa-info-circle"></i></a>`;}
+    //if (html) {colObj.innerHTML += `<a href="#" onmouseover="showInfo('${html}');" onmouseout="hideInfo();"><i class="fa fa-info-circle"></i></a>`;}
+    if (html) {colObj.innerHTML += `<i title="${html}" class="fa fa-info-circle info-icon-header"></i>`;}
   });
 }
 
@@ -301,14 +302,29 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
         })
         break;
       case 'parentTaxa':
-        if (res.kingdom) {colObj.innerHTML += `<a title="Species Explorer: Kingdom ${res.kingdom}" href="${resultsUrl}?siteName=${siteName}&q=${res.kingdom}">${res.kingdom}</a>`;}
-        if (res.phylum) {colObj.innerHTML += `, <a title="Species Explorer: Phylum ${res.phylum}" href="${resultsUrl}?siteName=${siteName}&q=${res.phylum}">${res.phylum}</a>`;}
-        if (res.class) {colObj.innerHTML += `, <a title="Species Explorer: Class ${res.class}" href="${resultsUrl}?siteName=${siteName}&q=${res.class}">${res.class}</a>`;}
-        if (res.order) {colObj.innerHTML += `, <a title="Species Explorer: Order ${res.order}" href="${resultsUrl}?siteName=${siteName}&q=${res.order}">${res.order}</a>`;}
-        if (res.family) {colObj.innerHTML += `, <a title="Species Explorer: Family ${res.family}" href="${resultsUrl}?siteName=${siteName}&q=${res.family}">${res.family}</a>`;}
-        if (res.genus) {colObj.innerHTML += `, <a title="Species Explorer: Genus ${res.genus}" href="${resultsUrl}?siteName=${siteName}&q=${res.genus}">${res.genus}</a>`;}
-        if (res.species) {colObj.innerHTML += `, <a title="Species Explorer: Species ${res.species}" href="${resultsUrl}?siteName=${siteName}&q=${res.species}">${res.species}</a>`;}
+        const listNode = document.createElement("ul"); //create an unordered list tag <ul>
+        listNode.addEventListener("click", e => { //listen to <ul> click events - this gets clicks from all <li> child elements
+          //console.log('onclick event', e);
+          let elem = e.target;
+          if (elem.classList.contains('parentTaxaTop')) { //only collapse if top <li> element clicked. Handling click on lowers works, but it can' be done using toggle.
+            while (elem = elem.nextSibling) {
+              elem.classList.toggle('collapse');
+            }
+            e.target.classList.toggle('expanded'); //toggle the +/- on the top <li> item
+          }
+        })
+        colObj.appendChild(listNode); //add the <ul> tag to the table column object
+        let collapse = ''; let expanded='expanded';
+        //Text ↳ in CSS Unicode: https://unicodeplus.com/U+21B3 Use the "U+" code, but replace the "U+" with "\". e.g. "U+25C0" becomes content: "\25C0";
+        if (res.kingdom) {listNode.innerHTML += `<li class="parentTaxaTop collapsible ${expanded}"><a title="Species Explorer: Kingdom ${res.kingdom}" href="${resultsUrl}?siteName=${siteName}&q=${res.kingdom}">${res.kingdom}</a></li>`;}
+        if (res.phylum) {listNode.innerHTML += `<li class="parentTaxa ${collapse}"><a title="Species Explorer: Phylum ${res.phylum}" href="${resultsUrl}?siteName=${siteName}&q=${res.phylum}">${res.phylum}</a></li>`;}
+        if (res.class) {listNode.innerHTML += `<li class="parentTaxa ${collapse}"><a title="Species Explorer: Class ${res.class}" href="${resultsUrl}?siteName=${siteName}&q=${res.class}">${res.class}</a></li>`;}
+        if (res.order) {listNode.innerHTML += `<li class="parentTaxa ${collapse}"><a title="Species Explorer: Order ${res.order}" href="${resultsUrl}?siteName=${siteName}&q=${res.order}">${res.order}</a></li>`;}
+        if (res.family) {listNode.innerHTML += `<li class="parentTaxa ${collapse}"><a title="Species Explorer: Family ${res.family}" href="${resultsUrl}?siteName=${siteName}&q=${res.family}">${res.family}</a></li>`;}
+        if (res.genus) {listNode.innerHTML += `<li class="parentTaxa ${collapse}"><a title="Species Explorer: Genus ${res.genus}" href="${resultsUrl}?siteName=${siteName}&q=${res.genus}">${res.genus}</a></li>`;}
+        if (res.species) {listNode.innerHTML += `<li class="parentTaxa ${collapse}"><a title="Species Explorer: Species ${res.species}" href="${resultsUrl}?siteName=${siteName}&q=${res.species}">${res.species}</a></li>`;}
         //NOTE: GBIF species/search often does not return a parent SPECIES for a SUBSPECIES taxon, which is why it doesn't show up.
+        //NOTE: We figured out why - DwCA ingest does not include column 'species'. It uses specificEpithet instead. To fix this, provide parentNameUsageID in DwCA species checklists.
         break;
       case 'occurrences':
         colObj.innerHTML = `<i class="fa fa-spinner fa-spin" style="font-size:18px"></i>`;
@@ -380,7 +396,6 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
     }
   });
 }
-
 //These functions are not used - they're duplicated directly within html by an inline javascript tag
 export function showInfo(text=false) {
   if (eleInf) {if (text) eleInf.innerHTML = text; eleInf.style.display = 'block'; info_on = true;}
