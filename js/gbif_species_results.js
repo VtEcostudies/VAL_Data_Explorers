@@ -11,16 +11,17 @@ import { gbifCountsByDateByTaxonKey } from '../../VAL_Species_Page/js/gbifCounts
 import { getGbifTaxonFromName, getGbifTaxonFromKey, getGbifVernacularsFromKey, getParentRank, getNextChildRank, parseNameToRank } from '../../VAL_Web_Utilities/js/fetchGbifSpecies.js';
 import { getInatSpecies } from '../../VAL_Web_Utilities/js/inatSpeciesData.js';
 import { getStoredData, setStoredData } from '../../VAL_Web_Utilities/js/storedData.js';
+import { capitalize, alphaNumeric } from '../../VAL_Web_Utilities/js/commonUtilities.js';
+/*
+sessionStorage: cleared when page session ends: when the page is closed
+localStorage: stored data is saved across browser sessions
+localStorage data for a document loaded in a "private browsing" or "incognito" session is cleared when the last "private" tab is closed.
+*/
+const sessionStore = window.sessionStorage ? window.sessionStorage : false;
 
 const gbifApi = "https://api.gbif.org/v1";
-/*
-var siteName = siteConfig.siteName;
-let storSite = await getStoredData('siteName', '', '');
-if (storSite) {siteName = storSite;}
-*/
-//get URL search params from calling http route address
 const pageUrl = new URL(document.URL);
-const objUrlParams = pageUrl.searchParams;
+const objUrlParams = pageUrl.searchParams; //get URL search params from calling http route address
 var siteName = await getSite(pageUrl);
 var homeUrl;
 var exploreUrl;
@@ -34,7 +35,6 @@ var fileConfig = false; //this global pointer used after page is loaded for quer
 
 var columnIds = {};
 const nFmt = new Intl.NumberFormat(); //use this to format numbers by locale... automagically
-//const objUrlParams = new URLSearchParams(window.location.search);
 
 // get query params named 'taxonKey'
 let tKeys = objUrlParams.getAll('taxonKey');
@@ -87,7 +87,7 @@ const eleCto = document.getElementById("compare-to"); if (eleCto) {eleCto.value 
 const eleSiz = document.getElementById("page-size"); if (eleSiz) {eleSiz.value =  limit;}
 const eleDwn = document.getElementById("download-progress"); if (eleDwn) {eleDwn.style.display = 'none';}
 const eleOvr = document.getElementById("download-overlay"); if (eleOvr) {eleOvr.style.display = 'none';}
-//const eleInf = document.getElementById("information-overlay"); if (eleInf) {eleInf.style.display = 'none';}
+const eleInf = document.getElementById("information-overlay"); if (eleInf) {eleInf.style.display = 'none';}
 /* From page query parameters, set the chosen values of an (optionally) multi-select drop-down list. */
 function setChosenMulti(eleMnt, values=[]) {
   //console.log('setChosenMulti=>eleMnt.options', eleMnt.options, '=>values', values);
@@ -156,6 +156,9 @@ async function setHead() {
   console.log('setHead', objHed);
   if (!objHed.length) {return await addHead();}
 }
+var initCollapsed = sessionStore.getItem('speciesExplorerParentTaxaCollapsed')
+initCollapsed = "true" == initCollapsed ? true : false;
+//console.log('sessionStorage(speciesExplorerParentTaxaCollapsed)', sessionStore.getItem('speciesExplorerParentTaxaCollapsed'), initCollapsed);
 async function addHead() {
   let objHed = eleTbl.createTHead();
   let hedRow = objHed.insertRow(0); //just one header objRow
@@ -163,17 +166,82 @@ async function addHead() {
     console.log('addHead', hedNam, hedIdx);
     columnIds[hedNam]=hedIdx; //make an object having names as keys and index as values, for use by dataTables to enable/disable sorting
     let colObj = await hedRow.insertCell(hedIdx);
-    //colObj.outerHTML = `<th>${columNames[hedNam]}</th>`
-    colObj.innerHTML =  `<th>${columNames[hedNam]}</th>`
+    if ("parentTaxa" ==  hedNam) {
+      const colHed = document.createElement("th");
+      colHed.classList.add("parentTaxaHeader");
+      const listNode = document.createElement("li"); //create a list tag <li>
+      listNode.innerText = columNames[hedNam];
+      colHed.appendChild(listNode);
+      listNode.classList.add("parentTaxaHeader");
+      if (initCollapsed) {listNode.classList.add("allCollapsed");}
+      listNode.addEventListener("click", e => { //listen to <li> header click event
+        e.target.classList.toggle("allCollapsed"); //toggle this class to alter the <li> element's marker
+        let subNodes = document.querySelectorAll(".parentTaxa");
+        subNodes.forEach(node => {node.classList.toggle("collapsed");})
+        let topNodes = document.querySelectorAll(".parentTaxaTop");
+        topNodes.forEach(node => {node.classList.toggle("collapsed");})
+        initCollapsed = !initCollapsed;
+        sessionStore.setItem('speciesExplorerParentTaxaCollapsed', initCollapsed)
+      })
+      colObj.appendChild(colHed); //add the <th> tag to the table column object
+      //colObj.innerHTML =  `<th class="speciesExplorerColumnHeader parentTaxa">{columNames[hedNam]}</th>`
+    } else {
+      colObj.innerHTML =  `<th>${columNames[hedNam]}</th>`
+    }
     let html;
-    if ("childTaxa" == hedNam) {html = `Click symbol to explore ALL sub-taxa of taxon. Click named rank to explore sub-taxa having only that rank.`}
+    if ("childTaxa" == hedNam) {html = `Click <i class="fa-solid fa-code-branch parent-branch"></i> symbol to explore ALL sub-taxa of taxon. Click named rank to explore sub-taxa having only that rank.`}
     if ("parent" == hedNam) {html = `Click symbol for Species Explorer with ALL children of named parent taxon. Click parent taxon name for Species Explorer with just that taxon and rank.`}
     if ("canonicalName" == hedNam) {html = `Click taxon name to view its Species Profile.`}
     if ("vernacularNames" == hedNam) {html = 'Click common name for Species Explorer search of that name.'}
-    if ("occurrences" == hedNam) {html = 'Counts are for taxon and sub-taxa. ACCEPTED name counts include their SYNONYMS. SYNONYM counts do not include their ACCEPTED names. Click count for Occurrence Explorer.'}
-    //if (html) {colObj.innerHTML += `<a href="#" onmouseover="showInfo('${html}');" onmouseout="hideInfo();"><i class="fa fa-info-circle"></i></a>`;}
-    if (html) {colObj.innerHTML += `<i title="${html}" class="fa fa-info-circle info-icon-header"></i>`;}
+    if ("occurrences" == hedNam) {html = 'Occurrence counts are for taxon and sub-taxa. ACCEPTED name counts include their SYNONYMS. SYNONYM counts do not include their ACCEPTED names. Click count for Occurrence Explorer.'}
+    if (html) {addInfoIcon(colObj, html, "header-info-icon");}
+    //if (html) {colObj.innerHTML += `<a href="#" onmouseover="showInfo('${html}');" onmouseout="hideInfo();"><i class="fa fa-info-circle header-info-icon"></i></a>`;}
   });
+}
+var pageTitle = document.getElementById("species-title");
+addInfoIcon(pageTitle.parentElement, 'The Species Explorer does a full text search of the Atlas Species Checklist on GBIF. Text is searched against Scientific Name, Common Name, and Species Description.')
+if (eleInf) {eleInf.addEventListener("click", e => {hideInfo();})}
+var infoButton = document.getElementById("information-button")
+if (infoButton) {infoButton.addEventListener("click", e => {hideInfo();})}
+function addInfoIcon(eTag, html, addClass=false) {
+  const aTag = document.createElement("a"); 
+  aTag.href = "#";
+  //aTag.addEventListener("click", e => toggleInfo(e, html))
+  aTag.addEventListener("mouseover", e => showInfo(e, html))
+  aTag.addEventListener("mouseout", e => hideInfo(html))
+  eTag.appendChild(aTag);
+  const iTag = document.createElement("i");
+  iTag.classList.add("fa", "fa-info-circle");
+  if (addClass) {iTag.classList.add(addClass)}
+  aTag.appendChild(iTag);
+}
+//document.addEventListener("click", e => {hideInfo();}) //clicking anywhere on the page hides the info overlay
+var info_on = false;
+function showInfo(e, html=false, button=false) {
+  //console.log(html);
+  let iconRect = e.toElement.getBoundingClientRect();
+  eleInf.style.display = 'flex';
+  eleInf.style.left = iconRect.left+"px";
+  eleInf.style.top = (iconRect.top+30)+"px";
+  let showRect = eleInf.getBoundingClientRect();
+  //console.log('bubble.right:',showRect.right,'screen.width:',window.innerWidth,'bubble.width:',showRect.width,'bubble.left:',(iconRect.left-showRect.width)+"px")
+  if (showRect.right > window.innerWidth) {eleInf.style.left = (iconRect.right-showRect.width)+"px";}
+  if (!button) {document.getElementById("information-button").style.display = 'none'}
+  if (html) {document.getElementById("information-content").innerHTML = html;}
+  info_on = true;
+}
+function hideInfo() {
+  document.getElementById("information-overlay").style.display = 'none';
+  info_on = false;
+}
+function toggleInfo(e, html=false, button=false) {
+  e.stopImmediatePropagation();
+  var eleTxt = document.getElementById("information-content");
+  if (!button) {document.getElementById("information-button").style.display = 'none';}
+  else {document.getElementById("information-button").style.display = 'block';}
+  if (eleTxt) {
+    if (!info_on || `${html}` != `${eleTxt.innerHTML}`) {showInfo(html, button);} else {hideInfo();}
+  } else {console.log(`No element with id 'information-content'`);}
 }
 
 // Create table row for each taxonKey, then fill row of cells
@@ -235,7 +303,7 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
         break;
       case 'childTaxa':
         //new idea: just get child taxa one rank lower
-        if ('SUBSPECIES' != res.rank && 'VARIETY' != res.rank) {
+        if ('SUBSPECIES' != res.rank && 'VARIETY' != res.rank && 'FORM' != res.rank) {
           let ncRank = getNextChildRank(res.rank);
           colObj.innerHTML += `<a title="Species Explorer: ALL sub-taxa of ${res.rank} ${name}" href="${resultsUrl}?siteName=${siteName}&q=&higherTaxonKey=${res.key}&higherTaxonName=${name}&higherTaxonRank=${res.rank}"><i class="fa-solid fa-code-branch child-branch"></i></a>`
           colObj.innerHTML += ` | <a title="Species Explorer: ${ncRank} sub-taxa of ${res.rank} ${name}" href="${resultsUrl}?siteName=${siteName}&q=&higherTaxonKey=${res.key}&higherTaxonName=${name}&higherTaxonRank=${res.rank}&rank=${ncRank}">${ncRank}</a>`
@@ -245,33 +313,40 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
       case 'vernacularNames':
         let vnObj = {};
         if (taxn.vernacularName) { //taxon by key species/{key}
-          taxn.vernacularName = taxn.vernacularName.replace(`’`,`'`).replace(`'S`,`'s`);
+          taxn.vernacularName = capitalize(alphaNumeric(taxn.vernacularName));
           vnObj[taxn.vernacularName] = 'GBIF species/key vernacularName';
         } 
         if (res.vernacularName) { //taxon by key from species/search
-          res.vernacularName = res.vernacularName.replace(`’`,`'`).replace(`'S`,`'s`);
+          res.vernacularName = capitalize(alphaNumeric(res.vernacularName));
           vnObj[res.vernacularName] = 'GBIF species/search vernacularName';
         }
-        if (res.vernacularNames) {
-          res.vernacularNames.forEach((ele, idx) => {
-            ele.vernacularName = ele.vernacularName.replace(`’`,`'`).replace(`'S`,`'s`);
+        if (res.vernacularNames && res.vernacularNames.length) {
+          for (const ele of res.vernacularNames) {
+            ele.vernacularName = capitalize(alphaNumeric(ele.vernacularName));
             vnObj[ele.vernacularName] = 'GBIF species/search/vernacularNames';
-          })
+          }
         }
-        vern.then(vern => {
-          vern.forEach((ele, idx) => {
-            let name = ele.vernacularName.replace(`’`,`'`).replace(`'S`,`'s`); //OMG there are 2 apostrophes?!
+        vern.then(vern => {//getGbifVernacularsFromKey errors caught above, inline with function call
+          for (const ele of vern) {
+            let name = capitalize(alphaNumeric(ele.vernacularName));
             //console.log('vernacularNames:', ele.vernacularName, name);
             vnObj[name] = 'GBIF species/key/vernacularNames'
-          })
-          inat.then(inat => {
-            if (inat.preferred_common_name) {vnObj[inat.preferred_common_name] = 'iNat species/key preferred_common_name';}
-            Object.keys(vnObj).forEach((key, idx) => {
-              //console.log('vernacularListKey:', key, vnObj[key]);
-              colObj.innerHTML += `<a title="${vnObj[key]}" href="${resultsUrl}?siteName=${siteName}&q=${key}">${key}</a>`;
-              if (idx < Object.keys(vnObj).length-1) {colObj.innerHTML += ', ';}
-            })
-          }).catch(err=> {console.log('getInatSpecies ERROR', err)});
+          }
+        })
+        inat.then(inat => {//getInatSpecies errors caught above, inline with function call
+            if (inat.preferred_common_name) {
+              let name = capitalize(alphaNumeric(inat.preferred_common_name));
+              vnObj[name] = 'iNat species/key preferred_common_name';
+            }
+        })
+        Promise.all([vern,inat]).finally(()=> {
+          //console.log('vernacularListAll:', vnObj);
+          let html = '';
+          for (const key in vnObj) {
+            html += `<a title="${vnObj[key]}" href="${resultsUrl}?siteName=${siteName}&q=${key}">${key}</a>, `;
+          }
+          html = html.slice(0,-2);
+          colObj.innerHTML = html;
         })
         break;
       case 'scientificName': case 'vernacularName':
@@ -303,26 +378,27 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
         break;
       case 'parentTaxa':
         const listNode = document.createElement("ul"); //create an unordered list tag <ul>
+        listNode.classList.add('parentTaxaList');
         listNode.addEventListener("click", e => { //listen to <ul> click events - this gets clicks from all <li> child elements
           //console.log('onclick event', e);
           let elem = e.target;
-          if (elem.classList.contains('parentTaxaTop')) { //only collapse if top <li> element clicked. Handling click on lowers works, but it can' be done using toggle.
+          if (elem.classList.contains('parentTaxaTop')) { //only collapsed if top <li> element clicked. Handling click on lowers works, but it can' be done using toggle.
             while (elem = elem.nextSibling) {
-              elem.classList.toggle('collapse');
+              elem.classList.toggle('collapsed');
             }
-            e.target.classList.toggle('expanded'); //toggle the +/- on the top <li> item
+            e.target.classList.toggle('collapsed'); //toggle the +/- on the top <li> item
           }
         })
         colObj.appendChild(listNode); //add the <ul> tag to the table column object
-        let collapse = ''; let expanded='expanded';
+        let collapsed = initCollapsed ? 'collapsed' : ''; //initial setting for collapsible list-items
         //Text ↳ in CSS Unicode: https://unicodeplus.com/U+21B3 Use the "U+" code, but replace the "U+" with "\". e.g. "U+25C0" becomes content: "\25C0";
-        if (res.kingdom) {listNode.innerHTML += `<li class="parentTaxaTop collapsible ${expanded}"><a title="Species Explorer: Kingdom ${res.kingdom}" href="${resultsUrl}?siteName=${siteName}&q=${res.kingdom}">${res.kingdom}</a></li>`;}
-        if (res.phylum) {listNode.innerHTML += `<li class="parentTaxa ${collapse}"><a title="Species Explorer: Phylum ${res.phylum}" href="${resultsUrl}?siteName=${siteName}&q=${res.phylum}">${res.phylum}</a></li>`;}
-        if (res.class) {listNode.innerHTML += `<li class="parentTaxa ${collapse}"><a title="Species Explorer: Class ${res.class}" href="${resultsUrl}?siteName=${siteName}&q=${res.class}">${res.class}</a></li>`;}
-        if (res.order) {listNode.innerHTML += `<li class="parentTaxa ${collapse}"><a title="Species Explorer: Order ${res.order}" href="${resultsUrl}?siteName=${siteName}&q=${res.order}">${res.order}</a></li>`;}
-        if (res.family) {listNode.innerHTML += `<li class="parentTaxa ${collapse}"><a title="Species Explorer: Family ${res.family}" href="${resultsUrl}?siteName=${siteName}&q=${res.family}">${res.family}</a></li>`;}
-        if (res.genus) {listNode.innerHTML += `<li class="parentTaxa ${collapse}"><a title="Species Explorer: Genus ${res.genus}" href="${resultsUrl}?siteName=${siteName}&q=${res.genus}">${res.genus}</a></li>`;}
-        if (res.species) {listNode.innerHTML += `<li class="parentTaxa ${collapse}"><a title="Species Explorer: Species ${res.species}" href="${resultsUrl}?siteName=${siteName}&q=${res.species}">${res.species}</a></li>`;}
+        if (res.kingdom) {listNode.innerHTML += `<li class="parentTaxaTop ${collapsed}"><a title="Species Explorer: Kingdom ${res.kingdom}" href="${resultsUrl}?siteName=${siteName}&q=${res.kingdom}">${res.kingdom}</a></li>`;}
+        if (res.phylum) {listNode.innerHTML += `<li class="parentTaxa ${collapsed}"><a title="Species Explorer: Phylum ${res.phylum}" href="${resultsUrl}?siteName=${siteName}&q=${res.phylum}">${res.phylum}</a></li>`;}
+        if (res.class) {listNode.innerHTML += `<li class="parentTaxa ${collapsed}"><a title="Species Explorer: Class ${res.class}" href="${resultsUrl}?siteName=${siteName}&q=${res.class}">${res.class}</a></li>`;}
+        if (res.order) {listNode.innerHTML += `<li class="parentTaxa ${collapsed}"><a title="Species Explorer: Order ${res.order}" href="${resultsUrl}?siteName=${siteName}&q=${res.order}">${res.order}</a></li>`;}
+        if (res.family) {listNode.innerHTML += `<li class="parentTaxa ${collapsed}"><a title="Species Explorer: Family ${res.family}" href="${resultsUrl}?siteName=${siteName}&q=${res.family}">${res.family}</a></li>`;}
+        if (res.genus) {listNode.innerHTML += `<li class="parentTaxa ${collapsed}"><a title="Species Explorer: Genus ${res.genus}" href="${resultsUrl}?siteName=${siteName}&q=${res.genus}">${res.genus}</a></li>`;}
+        if (res.species) {listNode.innerHTML += `<li class="parentTaxa ${collapsed}"><a title="Species Explorer: Species ${res.species}" href="${resultsUrl}?siteName=${siteName}&q=${res.species}">${res.species}</a></li>`;}
         //NOTE: GBIF species/search often does not return a parent SPECIES for a SUBSPECIES taxon, which is why it doesn't show up.
         //NOTE: We figured out why - DwCA ingest does not include column 'species'. It uses specificEpithet instead. To fix this, provide parentNameUsageID in DwCA species checklists.
         break;
@@ -395,16 +471,6 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
         break;
     }
   });
-}
-//These functions are not used - they're duplicated directly within html by an inline javascript tag
-export function showInfo(text=false) {
-  if (eleInf) {if (text) eleInf.innerHTML = text; eleInf.style.display = 'block'; info_on = true;}
-}
-export function hideInfo() {
-  if (eleInf) {eleInf.style.display = 'none'; info_on = false;}
-}
-export function toggleInfo(text=false) {
-  if (eleInf) { if (text && text != eleInf.innerHTML) {showInfo(text);} else if (info_on) {hideInfo();} else {showInfo(text);} }
 }
 
 /*
@@ -891,7 +957,7 @@ async function loadByTaxonKeys(fCfg, tKeys) {
 let tableSort = false;
 function columnSort() {
   Promise.all(gOccCnts).then(() => {
-    let excludeColumnIds = [columnIds['childTaxa'], columnIds['iconImage']];
+    let excludeColumnIds = [columnIds['childTaxa'], columnIds['parentTaxa'], columnIds['iconImage']];
     if (tableSort) {
       tableSort.clear();
       tableSort.destroy();

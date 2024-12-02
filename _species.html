@@ -28,28 +28,6 @@
   <script type="module" src="./js/localSiteConfig.js">/*THIS SCRIPT MUST COME FIRST*/</script>
   <script type="module" src="js/gbif_auto_complete.js"></script>
   <script type="module" src="js/gbif_species_results.js"></script>
-
-<script language="Javascript">
-    var info_on = false;
-    function showInfo(text=false, button=false) {
-      document.getElementById("information-overlay").style.display = 'flex';
-      if (!button) {document.getElementById("information-button").style.display = 'none'}
-      if (text) {document.getElementById("information-content").innerText = text;}
-      info_on = true;
-    }
-    function hideInfo() {
-      document.getElementById("information-overlay").style.display = 'none';
-      info_on = false;
-    }
-    function toggleInfo(text=false, button=true) {
-      var eleTxt = document.getElementById("information-content");
-      if (!button) {document.getElementById("information-button").style.display = 'none';}
-      else {document.getElementById("information-button").style.display = 'block';}
-      if (eleTxt) {
-        if (!info_on || `${text}` != `${eleTxt.innerText}`) {showInfo(text);} else {hideInfo();}
-      } else {console.log(`No element with id 'information-content'`);}
-    }
-  </script>
 </head>
 
 <body class="page-template-page-species-explorer-2022">
@@ -63,10 +41,12 @@
 
       <div class="hero-header-info-icon">
   		  <h2 id="species-title" style="display: inline-block;">Species Explorer</h2>
+<!--
         <a id="species-info" href="#" onclick="toggleInfo('The Species Explorer does a full text search of the Atlas Species Checklist on GBIF. Text is searched against Scientific Name, Common Name, and Species Description.', true);"
           style="display: inline-block; vertical-align: top;">
           <i class="fa fa-info-circle"></i>
         </a>
+-->
       </div>
 
   		<form id="searchform" onsubmit="return false;" >
@@ -203,10 +183,10 @@
       <div id="download-overlay"></div>
 
       <div id="information-overlay">
-        <p id="information-content" onclick="hideInfo();">
+        <p id="information-content">
           Click Scientific Name to list all its child taxa.
         </p>
-        <button class="btn btn-primary" id="information-button" onclick="hideInfo();">Ok</button>
+        <button class="btn btn-primary" id="information-button">Ok</button>
       </div>
 
       <div class="row" id="species-results">

@@ -4,7 +4,10 @@
   }
   
   /* Allow table to shrink by breaking longish cell values without breaking characters */
-  table td {max-width:100px; word-wrap:break-word;}
+  table td {
+    max-width:100px; 
+    word-wrap:break-word;
+  }
   
   @media screen and (max-width: 680px) {
     table {min-width: 300px;}
@@ -94,47 +97,86 @@
   font-size: 32px;
   z-index: 1200;
   }
-  #information-overlay {
-  position: fixed;
+  
+#information-overlay {
+  /*position: fixed;*/
+  position:absolute;
   display: none;
   flex-flow: column;
   left: 25%; /* simple way to align variable box in the middle */
   width: 50%; /* simple way to align variable box in the middle */
+  max-width: 300px;
   max-height: 50%;
   overflow: auto;
   top: 200px;
-  border: solid black 1px;
-  border-radius: 25px;
-  background: lightgrey;
+  /*border: solid black 1px;*/
+  border-radius: 5px;
+  /*background: lightgrey;*/
+  background: black;
+  color: white;
   z-index: 1100;
   cursor: pointer;
-  padding: 20px;
-  }
-  #information-button {
+  padding-left: 10px;
+  padding-right: 5px;
+}
+#information-content {
+  margin-top: 5px;
+  width: 100%;
+}
+#information-button {
   max-width: 75px;
   align-self:flex-end;
-  }
-  .fa-info-circle { /* white border around info icons for visibility */
-  border: solid white 3px;
+}
+.fa-info-circle { /* white border around info icons for visibility */
+  /*border: solid white 3px;*/
   border-radius: 50%;
   background-color: black;
-  }
+  color: white;
+  font-size:larger;
+}
+.header-info-icon {
+  margin-left: 3px;
+  border: solid grey 2px;
+}
 .fa-code-branch {
   margin-left: 5px;
 }
-/*flip an icon to its left-right mirror image*/
+/* Flip an icon to its horizontal mirror image. Originally for an arrow-icon. Currently not used. */
 .icon-flipped {
     transform: scaleX(-1);
     -moz-transform: scaleX(-1);
     -webkit-transform: scaleX(-1);
     -ms-transform: scaleX(-1);
 }
-/*Top parentTaxa row is Kingdom w/o marker*/
-li.parentTaxaTop::marker {
-  content: "\002B";
+th.parentTaxaHeader {
+  font-weight: normal !important;
+  border-bottom: 0px !important;
+  padding: 0px !important;
 }
-li.parentTaxaTop.expanded::marker {
-  content: "\2212";
+th.parentTaxaHeader:hover {
+  text-decoration: underline;
+  color: var(--bs-link-color);
+  cursor: pointer;
+}
+.parentTaxaHeader.allCollapsed::marker {
+  content: "\002B"; /* + marker */
+}
+.parentTaxaHeader::marker {
+  content: "\2212"; /* - marker */
+}
+/* <ul> in table has huge default padding-left. Remove it. */
+ul.parentTaxaList {
+  padding-left: 2px;
+}
+/*Top parentTaxa row is Kingdom w +/- marker*/
+li.parentTaxaTop.collapsed::marker {
+  content: "\002B"; /* + marker */
+}
+li.parentTaxaTop::marker {
+  content: "\2212"; /* - marker */
+}
+.codeBranchIcon {
+  content: "\f126";
 }
 /*
 Lower parentTaxa rows have arrow marker as unicode from https://unicodeplus.com/U+21B3
@@ -143,14 +185,9 @@ Text ↳ in CSS Unicode. Use the "U+" code, but replace the "U+" with "\". e.g. 
 li.parentTaxa::marker {
   content: "\21B3";
 }
-/*
-li.collapsible:after {
-  content: '\002B'
+li.parentTaxa.collapsed {
+  display: none;
 }
-.active:after {
-  content: "\2212";
-}
-*/
 .icon-image {
   min-width: 30px;
   cursor: pointer;
@@ -191,7 +228,7 @@ li.collapsible:after {
   color: #ccc;
   padding: 10px 0;
   height: 150px;
-  font-size: 40px;
+  font-size: 30px;
   }
   
   /* Add Animation - Zoom in the Modal */
@@ -234,100 +271,3 @@ li.collapsible:after {
 .pagination li select option {
   /*background-color: gold;*/
 }
-
-/* lines 28 - 52 in style.css */
-/*** all displays ***/
-@media only screen and (-webkit-min-device-pixel-ratio: 2), only screen and (min-resolution: 192dpi) {
-    .page-template-page-data-explorer-species-checklists .hero #searchform #searchsubmit { background-image: url(https://val.vtecostudies.org/wp-content/themes/val/images/magnify-small@2x.png); background-size: 15px 14px; }
-  }
-  /*** medium displays and up -- 680px and more ***/
-  @media only screen and (-webkit-min-device-pixel-ratio: 2) and (min-width: 680px), only screen and (min-resolution: 192dpi) and (min-width: 680px) {
-    .page-template-page-data-explorer-species-checklists .hero #searchform:after { background-image: url(https://val.vtecostudies.org/wp-content/themes/val/images/hummingbird@2x.png); background-size: 113px 122px; }
-    .page-template-page-data-explorer-species-checklists .hero #searchform #searchsubmit { background-image: url(https://val.vtecostudies.org/wp-content/themes/val/images/magnify-medium@2x.png); background-size: 19px 19px; }
-    #crumbs a { background-image: url(https://val.vtecostudies.org/wp-content/themes/val/images/breadcrumbs-divider@2x.png); background-size: 14px 52px; }
-  }
-  /*** large displays -- 950px and more ***/
-  @media only screen and (-webkit-min-device-pixel-ratio: 2) and (min-width: 950px), only screen and (min-resolution: 192dpi) and (min-width: 950px) {
-    .page-template-page-data-explorer-species-checklists .hero #searchform #searchsubmit { background-image: url(https://val.vtecostudies.org/wp-content/themes/val/images/magnify-large@2x.png); background-size: 21px 21px; }
-  }
-  
-  /* lines 939 - 1014 in style.css */
-  .page-template-page-data-explorer-species-checklists .hero { position: relative; padding: 120px 30px 30px 30px; text-align: center; color: #fff; background: url(https://val.vtecostudies.org/wp-content/themes/val/images/vermont-panorama-small.jpg) no-repeat center; background-size: cover; z-index: 1000; }
-  
-  @media screen and (min-width: 680px) { .page-template-page-data-explorer-species-checklists .hero { padding: 30px 30px 30px 30px; background-image: url(https://val.vtecostudies.org/wp-content/themes/val/images/vermont-panorama-medium.jpg); } }
-  
-  @media screen and (min-width: 950px) { .page-template-page-data-explorer-species-checklists .hero { padding: 90px 30px 30px 30px; background-image: url(https://val.vtecostudies.org/wp-content/themes/val/images/vermont-panorama-large.jpg); } }
-  
-  .page-template-page-data-explorer-species-checklists .hero .content { position:relative; z-index: 1000; }
-  
-  .page-template-page-data-explorer-species-checklists .hero h1 { margin: 0 0 15px 0; font-family: "Sorts Mill Goudy", serif; font-size: 2.5em; font-weight: 300; line-height: 1.05em; }
-  
-  @media screen and (max-width: 290px) { .page-template-page-data-explorer-species-checklists .hero h1 { font-size: 1.3em; } }
-  
-  @media screen and (min-width: 680px) { .page-template-page-data-explorer-species-checklists .hero h1 { margin: 0 0 30px 0; font-size: 3em; line-height: .6em; } }
-  
-  @media screen and (min-width: 950px) { .page-template-page-data-explorer-species-checklists .hero h1 { font-size: 3.8em; } }
-  
-  .page-template-page-data-explorer-species-checklists .hero h2 { margin: 0 0 30px 0; text-transform: none; font-weight: 400; font-size: 1.3em; }
-  
-  @media screen and (max-width: 290px) { .page-template-page-data-explorer-species-checklists .hero h2 { vertical-align:bottom; font-size: .9em; } }
-  
-  @media screen and (min-width: 680px) { .page-template-page-data-explorer-species-checklists .hero h2 { vertical-align:bottom; margin: 0 0 25px 0; font-weight: 300; } }
-  
-  @media screen and (min-width: 950px) { .page-template-page-data-explorer-species-checklists .hero h2 { vertical-align:bottom; margin: 0 0 30px 0; font-size: 1.5em; } }
-  
-  .page-template-page-data-explorer-species-checklists .hero .hero-stats-wrap { display: grid; grid-template-columns: 1fr 1fr; grid-gap: 10px; max-width: 320px; margin: 0 auto 10px auto; }
-  
-  @media screen and (min-width: 680px) { .page-template-page-data-explorer-species-checklists .hero .hero-stats-wrap { max-width: 500px; grid-gap: 40px; } }
-  
-  .page-template-page-data-explorer-species-checklists .hero .hero-stats-wrap a.hero-stats-item { margin-bottom: 20px; line-height: 1.8em; text-decoration: none; color: #fff; }
-  
-  @media screen and (min-width: 680px) { .page-template-page-data-explorer-species-checklists .hero .hero-stats-wrap a.hero-stats-item { display: grid; grid-template-columns: 1fr 5fr; justify-items: start; grid-gap: 15px; text-align: left; } .page-template-page-data-explorer-species-checklists .hero .hero-stats-wrap a.hero-stats-item:first-of-type { width: 275px; } .page-template-page-data-explorer-species-checklists .hero .hero-stats-wrap a.hero-stats-item:last-of-type { width: 200px; } }
-  
-  .page-template-page-data-explorer-species-checklists .hero .hero-stats-wrap a.hero-stats-item:hover .stats { background: rgba(255, 255, 255, 0.2); }
-  
-  .page-template-page-data-explorer-species-checklists .hero .hero-stats-wrap a.hero-stats-item i.stats-icon { display: block; margin: 0 0 5px 0; font-family: "Font Awesome 5 Pro"; font-size: 2.75em; }
-  
-  @media screen and (min-width: 680px) { .page-template-page-data-explorer-species-checklists .hero .hero-stats-wrap a.hero-stats-item i.stats-icon { margin: 5px 0 0 0; font-size: 3.5em; } }
-  
-  .page-template-page-data-explorer-species-checklists .hero .hero-stats-wrap a.hero-stats-item .stats { display: inline-block; padding: 5px 10px; font-weight: 500; border-radius: 5px; transition: all 0.1s ease; }
-  
-  .page-template-page-data-explorer-species-checklists .hero .hero-stats-wrap a.hero-stats-item span { display: block; font-size: 1.3em; }
-  
-  .page-template-page-data-explorer-species-checklists .hero .hero-stats-wrap a.hero-stats-item span.stats-count { font-size: 1.8em; font-weight: 700; }
-  
-  @media screen and (min-width: 680px) { .page-template-page-data-explorer-species-checklists .hero .hero-stats-wrap a.hero-stats-item span.stats-count { font-weight: 600; } }
-  
-  .page-template-page-data-explorer-species-checklists .hero .hero-stats-wrap a.hero-stats-item span.stats-count i { opacity: 0.7; animation: rotation 1s infinite ease; }
-  
-  @keyframes rotation { 0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); } }
-  
-  .page-template-page-data-explorer-species-checklists .hero #searchform { position: relative; width: 100%; max-width: 400px; box-sizing: border-box; margin: 0 auto; border-radius: 100px; border: 5px solid #fff; }
-  
-  .page-template-page-data-explorer-species-checklists .hero #searchform .search-field { width: 100%; height: 40px; box-sizing: border-box; padding: 15px 80px 13px 30px; font-family: "Sorts Mill Goudy", serif; font-size: 1.3em; color: #176f75 !important; border-radius: 25px; }
-  
-  @media screen and (min-width: 380px) { .page-template-page-data-explorer-species-checklists .hero #searchform .search-field { font-size: 1.3em !important; } }
-  
-  .page-template-page-data-explorer-species-checklists .hero #searchform .searchsubmit-wrap { display: flex; position: absolute; top: 0; right: 0; width: 40px; height: 40px; justify-content: center; align-items: center; background: #176f75; border-radius: 100px; border: 0; z-index: 1000; transition: all 0.1s ease; }
-  
-  .page-template-page-data-explorer-species-checklists .hero #searchform .searchsubmit-wrap:hover { background: #1d8990; }
-  
-  .page-template-page-data-explorer-species-checklists .hero #searchform .searchsubmit-wrap button { position: absolute; width: 40px; height: 40px; color: #fff; background: none; border-radius: 100px; cursor: pointer; }
-  
-  .page-template-page-data-explorer-species-checklists .hero #searchform .searchsubmit-wrap button i { font-size: 1.8em; font-family: "Font Awesome 5 Pro"; }
-  
-  @media screen and (min-width: 950px) { .page-template-page-data-explorer-species-checklists .hero #searchform:after { content: ""; display: block; position: absolute; right: -180px; top: -30px; width: 150px; height: 163px; background: url(https://val.vtecostudies.org/wp-content/themes/val/images/hummingbird.png); background-size: 150px 163px; } }
-  
-  @media screen and (min-width: 680px) { .page-template-page-data-explorer-species-checklists .hero #searchform:after { content: ""; display: block; position: absolute; right: -90px; top: -15px; width: 75px; height: 81px; background: url(https://val.vtecostudies.org/wp-content/themes/val/images/hummingbird.png); background-size: 75px 81px; } }
-  
-  .page-template-page-data-explorer-species-checklists .hero .button-wrap { margin: 30px 0; font-size: 1.2em; }
-  
-  .page-template-page-data-explorer-species-checklists .hero .button-wrap span { padding-right: 10px; font-size: 1.1em; font-weight: 600; }
-  
-  .page-template-page-data-explorer-species-checklists .hero span.overlay { display: block; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(35, 92, 164, 0.5); z-index: 0; }
-  
-  @media screen and (min-width: 680px) { .page-template-page-data-explorer-species-checklists .hero span.overlay { background: rgba(35, 92, 164, 0.35); } }
-  
-  @media screen and (min-width: 950px) { .page-template-page-data-explorer-species-checklists .hero span.overlay { background: rgba(35, 92, 164, 0.2); } }
-  

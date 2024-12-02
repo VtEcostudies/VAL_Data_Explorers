@@ -6,6 +6,11 @@ import { siteConfig } from './gbifSiteConfig.js'; //in html must declare this as
 import { getStoredData } from '../../VAL_Web_Utilities/js/storedData.js';
 import { townsBasemap } from './gbif_vt_town_tile.js';
 
+/*
+sessionStorage: cleared when page session ends: when the page is closed
+localStorage: stored data is saved across browser sessions
+localStorage data for a document loaded in a "private browsing" or "incognito" session is cleared when the last "private" tab is closed.
+*/
 var Storage = window.sessionStorage ? sessionStorage : false;
 
 let siteName = siteConfig.siteName;
@@ -99,6 +104,8 @@ import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`).then
     }
   */
   let mapSettings = dataConfig.mapSettings;
+  if (!latitude || !longitude) {latitude = mapSettings.lat; longitude = mapSettings.lng;}
+  if (!zoomLevel) {zoomLevel = mapSettings.zoom;}
   //Map-view option 1: use mapSettings. Problem: map-view is stored in sessionStorage, so this only works on _blank invocation.
   /*
   console.log('gbifDataWidget dataConfig.mapSettings', mapSettings);
