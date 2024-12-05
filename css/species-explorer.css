@@ -97,47 +97,6 @@
   font-size: 32px;
   z-index: 1200;
   }
-  
-#information-overlay {
-  /*position: fixed;*/
-  position:absolute;
-  display: none;
-  flex-flow: column;
-  left: 25%; /* simple way to align variable box in the middle */
-  width: 50%; /* simple way to align variable box in the middle */
-  max-width: 300px;
-  max-height: 50%;
-  overflow: auto;
-  top: 200px;
-  /*border: solid black 1px;*/
-  border-radius: 5px;
-  /*background: lightgrey;*/
-  background: black;
-  color: white;
-  z-index: 1100;
-  cursor: pointer;
-  padding-left: 10px;
-  padding-right: 5px;
-}
-#information-content {
-  margin-top: 5px;
-  width: 100%;
-}
-#information-button {
-  max-width: 75px;
-  align-self:flex-end;
-}
-.fa-info-circle { /* white border around info icons for visibility */
-  /*border: solid white 3px;*/
-  border-radius: 50%;
-  background-color: black;
-  color: white;
-  font-size:larger;
-}
-.header-info-icon {
-  margin-left: 3px;
-  border: solid grey 2px;
-}
 .fa-code-branch {
   margin-left: 5px;
 }
@@ -147,6 +106,11 @@
     -moz-transform: scaleX(-1);
     -webkit-transform: scaleX(-1);
     -ms-transform: scaleX(-1);
+}
+.sortableHeader:hover {
+  text-decoration: underline;
+  color: var(--bs-link-color);
+  cursor: pointer;
 }
 th.parentTaxaHeader {
   font-weight: normal !important;
@@ -192,79 +156,6 @@ li.parentTaxa.collapsed {
   min-width: 30px;
   cursor: pointer;
 }
-  
-  /* The Modal (background) */
-  .modal-div {
-  display: none; /* Hidden by default */
-  position: fixed; /* Stay in place */
-  z-index: 10000; /* Sit on top */
-  padding-top: 10px; /* Location of the box */
-  left: 0;
-  top: 0;
-  width: 100%; /* Full width */
-  height: 100%; /* Full height */
-  overflow: auto; /* Enable scroll if needed */
-  background-color: rgb(0,0,0); /* Fallback color */
-  background-color: rgba(0,0,0,0.9); /* Black w/ opacity */
-  cursor: pointer;
-  }
-  
-  /* Modal Content (Image) */
-  .modal-content {
-  padding: 0px;
-  margin: auto;
-  display: block;
-  width: 50%;
-  max-width: 700px;
-  }
-  
-  /* Caption of Modal Image (Image Text) - Same Width as the Image */
-  #capModal {
-  margin: auto;
-  display: block;
-  width: 80%;
-  max-width: 700px;
-  text-align: center;
-  color: #ccc;
-  padding: 10px 0;
-  height: 150px;
-  font-size: 30px;
-  }
-  
-  /* Add Animation - Zoom in the Modal */
-  .modal-content, #capMocal {
-  animation-name: zoom;
-  animation-duration: 0.6s;
-  }
-  
-  @keyframes zoom {
-  from {transform:scale(0)}
-  to {transform:scale(1)}
-  }
-  
-  /* The Close Button */
-  .modal-close {
-  position: absolute;
-  top: 15px;
-  right: 35px;
-  color: #f1f1f1;
-  font-size: 40px;
-  font-weight: bold;
-  transition: 0.3s;
-  }
-  
-  .modal-close:hover,
-  .modal-close:focus {
-  color: #bbb;
-  text-decoration: none;
-  cursor: pointer;
-  }
-  /* 100% Image Width on Smaller Screens */
-  @media only screen and (max-width: 700px) {
-    .modal-content {
-    width: 100%;
-    }
-  }
 .pagination li select {
   overflow: hidden;
 }

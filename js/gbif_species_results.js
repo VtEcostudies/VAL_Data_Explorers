@@ -12,6 +12,8 @@ import { getGbifTaxonFromName, getGbifTaxonFromKey, getGbifVernacularsFromKey, g
 import { getInatSpecies } from '../../VAL_Web_Utilities/js/inatSpeciesData.js';
 import { getStoredData, setStoredData } from '../../VAL_Web_Utilities/js/storedData.js';
 import { capitalize, alphaNumeric } from '../../VAL_Web_Utilities/js/commonUtilities.js';
+import { addInfoIcon, addInfoOverlay } from '../../VAL_Web_Utilities/js/infoPopup.js';
+import { createImageOverlay, showImageOverlay } from '../../VAL_Web_Utilities/js/imageOverlay.js';
 /*
 sessionStorage: cleared when page session ends: when the page is closed
 localStorage: stored data is saved across browser sessions
@@ -87,7 +89,9 @@ const eleCto = document.getElementById("compare-to"); if (eleCto) {eleCto.value 
 const eleSiz = document.getElementById("page-size"); if (eleSiz) {eleSiz.value =  limit;}
 const eleDwn = document.getElementById("download-progress"); if (eleDwn) {eleDwn.style.display = 'none';}
 const eleOvr = document.getElementById("download-overlay"); if (eleOvr) {eleOvr.style.display = 'none';}
-const eleInf = document.getElementById("information-overlay"); if (eleInf) {eleInf.style.display = 'none';}
+//const eleInf = document.getElementById("information-overlay"); if (eleInf) {eleInf.style.display = 'none';}
+//create DOM elements for information icon help text
+addInfoOverlay();
 /* From page query parameters, set the chosen values of an (optionally) multi-select drop-down list. */
 function setChosenMulti(eleMnt, values=[]) {
   //console.log('setChosenMulti=>eleMnt.options', eleMnt.options, '=>values', values);
@@ -111,6 +115,8 @@ function setChosenMulti(eleMnt, values=[]) {
   }
 }
 //create DOM elements for modal image overlay (eg. shown when clicking wikiPedia image thumbnail)
+createImageOverlay();
+/*
 const modalDiv = document.createElement("div");
 modalDiv.id = "divModal";
 modalDiv.className = "modal-div";
@@ -126,7 +132,7 @@ const modalImg = document.createElement("img")
 modalImg.id = "imgModal";
 modalImg.className = "modal-content";
 modalDiv.appendChild(modalImg);
-
+*/
 var waitRow; var waitObj;
 
 async function addTableWait() {
@@ -156,9 +162,11 @@ async function setHead() {
   console.log('setHead', objHed);
   if (!objHed.length) {return await addHead();}
 }
-var initCollapsed = sessionStore.getItem('speciesExplorerParentTaxaCollapsed')
+var initCollapsed = sessionStore.getItem('speciesExplorerParentTaxaCollapsed');
 initCollapsed = "true" == initCollapsed ? true : false;
 //console.log('sessionStorage(speciesExplorerParentTaxaCollapsed)', sessionStore.getItem('speciesExplorerParentTaxaCollapsed'), initCollapsed);
+var sortableColumns = ['key','nubKey','canonicalName','scientificName','vernacularName','vernacularNames','rank','taxonomicStatus','parent','parentKey','occurrences']
+var excludeColumns = []; //array of column names not sortable
 async function addHead() {
   let objHed = eleTbl.createTHead();
   let hedRow = objHed.insertRow(0); //just one header objRow
@@ -190,58 +198,19 @@ async function addHead() {
     }
     let html;
     if ("childTaxa" == hedNam) {html = `Click <i class="fa-solid fa-code-branch parent-branch"></i> symbol to explore ALL sub-taxa of taxon. Click named rank to explore sub-taxa having only that rank.`}
+    if ("parentTaxa" == hedNam) {html = `Click column header to expand/collapse parent taxa in all rows. Click parent taxon name for Species Explorer search of that taxon.`}
     if ("parent" == hedNam) {html = `Click symbol for Species Explorer with ALL children of named parent taxon. Click parent taxon name for Species Explorer with just that taxon and rank.`}
-    if ("canonicalName" == hedNam) {html = `Click taxon name to view its Species Profile.`}
-    if ("vernacularNames" == hedNam) {html = 'Click common name for Species Explorer search of that name.'}
-    if ("occurrences" == hedNam) {html = 'Occurrence counts are for taxon and sub-taxa. ACCEPTED name counts include their SYNONYMS. SYNONYM counts do not include their ACCEPTED names. Click count for Occurrence Explorer.'}
-    if (html) {addInfoIcon(colObj, html, "header-info-icon");}
-    //if (html) {colObj.innerHTML += `<a href="#" onmouseover="showInfo('${html}');" onmouseout="hideInfo();"><i class="fa fa-info-circle header-info-icon"></i></a>`;}
+    if ("canonicalName" == hedNam) {html = `Click column header to sort by taxon name. Click taxon name to view its Species Profile.`}
+    if ("vernacularNames" == hedNam) {html = 'Click column header to sort by common name. Click common name for Species Explorer search of that name.'}
+    if ("occurrences" == hedNam) {html = 'Click column header to sort by occurrence count. Occurrence counts are for taxon and sub-taxa. ACCEPTED name counts include their SYNONYMS. SYNONYM counts do not include their ACCEPTED names. Click count for Occurrence Explorer.'}
+    if (html) {addInfoIcon(colObj, html, ["header-info-icon"]);}
+    //add to sortable/non-sortable column arrays here?
+    if (sortableColumns.includes(hedNam)) {colObj.classList.add("sortableHeader")}
+    else {excludeColumns.push(hedNam)}
   });
 }
-var pageTitle = document.getElementById("species-title");
-addInfoIcon(pageTitle.parentElement, 'The Species Explorer does a full text search of the Atlas Species Checklist on GBIF. Text is searched against Scientific Name, Common Name, and Species Description.')
-if (eleInf) {eleInf.addEventListener("click", e => {hideInfo();})}
-var infoButton = document.getElementById("information-button")
-if (infoButton) {infoButton.addEventListener("click", e => {hideInfo();})}
-function addInfoIcon(eTag, html, addClass=false) {
-  const aTag = document.createElement("a"); 
-  aTag.href = "#";
-  //aTag.addEventListener("click", e => toggleInfo(e, html))
-  aTag.addEventListener("mouseover", e => showInfo(e, html))
-  aTag.addEventListener("mouseout", e => hideInfo(html))
-  eTag.appendChild(aTag);
-  const iTag = document.createElement("i");
-  iTag.classList.add("fa", "fa-info-circle");
-  if (addClass) {iTag.classList.add(addClass)}
-  aTag.appendChild(iTag);
-}
-//document.addEventListener("click", e => {hideInfo();}) //clicking anywhere on the page hides the info overlay
-var info_on = false;
-function showInfo(e, html=false, button=false) {
-  //console.log(html);
-  let iconRect = e.toElement.getBoundingClientRect();
-  eleInf.style.display = 'flex';
-  eleInf.style.left = iconRect.left+"px";
-  eleInf.style.top = (iconRect.top+30)+"px";
-  let showRect = eleInf.getBoundingClientRect();
-  //console.log('bubble.right:',showRect.right,'screen.width:',window.innerWidth,'bubble.width:',showRect.width,'bubble.left:',(iconRect.left-showRect.width)+"px")
-  if (showRect.right > window.innerWidth) {eleInf.style.left = (iconRect.right-showRect.width)+"px";}
-  if (!button) {document.getElementById("information-button").style.display = 'none'}
-  if (html) {document.getElementById("information-content").innerHTML = html;}
-  info_on = true;
-}
-function hideInfo() {
-  document.getElementById("information-overlay").style.display = 'none';
-  info_on = false;
-}
-function toggleInfo(e, html=false, button=false) {
-  e.stopImmediatePropagation();
-  var eleTxt = document.getElementById("information-content");
-  if (!button) {document.getElementById("information-button").style.display = 'none';}
-  else {document.getElementById("information-button").style.display = 'block';}
-  if (eleTxt) {
-    if (!info_on || `${html}` != `${eleTxt.innerHTML}`) {showInfo(html, button);} else {hideInfo();}
-  } else {console.log(`No element with id 'information-content'`);}
+if (eleTtl) { //if there's a page title, add an info icon *to its parent element*.
+  addInfoIcon(eleTtl.parentElement, 'The Species Explorer does a full text search of the Atlas Species Checklist on GBIF. Text is searched against Scientific Name, Common Name, and Species Description.')
 }
 
 // Create table row for each taxonKey, then fill row of cells
@@ -418,13 +387,15 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
               imgInfo = {
                 iconSrc: inat.default_photo.medium_url,
                 overSrc: inat.default_photo.medium_url,
-                attrib: inat.default_photo.attribution
+                attrib: inat.default_photo.attribution,
+                title: `${name} ${inat.default_photo.attribution}`
               }
             } else if (wiki.thumbnail) {
               imgInfo = {
                 iconSrc: wiki.thumbnail.source,
                 overSrc: wiki.originalimage.source,
-                attrib: ''
+                attrib: '',
+                title: name
               }
             } 
             if (imgInfo) {
@@ -434,11 +405,7 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
               iconImg.className = "icon-image";
               iconImg.width = "30"; 
               iconImg.height = "30";
-              iconImg.onclick = function() {
-                modalDiv.style.display = "block"; 
-                modalImg.src = imgInfo.overSrc; 
-                modalImg.alt = imgInfo.attrib; 
-                modalCap.innerHTML = this.alt;}
+              iconImg.onclick = () => {showImageOverlay(imgInfo);}
               colObj.appendChild(iconImg);
             }
           }).catch(err=> {console.log('getInatSpecies ERROR', err)});
@@ -957,7 +924,8 @@ async function loadByTaxonKeys(fCfg, tKeys) {
 let tableSort = false;
 function columnSort() {
   Promise.all(gOccCnts).then(() => {
-    let excludeColumnIds = [columnIds['childTaxa'], columnIds['parentTaxa'], columnIds['iconImage']];
+    let excludeColumnIds = []; //[columnIds['childTaxa'], columnIds['parentTaxa'], columnIds['iconImage']];
+    for (const columnName of excludeColumns) {excludeColumnIds.push(columnIds[columnName]);}
     if (tableSort) {
       tableSort.clear();
       tableSort.destroy();
