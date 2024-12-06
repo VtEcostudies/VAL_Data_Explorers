@@ -112,20 +112,20 @@
   color: var(--bs-link-color);
   cursor: pointer;
 }
-th.parentTaxaHeader {
+li.columnHeader {
+  display: inline; /* inline display removes the <li> tag's marker */
   font-weight: normal !important;
   border-bottom: 0px !important;
-  padding: 0px !important;
 }
-th.parentTaxaHeader:hover {
+li.parentTaxaHeader:hover {
   text-decoration: underline;
   color: var(--bs-link-color);
   cursor: pointer;
 }
-.parentTaxaHeader.allCollapsed::marker {
+li.parentTaxaHeader.allCollapsed::marker {
   content: "\002B"; /* + marker */
 }
-.parentTaxaHeader::marker {
+li.parentTaxaHeader::marker {
   content: "\2212"; /* - marker */
 }
 /* <ul> in table has huge default padding-left. Remove it. */

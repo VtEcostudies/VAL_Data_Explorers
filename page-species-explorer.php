@@ -6,33 +6,13 @@
 
 <?php get_header(); the_post(); ?>
 
-<script language="Javascript">
-    var info_on = false;
-    function showInfo(text=false, button=false) {
-      document.getElementById("information-overlay").style.display = 'flex';
-      if (!button) {document.getElementById("information-button").style.display = 'none'}
-      if (text) {document.getElementById("information-content").innerText = text;}
-      info_on = true;
-    }
-    function hideInfo() {
-      document.getElementById("information-overlay").style.display = 'none';
-      info_on = false;
-    }
-    function toggleInfo(text=false, button=true) {
-      var eleTxt = document.getElementById("information-content");
-      if (!button) {document.getElementById("information-button").style.display = 'none'}
-      if (eleTxt) {
-        if (!info_on || `${text}` != `${eleTxt.innerText}`) {showInfo(text);} else {hideInfo();}
-      } else {console.log(`No element with id 'information-content'`); }
-    }
-</script>
-
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" rel="stylesheet">
 
 <link href="<?php echo get_template_directory_uri(); ?>/VAL_Data_Explorers/css/gbif-data-styles.css" rel="stylesheet">
-<link href="<?php echo get_template_directory_uri(); ?>/VAL_Web_Utilities/css/tableSortSimple.css" rel="stylesheet">
+<link href="<?php echo get_template_directory_uri(); ?>/VAL_Web_Utilities/css/infoPopup.css" rel="stylesheet">
+<link href="<?php echo get_template_directory_uri(); ?>/VAL_Web_Utilities/css/imageOverlay.css" rel="stylesheet">
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap5.min.css" crossorigin="anonymous">
@@ -108,6 +88,7 @@
                 <option value="SPECIES">Species</option>
                 <option value="SUBSPECIES">Subspecies</option>
                 <option value="VARIETY">Variety</option>
+                <option value="FORM">Form</option>
               </select>
             </li>
             <li id="compare-list" class="page-item page-list">
@@ -180,13 +161,6 @@
       </div>
 
       <div id="download-overlay"></div>
-
-      <div id="information-overlay">
-        <p id="information-content">
-          Click Scientific Name to list all its child taxa.
-        </p>
-        <button class="btn btn-primary" id="information-button" onclick="hideInfo();">Ok</button>
-      </div>
 
       <div class="row" id="species-results">
         <div class="col-lg-12">

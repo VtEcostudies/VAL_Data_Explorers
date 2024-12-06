@@ -116,32 +116,15 @@ function setChosenMulti(eleMnt, values=[]) {
 }
 //create DOM elements for modal image overlay (eg. shown when clicking wikiPedia image thumbnail)
 createImageOverlay();
-/*
-const modalDiv = document.createElement("div");
-modalDiv.id = "divModal";
-modalDiv.className = "modal-div";
-modalDiv.onclick = function() {modalDiv.style.display = "none";}
-document.body.appendChild(modalDiv);
-const modalSpn = document.createElement("span");
-modalSpn.className = "modal-close";
-modalSpn.innerHTML = "&times";
-const modalCap = document.createElement("div");
-modalCap.id = "capModal";
-modalDiv.appendChild(modalCap);
-const modalImg = document.createElement("img")
-modalImg.id = "imgModal";
-modalImg.className = "modal-content";
-modalDiv.appendChild(modalImg);
-*/
-var waitRow; var waitObj;
 
+//create table row/cell with spinning wait cursor
+var waitRow; var waitObj;
 async function addTableWait() {
   waitRow = eleTbl.insertRow(0);
   waitObj = waitRow.insertCell(0);
   waitObj.style = 'text-align: center;';
   waitObj.innerHTML = `<i class="fa fa-spinner fa-spin" style="font-size:60px;"></i>`;
 }
-
 function remTableWait() {
   waitObj.remove();
   waitRow.remove();
@@ -174,14 +157,15 @@ async function addHead() {
     console.log('addHead', hedNam, hedIdx);
     columnIds[hedNam]=hedIdx; //make an object having names as keys and index as values, for use by dataTables to enable/disable sorting
     let colObj = await hedRow.insertCell(hedIdx);
+    colObj.classList.add("speciesExplorerColumnHeader");
     if ("parentTaxa" ==  hedNam) {
-      const colHed = document.createElement("th");
-      colHed.classList.add("parentTaxaHeader");
+      //colObj.classList.add("parentTaxaHeader");
       const listNode = document.createElement("li"); //create a list tag <li>
       listNode.innerText = columNames[hedNam];
-      colHed.appendChild(listNode);
-      listNode.classList.add("parentTaxaHeader");
-      if (initCollapsed) {listNode.classList.add("allCollapsed");}
+      colObj.appendChild(listNode);
+      listNode.classList.add("columnHeader", "parentTaxaHeader");
+      if (initCollapsed) {listNode.classList.add("allCollapsed"); listNode.innerText = '+Parent Taxa';}
+      else {listNode.innerText = '-Parent Taxa';}
       listNode.addEventListener("click", e => { //listen to <li> header click event
         e.target.classList.toggle("allCollapsed"); //toggle this class to alter the <li> element's marker
         let subNodes = document.querySelectorAll(".parentTaxa");
@@ -189,12 +173,12 @@ async function addHead() {
         let topNodes = document.querySelectorAll(".parentTaxaTop");
         topNodes.forEach(node => {node.classList.toggle("collapsed");})
         initCollapsed = !initCollapsed;
-        sessionStore.setItem('speciesExplorerParentTaxaCollapsed', initCollapsed)
+        if (initCollapsed) {listNode.innerText = '+Parent Taxa';}
+        else {listNode.innerText = '-Parent Taxa';}
+          sessionStore.setItem('speciesExplorerParentTaxaCollapsed', initCollapsed)
       })
-      colObj.appendChild(colHed); //add the <th> tag to the table column object
-      //colObj.innerHTML =  `<th class="speciesExplorerColumnHeader parentTaxa">{columNames[hedNam]}</th>`
     } else {
-      colObj.innerHTML =  `<th>${columNames[hedNam]}</th>`
+      colObj.innerHTML = columNames[hedNam];
     }
     let html;
     if ("childTaxa" == hedNam) {html = `Click <i class="fa-solid fa-code-branch parent-branch"></i> symbol to explore ALL sub-taxa of taxon. Click named rank to explore sub-taxa having only that rank.`}
