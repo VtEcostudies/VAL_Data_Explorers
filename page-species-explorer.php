@@ -11,6 +11,7 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" rel="stylesheet">
 
 <link href="<?php echo get_template_directory_uri(); ?>/VAL_Data_Explorers/css/gbif-data-styles.css" rel="stylesheet">
+<link href="<?php echo get_template_directory_uri() ?>/VAL_Data_Explorers/css/species-explorer.css" rel="stylesheet">
 <link href="<?php echo get_template_directory_uri(); ?>/VAL_Web_Utilities/css/infoPopup.css" rel="stylesheet">
 <link href="<?php echo get_template_directory_uri(); ?>/VAL_Web_Utilities/css/imageOverlay.css" rel="stylesheet">
 
@@ -31,10 +32,6 @@
 
       <div class="hero-header-info-icon">
   		  <h2 id="species-title" style="display: inline-block;">Species Explorer</h2>
-        <a href="#" onclick="toggleInfo('The Species Explorer does a full text search of the Checklist of Vermont Species on GBIF. Text is searched against Scientific Name, Common Name, and Species Description.', true);"
-          style="display: inline-block; vertical-align: top;">
-          <i class="fa fa-info-circle"></i>
-        </a>
       </div>
 
   		<form id="searchform" onsubmit="return false;" >

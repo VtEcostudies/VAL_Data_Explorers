@@ -1,0 +1,30 @@
+
+.page-template-page-species-explorer .hero #searchform .searchsubmit-wrap { 
+  background-image: url(/wp-content/themes/val/images/magnify-small.png) !important; 
+  background-size: 15px 14px; 
+}
+.page-template-page-species-explorer .hero #searchform:after { 
+  background-image: url(/wp-content/themes/val/images/hummingbird@2x.png) !important; 
+  background-size: 15px 14px; 
+}
+.page-template-page-species-explorer .hero { 
+  background: url(/wp-content/themes/val/images/vermont-panorama-small.jpg) no-repeat center !important; 
+  background-size: cover; 
+  position: relative; 
+  padding: 120px 30px 30px 30px; 
+  text-align: center; 
+  color: #fff; 
+  z-index: 1000;
+}
+@media screen and (min-width: 680px) { 
+  .page-template-page-species-explorer .hero { 
+    padding: 30px 30px 30px 30px; 
+    background-image: url(/wp-content/themes/val/images/vermont-panorama-medium.jpg) !important; 
+  } 
+}
+@media screen and (min-width: 950px) { 
+  .page-template-page-species-explorer .hero { 
+    padding: 90px 30px 30px 30px; 
+    background-image: url(/wp-content/themes/val/images/vermont-panorama-large.jpg) !important; 
+  } 
+}
