@@ -32,6 +32,7 @@ let homeUrl;
 
 let eleCountOccs = document.getElementById("count-occurrences");
 let eleCountDset = document.getElementById("count-datasets");
+let eleCountImgs = document.getElementById("count-images");
 let eleCountSpcs = document.getElementById('count-species');
 let eleCountPubs = document.getElementById("count-publishers");
 let eleCountCite = document.getElementById("count-citations");
@@ -78,6 +79,18 @@ function occDatasetStats(fileConfig) {
     let dsts = getAggOccCounts(fileConfig, false, ['datasetKey'], 'facetMincount=1&facetLimit=1199999');
     dsts.then(dsts => {
       elem.innerHTML = nFmt.format(Object.keys(dsts.objOcc).length);
+    }).catch(err =>{
+      elem.innerHTML = `<a title="${err.message}" href="${JSON.stringify(err.arrQry)}">(Error)</a>`;
+    })
+  }
+}
+function occImageStats(fileConfig) {
+  var elem = eleCountImgs;
+  if (elem) {
+    let imgs = getAggOccCounts(fileConfig, false, ['mediaType'], 'facetMincount=1&facetLimit=1199999');
+    imgs.then(imgs => {
+      console.log(`gbif_data_stats.js=>occImageStats=>getAccOccCounts('mediaType')`, imgs);
+      elem.innerHTML = nFmt.format(imgs.objOcc.StillImage);
     }).catch(err =>{
       elem.innerHTML = `<a title="${err.message}" href="${JSON.stringify(err.arrQry)}">(Error)</a>`;
     })
@@ -235,7 +248,7 @@ function addListeners(dataConfig) {
       setSite(val);
     }
   }
-
+/*
   // Respond to mouse click on Occurrence Stats button
   if (document.getElementById("stats-records")) {
       document.getElementById("stats-records").addEventListener("mouseup", function(e) {
@@ -263,17 +276,20 @@ function addListeners(dataConfig) {
       });
   }
 
+  // Respond to mouse click on Images Stats button 
+  if (document.getElementById("stats-images")) {
+    document.getElementById("stats-images").addEventListener("mouseup", function(e) {
+      if (0 == e.button) {
+        window.location.assign(`${dataConfig.explorerUrl}?siteName=${siteName}&view=GALLERY`);
+      }
+    });
+  }
+
   // Respond to mouse click on Citations Stats button
   if (document.getElementById("stats-citations")) {
       document.getElementById("stats-citations").addEventListener("mouseup", function(e) {
         if (0 == e.button) {
           window.location.assign(`${dataConfig.literatUrl}?siteName=${siteName}`);
-          /*
-          window.open(
-            `https://www.gbif.org/resource/search?contentType=literature&publishingOrganizationKey=${dataConfig.publishingOrgKey}`
-            , "_blank"
-            );
-          */
           }
         });
   }
@@ -286,15 +302,7 @@ function addListeners(dataConfig) {
       }
     });
   }
-
-  // Respond to mouse click on Species Accounts Stats button
-  if (document.getElementById("stats-sp-accounts")) {
-      document.getElementById("stats-sp-accounts").addEventListener("mouseup", function(e) {
-        if (0 == e.button) {
-          console.log('stats-sp-accounts got mouseup from primary button', e);
-        }
-      });
-  }
+*/
 }
 
 function changeStyle(selectorText='page-template-page-species-explorer-2022', property='background-image', value='url(../images/vermont-panorama-large.jpg)')
@@ -336,17 +344,21 @@ function setContext(dataConfig) {
   let homeTitle = document.getElementById("home-title")
   let linkOccs = document.getElementById("stats-records");
   let linkDset = document.getElementById("stats-datasets");
+  let linkImgs = document.getElementById("stats-images");
   let linkSpcs = document.getElementById("stats-species");
   let linkCite = document.getElementById("stats-citations");
   let linkPubl = document.getElementById("stats-publishers");
   if (homeTitle) {
     homeTitle.innerText = dataConfig.atlasName;
-}
+  }
   if (linkOccs) {
     linkOccs.href = dataConfig.exploreUrl + `?siteName=${siteName}&view=MAP`;
   }
   if (linkDset) {
     linkDset.href = dataConfig.exploreUrl + `?siteName=${siteName}&view=DATASETS`;
+  }
+  if (linkImgs) {
+    linkImgs.href = dataConfig.exploreUrl + `?siteName=${siteName}&view=GALLERY`;
   }
   if (linkSpcs) {
     linkSpcs.href = dataConfig.resultsUrl + `?siteName=${siteName}`;
@@ -366,6 +378,7 @@ function startUp(fileConfig) {
   setContext(dataConfig);
   occStats(fileConfig);
   occDatasetStats(fileConfig); //only way to get dataset stats is from occs
+  occImageStats(fileConfig);
 
   if (dataConfig.speciesFilter) {
     speciesStats(dataConfig); //species-counts based on config file speciesFilter
@@ -382,7 +395,7 @@ function startUp(fileConfig) {
       if (eleCountCite) {eleCountCite.innerHTML = '0';}
     }
   }
-  observerStats(dataConfig);
+  //observerStats(dataConfig); //this gets iNat observers?
   contributorStats(fileConfig);
   addListeners(dataConfig);
 }
