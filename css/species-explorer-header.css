@@ -7,6 +7,14 @@
   display: inline-block;
 }
 
+.hero-title-div-wordpress {
+  display: inline-block;
+  margin-bottom: 30px;
+}
+.hero-title-wordpress {
+  display: inline;
+}
+
 .page-template-page-species-explorer .hero #searchform .searchsubmit-wrap { 
   background-image: url(/wp-content/themes/val/images/magnify-small.png) !important; 
   background-size: 15px 14px; 
