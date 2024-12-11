@@ -1,3 +1,11 @@
+  
+.hero-title-div {
+  display: inline;
+  margin-bottom: 30px;
+}
+.hero-title {
+  display: inline-block;
+}
 
 .page-template-page-species-explorer .hero #searchform .searchsubmit-wrap { 
   background-image: url(/wp-content/themes/val/images/magnify-small.png) !important; 

@@ -193,7 +193,7 @@ async function addHead() {
     else {excludeColumns.push(hedNam)}
   });
 }
-if (eleTtl) { //if there's a page title, add an info icon *to its parent element*.
+if (eleTtl) { //if there's a page title, add an info icon *to its parent element, a div*.
   addInfoIcon(eleTtl.parentElement, 'The Species Explorer does a full text search of the Atlas Species Checklist on GBIF. Text is searched against Scientific Name, Common Name, and Species Description.')
 }
 

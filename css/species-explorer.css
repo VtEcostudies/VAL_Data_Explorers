@@ -1,14 +1,14 @@
 /* Resize the dataTables drop-down box to fit number and down-arrow */
 #species-table_wrapper #species-table_length select {
-    width: 50%;
-  }
+  width: 50%;
+}
   
-  /* Allow table to shrink by breaking longish cell values without breaking characters */
-  table td {
-    max-width:100px; 
-    word-wrap:break-word;
-  }
-  
+/* Allow table to shrink by breaking longish cell values without breaking characters */
+table td {
+  max-width:100px; 
+  word-wrap:break-word;
+}
+
   @media screen and (max-width: 680px) {
     table {min-width: 300px;}
     table td {max-width:100%;}
