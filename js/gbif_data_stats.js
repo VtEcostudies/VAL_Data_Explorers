@@ -305,7 +305,7 @@ function addListeners(dataConfig) {
 */
 }
 
-function changeStyle(selectorText='page-template-page-species-explorer-2022', property='background-image', value='url(../images/vermont-panorama-large.jpg)')
+function changeStyle(selectorText='page-template-page-species-explorer', property='background-image', value='url(../images/vermont-panorama-large.jpg)')
 {
     var theRules = new Array();
     if (document.styleSheets[0].cssRules) {
@@ -337,9 +337,9 @@ function setContext(dataConfig) {
   if (eleBody) {
     console.log('background element', eleBody);
     //eleBody.style.backgroundImage=`url(${dataConfig.backgroundImageUrl.default})`;
-    //eleBody.classList.remove('page-template-page-species-explorer-2022')
+    //eleBody.classList.remove('page-template-page-species-explorer')
     //NOTE: changeStyle causes cross-origin stylesheet error in Wordpress
-    //changeStyle('.page-template-page-species-explorer-2022 .hero', 'background-image', dataConfig.backgroundImageUrl.default);
+    //changeStyle('.page-template-page-species-explorer .hero', 'background-image', dataConfig.backgroundImageUrl.default);
   }
   let homeTitle = document.getElementById("home-title")
   let linkOccs = document.getElementById("stats-records");
