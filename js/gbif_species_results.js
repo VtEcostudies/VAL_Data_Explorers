@@ -818,6 +818,7 @@ async function startUp(fCfg) {
     eleTtl.innerText = `${fCfg.dataConfig.atlasPlace} Species Explorer`;
   }
 
+  //if (eleSit && siteName) {eleSit.style.visibility = "hidden";} if (eleSit && !siteName) {
   if (eleSit) {
     siteNames.forEach(site => {
       eleSit.innerHTML += `<option value=${site} ${siteName==site ? "selected=" : ""} id="option-${site}">${site}</option>`;

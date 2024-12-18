@@ -234,6 +234,7 @@ function addListeners(dataConfig) {
 
   let eleSite = document.getElementById("siteSelect")
 
+  //if (eleSite && siteName) {eleSite.style.visibility = "hidden";} if (eleSite && !siteName) {
   if (eleSite) { //siteNames drop-down list
     console.log('siteNames before loop', eleSite.innerHTML);
     eleSite.innerHTML = '';
