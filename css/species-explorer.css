@@ -1,0 +1,164 @@
+/* Resize the dataTables drop-down box to fit number and down-arrow */
+#species-table_wrapper #species-table_length select {
+  width: 50%;
+}
+  
+/* Allow table to shrink by breaking longish cell values without breaking characters */
+table td {
+  max-width:100px; 
+  word-wrap:break-word;
+}
+
+  @media screen and (max-width: 680px) {
+    table {min-width: 300px;}
+    table td {max-width:100%;}
+    thead {display: none;}
+    tr:nth-child(odd) td:first-child {
+      background: white;
+      font-weight:bold;
+      font-size:1.3em;
+    }
+    tr:nth-child(even) td:first-child {
+      background: lightgray;
+      font-weight:bold;
+      font-size:1.3em;
+    }
+    tbody td {display: block;  text-align:center;}
+    tbody td:before {
+        content: attr(data-th);
+        display: block;
+        text-align:center;
+    }
+    tbody tr:nth-child(odd) {
+      background-color: white !important;
+    }
+    tbody tr:nth-child(even) {
+      background-color: lightgray !important;
+    }
+  }
+  
+  .pagination {padding:0;}
+  #search-term {margin-top:8px;}
+  .pagination li {cursor:pointer;}
+  #taxon-rank {
+  padding: 0px 0px;
+  width: 105px;
+  }
+  #taxon-status {
+  padding: 0px 0px;
+  width: 90px;
+  }
+  #compare-to {
+  padding: 0px 0px;
+  width: 80px;
+  }
+  #page-size {
+  padding: 0px 0px;
+  width: 80px;
+  }
+  #select-label {
+  color: light blue ;
+  font-size: 10px;
+  margin-left: 10px;
+  padding-top: 0px;
+  }
+  .page-list {
+  line-height: 12px;
+  }
+  #download-csv, #download-json, #flag-issue {
+  padding: 2px;
+  margin: 0px;
+  }
+  #download-overlay {
+  position: fixed;
+  display: none;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  z-index: 1100;
+  cursor: pointer;
+  }
+  .centered-text {
+  position: absolute;
+  top: 200px;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1200;
+  }
+  .download-progress {
+  display: none;
+  position: relative;
+  background-color: green;
+  color: white;
+  font-size: 32px;
+  z-index: 1200;
+  }
+.fa-code-branch {
+  margin-left: 5px;
+}
+/* Flip an icon to its horizontal mirror image. Originally for an arrow-icon. Currently not used. */
+.icon-flipped {
+    transform: scaleX(-1);
+    -moz-transform: scaleX(-1);
+    -webkit-transform: scaleX(-1);
+    -ms-transform: scaleX(-1);
+}
+.sortableHeader:hover {
+  text-decoration: underline;
+  color: var(--bs-link-color);
+  cursor: pointer;
+}
+li.columnHeader {
+  display: inline; /* inline display removes the <li> tag's marker */
+  font-weight: normal !important;
+  border-bottom: 0px !important;
+}
+li.parentTaxaHeader:hover {
+  text-decoration: underline;
+  color: var(--bs-link-color);
+  cursor: pointer;
+}
+li.parentTaxaHeader.allCollapsed::marker {
+  content: "\002B"; /* + marker */
+}
+li.parentTaxaHeader::marker {
+  content: "\2212"; /* - marker */
+}
+/* <ul> in table has huge default padding-left. Remove it. */
+ul.parentTaxaList {
+  padding-left: 2px;
+}
+/*Top parentTaxa row is Kingdom w +/- marker*/
+li.parentTaxaTop.collapsed::marker {
+  content: "\002B"; /* + marker */
+}
+li.parentTaxaTop::marker {
+  content: "\2212"; /* - marker */
+}
+.codeBranchIcon {
+  content: "\f126";
+}
+/*
+Lower parentTaxa rows have arrow marker as unicode from https://unicodeplus.com/U+21B3
+Text ↳ in CSS Unicode. Use the "U+" code, but replace the "U+" with "\". e.g. "U+21B3" becomes content: "\21B3"
+*/
+li.parentTaxa::marker {
+  content: "\21B3";
+}
+li.parentTaxa.collapsed {
+  display: none;
+}
+.icon-image {
+  min-width: 30px;
+  cursor: pointer;
+}
+.pagination li select {
+  overflow: hidden;
+}
+.pagination li select option {
+  /*background-color: gold;*/
+}

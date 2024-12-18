@@ -1,0 +1,149 @@
+.topMenu {
+    padding-left: 20px;
+}
+
+header {
+    width: 100%;
+    position: fixed;
+    top: 0;
+}
+
+.container {
+    margin-top: 80px;
+    position: relative;
+}
+
+.speciesStats {
+}
+
+.speciesStatsLabel {
+    display: inline;
+}
+
+.speciesStatsValue {
+    display: inline;
+    font-style: italic;
+}
+
+.speciesStatsBlock {
+    display: block;
+}
+
+.speciesCommon {
+    font-size: x-large;
+}
+
+.speciesTaxon {
+    font-size: large;
+    font-style: italic;
+}
+
+.taxonDetailBottom {
+    padding-top: 20px;
+    padding-right: 15px;
+}
+
+.iconicImage {
+    width: 100%;
+    height: 100%; 
+    max-height: 600px;
+}
+
+.imageAttrib {
+    font-size: x-small;
+}
+
+.speciesDistribution {
+    width: 67%;
+}
+
+.center-image {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.hide-image {
+    display: none;
+}
+
+.pointer {
+    cursor: pointer;
+}
+
+/* Style the tab */
+.tab {
+  overflow: hidden;
+  border: 1px solid #000;
+  background-color: #f1f1f1;
+  width: 100%;
+}
+
+/* Style the buttons inside the tab */
+.tab button {
+  background-color: inherit;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 7px 8px;
+  transition: 0.3s;
+  font-size: 14px;
+}
+
+/* Change background color of buttons on hover */
+.tab button:hover {
+  background-color: #ddd;
+}
+
+/* Create an active/current tablink class */
+.tab button.active {
+  background-color: #ccc;
+}
+
+/* Style the top tab content */
+.tabContentTop {
+  overflow-y: auto;
+  display: none;
+  padding: 6px 12px;
+  border: 1px solid #000;
+  border-top: none;
+  height: 100%;
+}
+
+/* Style the bottom tab content */
+.tabContentBot {
+    overflow-y: auto;
+    display: none;
+    padding: 6px 12px;
+    border: 1px solid #000;
+    border-top: none;
+    height: 100%;
+    margin-bottom: 50px;
+  }
+
+  .wikiSidebar {
+    padding-top: 50px;
+  }
+
+  .occMap {
+    height: 100%;
+    width: 100%;
+    min-height: 750px;
+    min-width: 400px;
+  }
+
+  .activeTOOL {                                                        /* NEW */
+    background: #eee;                                               /* NEW */
+    box-shadow: 0 0 5px #999999;                                    /* NEW */
+    color: #333;                                                    /* NEW */
+    display: none;                                                  /* NEW */
+    font-size: 12px;                                                /* NEW */
+    left: 130px;                                                    /* NEW */
+    padding: 3px;                                                  /* NEW */
+    position: absolute;                                             /* NEW */
+    text-align: center;                                             /* NEW */
+    top: 95px;                                                      /* NEW */
+    width: 80px;                                                    /* NEW */
+    z-index: 10;                                                    /* NEW */
+  }

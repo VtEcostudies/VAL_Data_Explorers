@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script type="module" src="./js/localSiteConfig.js">/*THIS SCRIPT MUST COME FIRST*/</script>
+
+	<script src="https://unpkg.com/react@16/umd/react.production.min.js"></script>
+	<script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"></script>
+
+	<link rel="stylesheet" href="css/local-data-styles.css">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" rel="stylesheet">
+
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mapbox-gl/2.1.1/mapbox-gl.min.css" integrity="sha512-j4BKLk7HB2Umio2SKGP4gh1L3jouxJDuBxcWoq4kf1fYIkJyXQUGxs9me8yz2wexxAIHIcQHzn64UfPIG232xQ==" crossorigin="anonymous" />
+	<link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/openlayers/6.1.1/ol.min.css' />
+
+	<script type="text/javascript" src="https://react-components.gbif.org/lib/gbif-react-components.js"></script>
+
+	<script type="module" src="js/freshworks.js"></script>
+	<script type="module" src="js/gbif_data_widget.js"></script>
+</head>
+	<body>
+	  <a id="homeLink" href="_index.html">Home</a>&nbsp<a id="spcsLink" href="_species.html">Species</a>
+		<section> <!-- GBIF REACT Data Widget hangs on root -->
+			<div id="gbif_react" class="data-widget">
+				<div id="root"></div>
+			</div>
+		</section>
+	</body>
+</html>

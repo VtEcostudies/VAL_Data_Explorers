@@ -4,6 +4,27 @@
 */
 ?>
 
+<style>
+
+#stats-nothing    { grid-area: top0; }
+#stats-records    { grid-area: top1; }
+#stats-datasets   { grid-area: top2; }
+#stats-species    { grid-area: bot1; }
+#stats-citations  { grid-area: bot2; }
+#stats-observers  { grid-area: bot3; }
+
+.hero-stats-container {
+	display: grid;
+	grid-template-columns: auto !important;
+	grid-template-areas:
+		'top0 top1 top1 top2 top2 top2'
+		'bot1 bot1 bot2 bot2 bot3 bot3';
+	gap: 10px;
+	padding: 10px;
+}
+
+</style>
+
 <?php get_header(); the_post(); ?>
 
 <section class="hero">
@@ -14,7 +35,9 @@
 
 		<h2><?php the_field('heading-2'); ?></h2>
 
-		<div class="hero-stats-wrap">
+		<div class="hero-stats-wrap hero-stats-container">
+
+			<p id="stats-nothing"></p> <!-- placeholder hack to offset top row of css 5-item, 2-row grid -->
 
 			<a id="stats-records" class="hero-stats-item" href="<?php site_url(); ?>gbif-explorer?view=MAP">
 
@@ -32,7 +55,23 @@
 
 			</a>
 
-			<a id="stats-species" class="hero-stats-item" href="<?php site_url(); ?>gbif-species-explorer?q=">
+			<a id="stats-datasets" class="hero-stats-item" href="<?php site_url(); ?>gbif-explorer?view=DATASETS">
+
+				<i class="stats-icon fa-regular fa-address-card"></i>
+
+				<div class="stats">
+
+					<span id="count-datasets" class="stats-count">
+						<i class="far fa-compass"></i>
+					</span>
+
+					<span class="stats-desc">datasets</span>
+
+				</div>
+
+			</a>
+
+			<a id="stats-species" class="hero-stats-item" href="<?php site_url(); ?>gbif-species-explorer">
 
 				<i class="stats-icon fas fa-trees"></i>
 
@@ -43,6 +82,49 @@
 					</span>
 
 					<span class="stats-desc">species</span>
+
+				</div>
+
+			</a>
+
+			<a id="stats-citations" class="hero-stats-item" href="<?php the_field('citations-link'); ?>">
+			<!--
+			<a id="stats-citations" class="hero-stats-item" href="https://val.vtecostudies.org/about/publications/">
+			-->
+
+				<i class="stats-icon  fa-light fa-books"></i>
+
+				<div class="stats">
+
+					<span id="count-citations" class="stats-count">
+						<!--
+							Use this if we return to an automated API value
+							<i class="far fa-compass"></i>
+						-->
+						<?php the_field('citations-count'); ?>
+					</span>
+
+					<span class="stats-desc">citations</span>
+
+				</div>
+
+			</a>
+
+			<a id="stats-observers" class="hero-stats-item" href="#">
+
+				<i class="stats-icon fa-regular fa-binoculars"></i>
+
+				<div class="stats">
+
+					<span id="count-observers" class="stats-count stats-count-observers">
+						<!--
+							Use this if we return to an automated API value
+							<i class="far fa-compass"></i>
+						-->
+						<?php the_field('observers-count'); ?>
+					</span>
+
+					<span class="stats-desc">contributors</span>
 
 				</div>
 
@@ -298,8 +380,8 @@
 
 </section>
 
-<script src="/wp-content/themes/val/js/gbif_data_stats.js" type="module"></script>
-<script src="/wp-content/themes/val/js/gbif_species_search.js" type="module"></script>
-<script src="/wp-content/themes/val/js/gbif_auto_complete.js" type="module"></script>
+<script src="<?php echo get_template_directory_uri(); ?>/VAL_Data_Explorers/js/gbif_data_stats.js" type="module"></script>
+<script src="<?php echo get_template_directory_uri(); ?>/VAL_Data_Explorers/js/gbif_species_search.js" type="module"></script>
+<script src="<?php echo get_template_directory_uri(); ?>/VAL_Data_Explorers/js/gbif_auto_complete.js" type="module"></script>
 
 <?php get_footer(); ?>

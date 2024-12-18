@@ -1,280 +1,174 @@
-import { dataConfig } from './gbif_data_config.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_widget.js"></script>
+import { siteConfig, siteNames } from './gbifSiteConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_config.js"></script>
+import { speciesSearch } from './gbif_species_search.js';
+import { getAggOccCounts } from '../../VAL_Web_Utilities/js/gbifOccFacetCounts.js';
+import { getStoredData, setStoredData } from '../../VAL_Web_Utilities/js/storedData.js';
+import { getGbifRecordedBy, getInatObserverStats, getEbirdUsers, getEbutterflyUsers } from '../../VAL_Web_Utilities/js/fetchObservers.js';
 
-const datasetKey = dataConfig.datasetKey; //'0b1735ff-6a66-454b-8686-cae1cbc732a2'; //VCE VT Species Dataset Key
-const qrys = predicateToQueries(dataConfig.rootPredicate); //['?state_province=Vermont&hasCoordinate=false', '?gadmGid=USA.46_1'];
+let siteName = siteConfig.siteName;
+console.log('gbif_data_stats.js retrieved gbifSiteConfig.siteName', siteName);
 
-//parse rootPredicate into an array of http query parameters for combined and iterative calls to API here
-export function predicateToQueries(rootPredicate=[]) {
-  let qrys = [];
-  if ('or' == rootPredicate.type.toLowerCase()) {
-    for (var topIdx=0; topIdx<rootPredicate.predicates.length;topIdx++) {
-      let topEle = rootPredicate.predicates[topIdx];
-      //alert(`rootPredicate | ${JSON.stringify(topEle)} | ${topIdx}`);
-      if (topEle.predicates) { //nested predicate object
-        let qry = '?';
-        for (var subIdx=0; subIdx<topEle.predicates.length; subIdx++) {
-          let subEle = topEle.predicates[subIdx];
-          //alert(`subPredicate | ${JSON.stringify(subEle)} | ${subIdx}`);
-          if ('or' == topEle.type.toLowerCase()) {
-            if ('in' == subEle.type.toLowerCase()) {
-              for (var valIdx=0; valIdx<subEle.values.length; valIdx++) {
-                qrys.push(`?${subEle.key}=${subEle.values[valIdx]}`); //add multiple '?' query array-elements for sub-predicates' sub-values
-              }
-            } else {
-              qrys.push(`?${subEle.key}=${subEle.value}`); //add multiple '?' query array-elements for sub-predicates
-            }
-          } else if ('and' == topEle.type.toLowerCase()) {
-            if ('in' == subEle.type.toLowerCase()) {
-              for (var valIdx=0; valIdx<subEle.values.length; valIdx++) {
-                qry += `${subEle.key}=${subEle.values[valIdx]}&`; //string sub-predicates' values together as '&' values in one query
-              }
-            } else {
-              qry += `${subEle.key}=${subEle.value}&`; //string sub-predicates together as '&' values in one query
-            }
-          }
-        }
-        if ('?' != qry) {qrys.push(qry);} //add single '?' query array-element for 'and' sub-predicate
-      } else {
-        qrys.push(`?${topEle.key}=${topEle.value}`);
-      }
-    }
-  }
-  return qrys;
+const metaUrl = new URL(import.meta.url); //lower case '.url' is a property
+const metaSite = metaUrl.searchParams.get('siteName'); //calling modules do this: import { dataConfig } from '../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=val'
+//Get siteName meta param and set localStorage siteName here
+if (metaSite) {
+  siteName = metaSite;
+  console.log('gbif_data_stats.js called by module metaParam with siteName', metaSite);
+  setStoredData('siteName', false, false, siteName);
 }
-//console.dir(qrys);
 
-var begEvent = new Event('xhttpBeg');
-var endEvent = new Event('xhttpEnd');
-var xhrTimeout = 10000;
-var occs = 0;
-var sets = {};//[]; //use object. array.find is waaaay slower than obj[value]
-var spcs = {};//[]; //ditto
-var pubs = {};//[]; //ditto
+const storSite = await getStoredData('siteName', '', '');
+if (storSite) {siteName = storSite; console.log('gbif_data_stats.js retrieved localStorage siteName', storSite);}
+
+const objUrlParams = new URLSearchParams(window.location.search);
+const httpSite = objUrlParams.get('siteName');
+//Get siteName query param and set localStorage siteName here
+if (siteNames.includes(httpSite)) {
+  siteName = httpSite;
+  console.log('gbif_data_stats.js called with http param siteName', httpSite);
+  setStoredData('siteName', false, false, siteName);
+}
+
+let homeUrl;
+
+let eleCountOccs = document.getElementById("count-occurrences");
+let eleCountDset = document.getElementById("count-datasets");
+let eleCountImgs = document.getElementById("count-images");
+let eleCountSpcs = document.getElementById('count-species');
+let eleCountPubs = document.getElementById("count-publishers");
+let eleCountCite = document.getElementById("count-citations");
+let eleCountObsv = document.getElementById('count-observers');  //not fully defined. initially, iNat count
+let eleCountCntb = document.getElementById('count-contributors'); //used to count GBIF recordedBy
+
+import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`)
+  .then(fileConfig => {
+    console.log('gbif_data_stats | siteName:', siteName, 'dataConfig:', fileConfig.dataConfig);
+    startUp(fileConfig);
+  })
+
 var nFmt = new Intl.NumberFormat(); //use this to format numbers by locale... automagically?
 
+function occStats(fileConfig) {
+  var elem = eleCountOccs;
+  let occs = getAggOccCounts(fileConfig, false, []); //get just top-level all-taxon agg occ counts w/o taxon-breakout
+  if (elem) {
+    occs.then(occs => {
+      elem.innerHTML = nFmt.format(occs.total);
+    }).catch(err =>{
+      elem.innerHTML = `<a title="${err.message}" href="${JSON.stringify(err.arrQry)}">(Error)</a>`;
+    })
+  }
+}
 /*
-  this is now called for each value in global array 'qrys', but here's example query:
-  https://api.gbif.org/v1/occurrence/search?stateProvince=Vermont&limit=0
+This occurrence facet query isn't filtered by rank and status. It's a backup species stats query used when the siteConfig
+does not contain a speciesFilter. See speciesStats function which is used when the dataConfig.speciesFilter is defined.
 */
-function occStats(reqQuery) {
-    var xmlhttp = new XMLHttpRequest();
-    var reqHost = "https://api.gbif.org/v1";
-    var reqRoute = "/occurrence/search";
-    //var reqQuery = "?state_province=Vermont";
-    var reqLimit = "&limit=0";
-    var reqAll=reqHost+reqRoute+reqQuery+reqLimit;
-    var elem = document.getElementById("count-occurrences");
-
-    document.dispatchEvent(begEvent);
-
-    xmlhttp.onreadystatechange = function() {
-        if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
-            if (xmlhttp.status == 200) {
-                var res = JSON.parse(xmlhttp.responseText);
-                console.log(`OCCURRENCES => ${reqAll} occurrences: ${res.count}`);
-                occs += res.count;
-                if (elem) {
-                  elem.innerHTML = nFmt.format(occs);// numeral(occs).format('0,0');
-                } else {
-                  console.log('HTML element id="count-occurrences" NOT found.')
-                }
-            } else {
-                console.log(`An http ${xmlhttp.status} result was returned from ${reqHost}.`);
-                if (elem) {
-                  elem.style="font-size:8pt";
-                  elem.innerHTML = `(http ${xmlhttp.status} from ${reqAll})`;
-                } else {
-                  console.log('HTML element id="count-occurrences" NOT found.')
-                }
-            }
-            document.dispatchEvent(endEvent);
-        }
-    };
-
-    console.log('AJAX GET request:', reqHost+reqRoute+reqQuery+reqLimit);
-
-    xmlhttp.open("GET", reqHost+reqRoute+reqQuery+reqLimit, true);
-    //xmlhttp.setRequestHeader("Content-type", "application/json; charset=utf-8");
-    //xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    //xmlhttp.setRequestHeader("Accept", "*/*");
-    //xmlhttp.setRequestHeader("Cache-Control", "no-cache");
-    xmlhttp.timeout = xhrTimeout; // Set timeout to 10 seconds
-    xmlhttp.ontimeout = function () { console.log(`AJAX GET request ${reqHost+reqRoute} timed out. (${xhrTimeout/1000} seconds).`); }
-    xmlhttp.async = true;
-    xmlhttp.send();
+function occSpeciesStats(fileConfig) {
+  var elem = eleCountOccs;
+  if (elem) {
+    let spcs = getAggOccCounts(fileConfig, false, ['scientificName'], 'facetMincount=1&facetLimit=1199999');
+    spcs.then(spcs => {
+      elem.innerHTML = nFmt.format(Object.keys(spcs.objOcc).length);
+    }).catch(err =>{
+      elem.innerHTML = `<a title="${err.message}" href="${JSON.stringify(err.arrQry)}">(Error)</a>`;
+    })
+  }
+}
+function occDatasetStats(fileConfig) {
+  var elem = eleCountDset;
+  if (elem) {
+    let dsts = getAggOccCounts(fileConfig, false, ['datasetKey'], 'facetMincount=1&facetLimit=1199999');
+    dsts.then(dsts => {
+      elem.innerHTML = nFmt.format(Object.keys(dsts.objOcc).length);
+    }).catch(err =>{
+      elem.innerHTML = `<a title="${err.message}" href="${JSON.stringify(err.arrQry)}">(Error)</a>`;
+    })
+  }
+}
+function occImageStats(fileConfig) {
+  var elem = eleCountImgs;
+  if (elem) {
+    let imgs = getAggOccCounts(fileConfig, false, ['mediaType'], 'facetMincount=1&facetLimit=1199999');
+    imgs.then(imgs => {
+      console.log(`gbif_data_stats.js=>occImageStats=>getAccOccCounts('mediaType')`, imgs);
+      elem.innerHTML = nFmt.format(imgs.objOcc.StillImage);
+    }).catch(err =>{
+      elem.innerHTML = `<a title="${err.message}" href="${JSON.stringify(err.arrQry)}">(Error)</a>`;
+    })
+  }
+}
+function occPublisherStats(fileConfig) {
+  var elem = eleCountPubs;
+  if (elem) {
+    let pbls = getAggOccCounts(fileConfig, false, ['publishingOrg'], 'facetMincount=1&facetLimit=1199999');
+    pbls.then(pbls => {
+      elem.innerHTML = nFmt.format(Object.keys(pbls.objOcc).length);
+    }).catch(err =>{
+      elem.innerHTML = `<a title="${err.message}" href="${JSON.stringify(err.arrQry)}">(Error)</a>`;
+    })
+  }
+}
+/*
+  Get a count of accepted species and set speciesCount html element value
+  Using speciesSearch, count rank=SPECIES & status=ACCEPTED
+*/
+async function speciesStats(dataConfig, reqQuery="") {
+  let elem = eleCountSpcs;
+  if (elem) {
+    reqQuery += `&rank=SPECIES&status=ACCEPTED`;
+    let spcs = speciesSearch(dataConfig, reqQuery, 0, 0);
+    spcs.then(spcs => {
+      elem.innerHTML = nFmt.format(spcs.count);
+    }).catch(err => {
+      elem.innerHTML = `<a title="${err.message}" href="${err.query}">(Error)</a>`;
+    })
+  }
 }
 
 /*
-  this is now called for each value in global array 'qrys', but here's example query:
-  https://api.gbif.org/v1/occurrence/search?stateProvince=Vermont&limit=0&facet=datasetKey&facetMincount=1&datasetKey.facetLimit=1000
+  Load observer stats. This idea was partly implemented and abandoned in favor of
+  just entering a WP-editable number on the WordPress site.
+
+  See contributor Stats.
 */
-function datasetStats(reqQuery) {
-  var xmlhttp = new XMLHttpRequest();
-  var reqHost = "https://api.gbif.org/v1";
-  var reqRoute = "/occurrence/search";
-  //var reqQuery = "?state_province=Vermont"
-  var reqFacet="&facet=datasetKey&facetMincount=1&datasetKey.facetLimit=10000";
-  var reqLimit="&limit=0";
-  var reqAll=reqHost+reqRoute+reqQuery+reqFacet+reqLimit
-  var elem = document.getElementById("count-datasets");
-
-  document.dispatchEvent(begEvent);
-
-  xmlhttp.onreadystatechange = function() {
-      if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
-          if (xmlhttp.status == 200) {
-              const res = JSON.parse(xmlhttp.responseText);
-              const set = res.facets[0].counts; //array of objects haing datasetID and occurrence count, like [{name:4fa7b334-ce0d-4e88-aaae-2e0c138d049e,count:6758210},{},...]
-              set.forEach((topEle) => {
-                if (!sets[topEle.name]) {sets[topEle.name] = topEle.count}
-              });
-              var count = Object.keys(sets).length;
-              console.log(`DATASETS => This:`, set.length, 'Agg:', count, 'Query:', reqAll);
-              if (elem) {
-                elem.innerHTML = nFmt.format(count); //numeral(count).format('0,0');
-              } else {
-                console.log('HTML element id="count-datasets" NOT found.')
-              }
-          } else {
-              console.log(`An http ${xmlhttp.status} result was returned from ${reqHost}.`);
-              if (elem) {
-                elem.style="font-size:8pt";
-                elem.innerHTML = `(http ${xmlhttp.status} from ${reqAll})`;
-              } else {
-                console.log('HTML element id="count-datasets" NOT found.')
-              }
-          }
-          document.dispatchEvent(endEvent);
-      }
-  };
-
-  console.log('AJAX GET request:', reqHost+reqRoute+reqQuery+reqFacet+reqLimit);
-
-  xmlhttp.open("GET", reqHost+reqRoute+reqQuery+reqFacet+reqLimit, true);
-  xmlhttp.timeout = xhrTimeout; // Set timeout to 10 seconds
-  xmlhttp.ontimeout = function () { console.log(`AJAX GET request ${reqHost+reqRoute} timed out. (${xhrTimeout/1000} seconds).`); }
-  xmlhttp.async = true;
-  xmlhttp.send();
+async function observerStats(dataConfig) {
+  let elem = eleCountObsv;
+  if (elem) {
+    if (dataConfig.inatPlaceId) {
+      let inat = await getInatObserverStats(dataConfig.inatPlaceId);
+      elem.innerHTML += ` ${nFmt.format(inat.total)} (iNat)`;
+    } else {elem.innerHTML = 'N/A';}
+    //let eBrd = await getEbirdUsers();
+    //let eBut = await getEbutterflyUsers();
+    //elem.innerHTML += ` ${nFmt.format(eBrd.count)} (eBird)`;
+    //elem.innerHTML += ` ${nFmt.format(eBut.count)} (eButterfly)`;
+  } else {
+    console.log(`observerStats HTML element id="${elem}" NOT found.`)
+  }
 }
 
 /*
-  this is now called for each value in global array 'qrys', but here's example query:
-  https://api.gbif.org/v1/occurrence/search?state_province=Vermont&limit=0&facet=scientificName&facetMincount=1&scientificName.facetOffset=0&scientificName.facetLimit=30000
+  Load contributor stats, which initially is just a GBIF facet-count on the recordedBy field.
 */
-function speciesStats(reqQuery) {
-  var speciesOffset = 0;//20000;
-  var speciesLimit = 1199999;//30000 for VT;
-  var xmlhttp = new XMLHttpRequest();
-  var reqHost = "https://api.gbif.org/v1";
-  var reqRoute = "/occurrence/search";
-  //var reqQuery = "?state_province=Vermont"
-  var reqFacet=`&facet=scientificName&facetMincount=1&scientificName.facetOffset=${speciesOffset}&scientificName.facetLimit=${speciesLimit}`;
-  var reqLimit="&limit=0";
-  var reqAll=reqHost+reqRoute+reqQuery+reqFacet+reqLimit;
-  var elem = document.getElementById("count-species");
-
-  document.dispatchEvent(begEvent);
-
-  xmlhttp.onreadystatechange = function() {
-      if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
-          if (xmlhttp.status == 200) {
-              const res = JSON.parse(xmlhttp.responseText);
-              const spc = res.facets[0].counts; //array of objects having sciName and occurrence count, like [{name:4fa7b334-ce0d-4e88-aaae-2e0c138d049e,count:6758210},{},...]
-              spc.forEach((topEle) => {
-                if (!spcs[topEle.name]) {spcs[topEle.name] = topEle.count}
-              })
-              var count = Object.keys(spcs).length;
-              console.log(`SPECIES => This:`, spc.length, 'Agg:', count, 'Query:', reqAll);
-              if (elem) {
-                elem.innerHTML = nFmt.format(speciesOffset+count); //numeral(speciesOffset+count).format('0,0');
-              } else {
-                console.log('HTML element id="count-species" NOT found.')
-              }
-          } else {
-              console.log(`An http ${xmlhttp.status} result was returned from ${reqHost}.`);
-              if (elem) {
-                elem.style="font-size:8pt";
-                elem.innerHTML = `(http ${xmlhttp.status} from ${reqHost+reqRoute+reqQuery+reqFacet+reqLimit})`;
-              } else {
-                console.log('HTML element id="count-species" NOT found.')
-              }
-          }
-          document.dispatchEvent(endEvent);
-      }
-  };
-
-  console.log('AJAX GET request:', reqHost+reqRoute+reqQuery+reqFacet+reqLimit);
-
-  xmlhttp.open("GET", reqHost+reqRoute+reqQuery+reqFacet+reqLimit, true);
-  xmlhttp.timeout = xhrTimeout; // Set timeout to 10 seconds
-  xmlhttp.ontimeout = function () { console.log(`AJAX GET request ${reqHost+reqRoute+reqQuery+reqFacet+reqLimit} timed out. (${xhrTimeout/1000} seconds).`); }
-  xmlhttp.async = true;
-  xmlhttp.send();
+async function contributorStats(fileConfig) {
+  let elem = eleCountCntb;
+  if (elem) {
+    let ctrb = getAggOccCounts(fileConfig, false, ['recordedBy'], 'facetMincount=1&facetLimit=1199999');
+    ctrb.then(ctrb => {
+      elem.innerHTML = nFmt.format(Object.keys(ctrb.objOcc).length);
+    }).catch(err =>{
+      elem.innerHTML = `<a title="${err.message}" href="${JSON.stringify(err.arrQry)}">(Error)</a>`;
+    })
+  } else {
+    console.log(`contributor Stats HTML element id="${elem}" NOT found.`)
+  }
 }
 
-/*
-  this is now called for each value in global array 'qrys', but here's example query:
-  https://api.gbif.org/v1/occurrence/search?state_province=Vermont&limit=0&facet=publishingOrg&facetMincount=1&publishingOrg.facetLimit=1000
+export async function publisherStats(dataConfig) {
 
-  UPDATE: Publisher stats are a separate API - literature. If we have a publishingOrgKey, don't use occurrence API
-  https://api.gbif.org/v1/literature/search?contentType=literature&publishingOrganizationKey=${dataConfig.publishingOrgKey}
-*/
-function publisherOccStats(reqQuery) {
-  var xmlhttp = new XMLHttpRequest();
-  var reqHost = "https://api.gbif.org/v1";
-  var reqRoute = "/occurrence/search";
-  //var reqQuery = "?state_province=Vermont"
-  var reqFacet="&facet=publishingOrg&facetMincount=1&publishingOrg.facetLimit=1000";
-  var reqLimit="&limit=0";
-  var reqAll=reqHost+reqRoute+reqQuery+reqFacet+reqLimit;
-  var elem = document.getElementById("count-publishers");
+  let elem = eleCountCite;
 
-  document.dispatchEvent(begEvent);
-
-  xmlhttp.onreadystatechange = function() {
-      if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
-          if (xmlhttp.status == 200) {
-              const res = JSON.parse(xmlhttp.responseText);
-              const spc = res.facets[0].counts; //array of objects having count-publishers and occurrence count, like [{name:4fa7b334-ce0d-4e88-aaae-2e0c138d049e,count:6758210},{},...]
-              spc.forEach((topEle) => {
-                if (!pubs[topEle.name]) {pubs[topEle.name] = topEle.count}
-              })
-              var count = Object.keys(pubs).length;
-              console.log(`PUBLISHERS => This:`, spc.length, 'Agg:', count, 'Query:', reqAll);
-              if (elem) {
-                elem.innerHTML = nFmt.format(count); //numeral(count).format('0,0');
-              } else {
-                console.log('HTML element id="count-publishers" NOT found.')
-              }
-          } else {
-              console.log(`An http ${xmlhttp.status} result was returned from ${reqHost}.`);
-              if (elem) {
-                elem.style="font-size:8pt";
-                elem.innerHTML = `(http ${xmlhttp.status} from ${reqHost+reqRoute+reqQuery+reqFacet+reqLimit})`;
-              } else {
-                console.log('HTML element id="count-publishers" NOT found.')
-              }
-          }
-          document.dispatchEvent(endEvent);
-      }
-  };
-
-  console.log('AJAX GET request:', reqHost+reqRoute+reqQuery+reqFacet+reqLimit);
-
-  xmlhttp.open("GET", reqHost+reqRoute+reqQuery+reqFacet+reqLimit, true);
-  xmlhttp.timeout = xhrTimeout; // Set timeout to 10 seconds
-  xmlhttp.ontimeout = function () { console.log(`AJAX GET request ${reqHost+reqRoute+reqQuery+reqFacet+reqLimit} timed out. (${xhrTimeout/1000} seconds).`); }
-  xmlhttp.async = true;
-  xmlhttp.send();
-}
-
-export async function publisherStats(publOrgKey=false) {
-
-  var elem = document.getElementById("count-citations"); //To-Do: which is it?
-  //elem = document.getElementById("count-publishers"); //To-Do: which is it?
-
-  if (!publOrgKey) {publOrgKey = dataConfig.publishingOrgKey;}
-
+  let publOrgKey = dataConfig.publishingOrgKey;
+  
   let reqHost = dataConfig.gbifApi;
   let reqRoute = "/literature/search";
   let reqQuery = `?contentType=literature`;
@@ -297,21 +191,8 @@ export async function publisherStats(publOrgKey=false) {
     return json;
   } catch (err) {
     err.query = enc;
-    console.log(`publisherStats(${publOrgKey}) ERROR:`, err);
-    throw new Error(err)
-  }
-}
-
-function otherStats() {
-  var elemCitations = document.getElementById("count-citations");
-  var elemSpAccounts = document.getElementById("count-species_accounts");
-  var citeCount = 0;
-  var spAcCount = 0;
-  if (elemCitations) {elemCitations.innerHTML = nFmt.format(citeCount);} //numeral(citeCount).format('0,0');}
-  if(elemSpAccounts) {
-    //elemSpAccounts.innerHTML = nFmt.format(spAcCount); //numeral(spAcCount).format('0,0');
-    elemSpAccounts.innerHTML = "(coming soon)";
-    elemSpAccounts.style="font-size:8pt";
+    console.error(`publisherStats(${publOrgKey}) ERROR:`, err);
+    throw err
   }
 }
 
@@ -342,99 +223,180 @@ window.onload = function() {
     });
 };
 
-// Add listeners to handle clicks on stats items
-function addListeners() {
-
-      /* Respond to mouse click on Occurrence Stats button */
-      if (document.getElementById("stats-records")) {
-          document.getElementById("stats-records").addEventListener("mouseup", function(e) {
-              //console.log('stats-records got mouseup', e);
-              var frame = document.getElementById("gbif_frame")
-              if (frame) {frame.scrollIntoView(); frame.src = `${gbifHost}/occurrence/search/?view=MAP`;}
-              else {window.location.assign(`${dataConfig.explorerUrl}?view=MAP`)}
-          });
-      }
-
-      /*
-        Respond to mouse click on Species Stats button
-      */
-      if (document.getElementById("stats-species")) {
-          document.getElementById("stats-species").addEventListener("mouseup", function(e) {
-              window.location.assign(`${dataConfig.resultsUrl}?rank=SPECIES`)
-          });
-      }
-
-      /* Respond to mouse click on Datasets Stats button */
-      if (document.getElementById("stats-datasets")) {
-          document.getElementById("stats-datasets").addEventListener("mouseup", function(e) {
-              var frame = document.getElementById("gbif_frame")
-              if (frame) {frame.scrollIntoView(); frame.src = `${gbifHost}/occurrence/search/?view=DATASETS`;}
-              else {window.location.assign(`${dataConfig.explorerUrl}?view=DATASETS`)}
-          });
-      }
-
-      if (document.getElementById("stats-publishers")) {
-          document.getElementById("stats-publishers").addEventListener("mouseup", function(e) {
-              window.open(
-                //"https://www.gbif.org/publisher/search?q=vermont"
-                //`https://api.gbif.org/v1/occurrence/search?gadmGid=${dataConfig.gadmGid}&limit=0&facet=publishingOrg&facetMincount=1&publishingOrg.facetLimit=1000`
-                `https://api.gbif.org/v1/literature/search?contentType=literature&publishingOrganizationKey=${dataConfig.publishingOrgKey}`
-                , "_blank"
-              );
-          });
-      }
-
-      if (document.getElementById("stats-citations")) {
-          document.getElementById("stats-citations").addEventListener("mouseup", function(e) {
-              window.open(
-              `https://www.gbif.org/resource/search?contentType=literature&publishingOrganizationKey=${dataConfig.publishingOrgKey}`
-              , "_blank"
-              );
-          });
-      }
-
-      if (document.getElementById("stats-sp-accounts")) {
-          document.getElementById("stats-sp-accounts").addEventListener("mouseup", function(e) {
-              console.log('stats-sp-accounts got mouseup', e);
-          });
-      }
+function setSite(site) {
+  console.log('setSite', site);
+  setStoredData('siteName', '', '', site);
+  window.location.href = homeUrl;
 }
 
-function setContext() {
+// Add listeners to handle clicks on stats items
+function addListeners(dataConfig) {
+
+  let eleSite = document.getElementById("siteSelect")
+
+  //if (eleSite && siteName) {eleSite.style.visibility = "hidden";} if (eleSite && !siteName) {
+  if (eleSite) { //siteNames drop-down list
+    console.log('siteNames before loop', eleSite.innerHTML);
+    eleSite.innerHTML = '';
+    siteNames.forEach(site => {
+      eleSite.innerHTML += `<option value=${site} ${siteName==site ? "selected=" : ""} id="option-${site}">${site}</option>`;
+      console.log('siteName', site);
+    })
+    eleSite.onchange = (ev) => {
+      let val = eleSite.options[eleSite.selectedIndex].value;
+      let txt = eleSite.options[eleSite.selectedIndex].text;
+      console.log('value', val, 'text', txt, 'index', eleSite.selectedIndex);
+      setSite(val);
+    }
+  }
+/*
+  // Respond to mouse click on Occurrence Stats button
+  if (document.getElementById("stats-records")) {
+      document.getElementById("stats-records").addEventListener("mouseup", function(e) {
+        if (0 == e.button) {
+          window.location.assign(`${dataConfig.explorerUrl}?view=MAP`);
+        }
+      });
+  }
+
+  // Respond to mouse click on Species Stats button 
+  if (document.getElementById("stats-species")) {
+      document.getElementById("stats-species").addEventListener("mouseup", function(e) {
+        if (0 == e.button) {
+          window.location.assign(`${dataConfig.resultsUrl}?siteName=${siteName}`);
+        }
+      });
+  }
+
+  // Respond to mouse click on Datasets Stats button 
+  if (document.getElementById("stats-datasets")) {
+      document.getElementById("stats-datasets").addEventListener("mouseup", function(e) {
+        if (0 == e.button) {
+          window.location.assign(`${dataConfig.explorerUrl}?siteName=${siteName}&view=DATASETS`);
+        }
+      });
+  }
+
+  // Respond to mouse click on Images Stats button 
+  if (document.getElementById("stats-images")) {
+    document.getElementById("stats-images").addEventListener("mouseup", function(e) {
+      if (0 == e.button) {
+        window.location.assign(`${dataConfig.explorerUrl}?siteName=${siteName}&view=GALLERY`);
+      }
+    });
+  }
+
+  // Respond to mouse click on Citations Stats button
+  if (document.getElementById("stats-citations")) {
+      document.getElementById("stats-citations").addEventListener("mouseup", function(e) {
+        if (0 == e.button) {
+          window.location.assign(`${dataConfig.literatUrl}?siteName=${siteName}`);
+          }
+        });
+  }
+
+  // Respond to mouse click on Publisher Stats button
+  if (document.getElementById("stats-publishers")) {
+    document.getElementById("stats-publishers").addEventListener("mouseup", function(e) {
+      if (0 == e.button) {
+        window.location.assign(`${dataConfig.publishUrl}?siteName=${siteName}`);
+      }
+    });
+  }
+*/
+}
+
+function changeStyle(selectorText='page-template-page-species-explorer', property='background-image', value='url(../images/vermont-panorama-large.jpg)')
+{
+    var theRules = new Array();
+    if (document.styleSheets[0].cssRules) {
+        theRules = document.styleSheets[0].cssRules;
+        console.log('theRules', theRules);
+      } 
+    else if (document.styleSheets[0].rules) {
+        theRules = document.styleSheets[0].rules;
+        console.log('theRules', theRules);
+    } else {
+      console.log('noTheRules', document.styleSheets[0]);
+    }
+    for (const n in theRules)
+    {
+        if (theRules[n].selectorText == selectorText)   {
+            //theRules[n].style.color = 'blue';
+            theRules[n].style[property] = value;
+        }
+    }
+}
+/*
+  There are 2 sets of html elements to manipulate on the home page, 
+  counts and links. Here we set the links' hrefs.
+*/
+function setContext(dataConfig) {
+  //Attempt to change background image for atlas
+  let eleSection = document.getElementsByClassName('hero');
+  let eleBody = document.getElementsByTagName('body')[0];
+  if (eleBody) {
+    console.log('background element', eleBody);
+    //eleBody.style.backgroundImage=`url(${dataConfig.backgroundImageUrl.default})`;
+    //eleBody.classList.remove('page-template-page-species-explorer')
+    //NOTE: changeStyle causes cross-origin stylesheet error in Wordpress
+    //changeStyle('.page-template-page-species-explorer .hero', 'background-image', dataConfig.backgroundImageUrl.default);
+  }
   let homeTitle = document.getElementById("home-title")
-  let countOccs = document.getElementById("count-occurrences");
-  let countDset = document.getElementById("count-datasets");
-  let countSpcs = document.getElementById("count-species");
-  let countCite = document.getElementById("count-citations");
-  let countPubl = document.getElementById("count-publishers");
+  let linkOccs = document.getElementById("stats-records");
+  let linkDset = document.getElementById("stats-datasets");
+  let linkImgs = document.getElementById("stats-images");
+  let linkSpcs = document.getElementById("stats-species");
+  let linkCite = document.getElementById("stats-citations");
+  let linkPubl = document.getElementById("stats-publishers");
   if (homeTitle) {
     homeTitle.innerText = dataConfig.atlasName;
   }
-  if (countOccs) {
-    countOccs.href = dataConfig.exploreUrl + '?view=MAP';
+  if (linkOccs) {
+    linkOccs.href = dataConfig.exploreUrl + `?siteName=${siteName}&view=MAP`;
   }
-  if (countDset) {
-    countDset.href = dataConfig.exploreUrl + '?view=DATASETS';
+  if (linkDset) {
+    linkDset.href = dataConfig.exploreUrl + `?siteName=${siteName}&view=DATASETS`;
   }
-  if (countSpcs) {
-    countSpcs.href = dataConfig.resultsUrl + '?rank=SPECIES';
+  if (linkImgs) {
+    linkImgs.href = dataConfig.exploreUrl + `?siteName=${siteName}&view=GALLERY`;
   }
-  if (countCite) {
-    countCite.href = dataConfig.literatUrl;
+  if (linkSpcs) {
+    linkSpcs.href = dataConfig.resultsUrl + `?siteName=${siteName}`;
   }
-  if (countPubl) {
-    countPubl.href = dataConfig.publishUrl;
+  if (linkCite) {
+    //linkCite.href = dataConfig.literatUrl + `?siteName=${siteName}`; //this is now defined manually in WordPress
+  }
+  if (linkPubl) {
+    linkPubl.href = dataConfig.publishUrl + `?siteName=${siteName}`;
   }
 }
 
-setContext();
-qrys.forEach(qry => {
-  console.log('**************Data Stats NOW QUERYING:', qry);
-  speciesStats(qry);
-  occStats(qry);
-  datasetStats(qry);
-  //publisherOccStats(qry);
-})
-if (dataConfig.publishingOrgKey) {publisherStats(dataConfig.publishingOrgKey);}
-otherStats(); //attempt to do this within WP user access so it can be easily edited
-addListeners();
+function startUp(fileConfig) {
+  let dataConfig = fileConfig.dataConfig;
+  homeUrl = fileConfig.dataConfig.homeUrl;
+
+  setContext(dataConfig);
+  occStats(fileConfig);
+  occDatasetStats(fileConfig); //only way to get dataset stats is from occs
+  occImageStats(fileConfig);
+
+  if (dataConfig.speciesFilter) {
+    speciesStats(dataConfig); //species-counts based on config file speciesFilter
+  } else {
+    occSpeciesStats(fileConfig); //backup query of all unique scientificNames from occurrences
+  }
+
+  //things to do on vtatlasoflife.org but not on val.vtecostudies.org
+  if ('val.vtecostudies.org' != dataConfig.hostUrl) {
+    if (dataConfig.publishingOrgKey) {
+      publisherStats(dataConfig);
+    } else {
+      //occPublisherStats(fileConfig); //this would appear to be a count of publishers for the occurrence data-scope
+      if (eleCountCite) {eleCountCite.innerHTML = '0';}
+    }
+  }
+  //observerStats(dataConfig); //this gets iNat observers?
+  contributorStats(fileConfig);
+  addListeners(dataConfig);
+}
