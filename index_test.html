@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<link rel="stylesheet" href="https://www-lib.gbif.org/style.css" />
+
+</head>
+<div id="root" class="gbif"></div>
+</html>
+<script type="module">
+   import { render } from "https://www-lib.gbif.org/gbif-lib.js";
+   let config = {
+     "version": 3,
+     "pages": [
+         {
+             "id": "occurrenceSearch"
+             //,"path": ""
+             //,"path": "/"
+             //,"path": "/index_test.html"
+             ,"path": "index_test.html"
+         }
+     ],
+     "disableInlineTableFilterButtons": false,
+     "availableCatalogues": [],
+     "dataHeader": {
+         "enableApiPopup": false,
+         "enableInfoPopup": false
+     },
+     "theme": {
+         "primary": "#176f75",
+         "borderRadius": 3,
+         "stickyOffset": "0px"
+     },
+     "apiKeys": {
+         "maptiler": "qcDo0JkF6EBKzpW7hlYB"
+     },
+     "maps": {
+         "locale": "en",
+         "mapStyles": {
+             "defaultProjection": "MERCATOR",
+             "defaultMapStyle": "SATELLITE",
+             "options": {
+                 "MERCATOR": [
+                     "NATURAL",
+                     "SATELLITE",
+                     "BRIGHT",
+                     "DARK"
+                 ],
+                 "PLATE_CAREE": [
+                     "NATURAL",
+                     "BRIGHT",
+                     "DARK"
+                 ]
+             }
+         }
+     },
+     "languages": [
+         {
+             "code": "en",
+             "localeCode": "en",
+             "label": "English",
+             "default": true,
+             "textDirection": "ltr",
+             "iso3LetterCode": "eng",
+             "cmsLocale": "en-GB",
+             "gbifOrgLocalePrefix": ""
+         }
+     ],
+     "messages": {},
+     "occurrenceSearch": {
+         "scope": {
+             "type": "or",
+             "predicates": [
+                 {
+                     "type": "and",
+                     "predicates": [
+                         {
+                             "type": "equals",
+                             "key": "country",
+                             "value": "US"
+                         },
+                         {
+                             "type": "in",
+                             "key": "stateProvince",
+                             "values": [
+                                 "vermont",
+                                 "vermont (state)"
+                             ]
+                         },
+                         {
+                             "type": "equals",
+                             "key": "hasCoordinate",
+                             "value": false
+                         },
+                         {
+                             "type": "equals",
+                             "key": "occurrenceStatus",
+                             "value": "PRESENT"
+                         }
+                     ]
+                 },
+                 {
+                     "type": "and",
+                     "predicates": [
+                         {
+                             "type": "equals",
+                             "key": "gadmGid",
+                             "value": "USA.46_1"
+                         },
+                         {
+                             "type": "equals",
+                             "key": "occurrenceStatus",
+                             "value": "PRESENT"
+                         }
+                     ]
+                 }
+             ]
+         },
+         "highlightedFilters": [
+             "q",
+             "taxonKey",
+             "gadmGid",
+             "locality",
+             "elevation",
+             "year",
+             "recordedBy",
+             "publishingOrg"
+         ],
+         "excludedFilters": [
+             "stateProvince",
+             "continent",
+             "country",
+             "publishingCountry",
+             "hostingOrganizationKey",
+             "networkKey",
+             "protocol"
+         ],
+         "defaultEnabledTableColumns": [
+             "features",
+             "coordinates",
+             "locality",
+             "year",
+             "month",
+             "basisOfRecord",
+             "dataset",
+             "publisher",
+             "recordedBy",
+             "collectionCode",
+             "institutionCode"
+         ],
+         "tabs": [
+             "gallery",
+             "map",
+             "table",
+             "datasets",
+             "download"
+         ],
+         "mapSettings": {
+             "lat": 43.858297,
+             "lng": -72.446594,
+             "zoom": 7.75
+         }
+     },
+     "collectionSearch": {},
+     "institutionSearch": {},
+     "datasetSearch": {},
+     "publisherSearch": {},
+     "literatureSearch": {}
+   }
+   console.log('pages.path:', config.pages[0].path);
+   render(document.getElementById("root"), config);
+</script>

@@ -45,28 +45,16 @@ console.log('gbifDataWidget MAP QUERY PARAMS', latitude, longitude, zoomLevel);
 
 import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`).then(fileConfig => {
   let dataConfig = fileConfig.dataConfig
-
-  let mapSettings = dataConfig.mapSettings;
-  if (!latitude || !longitude) {latitude = mapSettings.lat; longitude = mapSettings.lng;}
-  if (!zoomLevel) {zoomLevel = mapSettings.zoom;}
-
-  //Set map view by setting sessionStorage values. This works on any invocation.
-  if (Storage) {
-    if (latitude && longitude) {
-      Storage.setItem('mapLat', JSON.stringify(latitude));
-      Storage.setItem('mapLng', JSON.stringify(longitude));
-    }
-    if (zoomLevel) {
-      Storage.setItem('mapZoom', JSON.stringify(zoomLevel));
-    }
+  var apiKeys = {
+    "maptiler": "qcDo0JkF6EBKzpW7hlYB"
   }
-
   render(document.getElementById("root"), {
     "version": 3,
     "pages": [
         {
             "id": "occurrenceSearch"
             ,"path": window.location.pathname
+            //,"path": "/_occurrences_test.html"
         }
     ],
     "disableInlineTableFilterButtons": false,
@@ -78,7 +66,7 @@ import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`).then
     "theme": {
         "primary": "#176f75",
         "borderRadius": 3,
-        "stickyOffset": "0px"
+        "stickyOffset": "0px",
         },
     "apiKeys": {
       "maptiler": "qcDo0JkF6EBKzpW7hlYB"
@@ -117,7 +105,54 @@ import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`).then
     ],
     "messages": {},
     "occurrenceSearch": {
-        "scope": dataConfig.rootPredicate,
+        "scope": {
+            "type": "or",
+            "predicates": [
+                {
+                    "type": "and",
+                    "predicates": [
+                        {
+                            "type": "equals",
+                            "key": "country",
+                            "value": "US"
+                        },
+                        {
+                            "type": "in",
+                            "key": "stateProvince",
+                            "values": [
+                                "vermont",
+                                "vermont (state)"
+                            ]
+                        },
+                        {
+                            "type": "equals",
+                            "key": "hasCoordinate",
+                            "value": false
+                        },
+                        {
+                            "type": "equals",
+                            "key": "occurrenceStatus",
+                            "value": "PRESENT"
+                        }
+                    ]
+                },
+                {
+                    "type": "and",
+                    "predicates": [
+                        {
+                            "type": "equals",
+                            "key": "gadmGid",
+                            "value": "USA.46_1"
+                        },
+                        {
+                            "type": "equals",
+                            "key": "occurrenceStatus",
+                            "value": "PRESENT"
+                        }
+                    ]
+                }
+            ]
+        },
         "highlightedFilters": [
             "q",
             "taxonKey",
