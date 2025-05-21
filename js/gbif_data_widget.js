@@ -77,9 +77,19 @@ import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`).then
     },
     "theme": {
         "primary": "#176f75",
-        "borderRadius": 3,
-        "stickyOffset": "0px"
-        },
+        "borderRadius": 4,
+        "stickyOffset": "0px",
+        "dense": true,
+        "linkColor": '#176f75',
+        "fontSize": '15px',
+        "background": '#E7E7E7',
+        "paperBackground": '#ffffff',
+        "paperBorderColor": '#e0e0e0',
+        "color": '#162d3d',
+        "darkTheme": false,
+        "fontFamily": '"Roboto", BlinkMacSystemFont, -apple-system, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica", "Arial", sans-serif',
+        "drawerZIndex": 50001
+    },
     "apiKeys": {
       "maptiler": "qcDo0JkF6EBKzpW7hlYB"
     },
