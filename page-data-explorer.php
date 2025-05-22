@@ -1,27 +1,34 @@
 <?php
 /*
-	Template Name: Data Explorer
+	Template Name: Data Explorer Occurrences
 */
 ?>
+<!-- 
+NOTE: This was copied from the VAL_Remote_Explorers repository. This approach - to externalize all
+VAL/GBIF .js code onto vtatlasoflife servers - is our standard approach.
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mapbox-gl/2.1.1/mapbox-gl.min.css" integrity="sha512-j4BKLk7HB2Umio2SKGP4gh1L3jouxJDuBxcWoq4kf1fYIkJyXQUGxs9me8yz2wexxAIHIcQHzn64UfPIG232xQ==" crossorigin="anonymous" />
-<link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/openlayers/6.1.1/ol.min.css' />
-<link href="<?php echo get_template_directory_uri(); ?>/VAL_Data_Explorers/css/gbif-data-styles.css" rel="stylesheet">
+We created a WordPress function within functions.php to define which VAL server to use based on the
+name of the WordPress site. The initial VAL servers are staging.vtatlsoflife.org and vtatlasoflife.org.
 
-<script src="https://unpkg.com/react@16/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"></script>
+The only local javascript code is the localSiteConfig.js file, which can be used to override other
+siteName directives. siteName defines which VAL Atlas to display - each is defined primarily by a
+published GBIF species checklist, and secondarily by an occurrence taxnomic scope.
+-->
+<link rel="stylesheet" href="https://www-lib.gbif.org/style.css" />
+<link href="https://<?php echo get_val_server_name(); ?>/VAL_Data_Explorers/css/gbif-data-styles.css" rel="stylesheet">
 
-<script type="text/javascript" src="https://react-components.gbif.org/lib/gbif-react-components.js"></script>
+<script type="module" src="<?php echo get_template_directory_uri(); ?>/VAL_Data_Explorers/js/localSiteConfig.js">/*THIS SCRIPT MUST COME FIRST*/</script>
 
 <?php get_header(); the_post(); ?>
 
 <section> <!-- GBIF REACT Data Widget hangs on root -->
-	<div id="gbif_react" class="data-widget">
+	<div id="gbif_react" class="data-widget gbif">
 		<div id="root"></div>
 	</div>
 </section>
 
-<script src="<?php echo get_template_directory_uri(); ?>/VAL_Data_Explorers/js/gbif_data_widget.js" type="module"></script>
+<script src="https://<?php echo get_val_server_name(); ?>/VAL_Data_Explorers/js/freshworks.js" type="module"></script>
+<script src="https://<?php echo get_val_server_name(); ?>/VAL_Data_Explorers/js/gbif_data_widget.js" type="module"></script>
 
 <!-- This, combined with the gbif-data-widget, causes double scrollbars. Remove the footer until we can fix it. -->
 <?php //get_footer(); ?>
