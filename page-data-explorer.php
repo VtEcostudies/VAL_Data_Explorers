@@ -12,7 +12,7 @@ name of the WordPress site. The initial VAL servers are staging.vtatlsoflife.org
 
 The only local javascript code is the localSiteConfig.js file, which can be used to override other
 siteName directives. siteName defines which VAL Atlas to display - each is defined primarily by a
-published GBIF species checklist, and secondarily by an occurrence taxnomic scope.
+published GBIF species checklist, then by an occurrence taxnomic scope.
 -->
 <link rel="stylesheet" href="https://www-lib.gbif.org/style.css" />
 <link href="https://<?php echo get_val_server_name(); ?>/VAL_Data_Explorers/css/gbif-data-styles.css" rel="stylesheet">
