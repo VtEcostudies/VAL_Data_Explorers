@@ -1,22 +1,17 @@
+// Default site name
 export const siteConfig = {
   siteName: 'val'
-  //siteName: 'mva'
-  //siteName: 'vtButterflies'
-  //siteName: 'vtBees'
-  //siteName: 'vtMammals'
-  //siteName: 'vtFungi'
-  //siteName: 'eButterfly'
-  //siteName: 'wwButterfly'
-  //siteName: 'fieldMuseum'
 }
+// List of supported site names defined in VAL_Web_Utilities/js/gbifDataConfig.js
 export const siteNames = [
   'val'
   ,'mval'
-  ,'vtLadyBeetles'
-  ,'vtButterflies'
   ,'vtBees',
-  ,'vtMammals'
+  ,'vtButterflies'
   ,'vtFungi'
+  ,'vtLadyBeetles'
+  ,'vtMammals'
+  ,'vtOrthopera'
   ,'vtPlants'
   ,'usBees'
   //,'eButterfly'
