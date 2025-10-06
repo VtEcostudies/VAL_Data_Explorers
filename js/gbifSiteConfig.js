@@ -11,7 +11,7 @@ export const siteNames = [
   ,'vtFungi'
   ,'vtLadyBeetles'
   ,'vtMammals'
-  ,'vtOrthopera'
+  ,'vtOrthoptera'
   ,'vtPlants'
   ,'usBees'
   //,'eButterfly'
