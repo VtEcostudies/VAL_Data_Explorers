@@ -236,7 +236,7 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
     cranks = taxn.remarks.split('|')[1];
     console.log('cranks', cranks);
     if (cranks) {
-      cranks = cranks+'}';
+      //cranks = cranks+'}';
       var jsonStr = cranks
         .replace(/(\w+):/g, '"$1":')  // Quote property names
         .replace(/:([A-Z]\w+)/g, ':"$1"');  // Quote string values
