@@ -1,6 +1,6 @@
 import { siteConfig, siteNames } from './gbifSiteConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_config.js"></script>
 import { getSite } from '../../VAL_Web_Utilities/js/gbifDataConfig.js';
-import { speciesSearch } from './gbif_species_search.js'; //NOTE: importing just a function includes the entire module
+import { speciesSearch, verbatimSpecies, iucnSpecies } from './gbif_species_search.js'; //NOTE: importing just a function includes the entire module
 import { getStoredOccCnts, getAggOccCounts } from '../../VAL_Web_Utilities/js/gbifOccFacetCounts.js';
 import { fetchOccSimpleCountByKey } from '../../VAL_Web_Utilities/js/gbifOccSimpleCounts.js';
 import { getWikiPage } from '../../VAL_Web_Utilities/js/wikiPageData.js';
@@ -146,7 +146,7 @@ async function setHead() {
 }
 var initCollapsed = localStorage.getItem('speciesExplorerParentTaxaCollapsed');
 initCollapsed = "true" == initCollapsed ? true : false;
-var sortableColumns = ['key','nubKey','canonicalName','scientificName','vernacularName','vernacularNames','rank','taxonomicStatus','parent','parentKey','occurrences']
+var sortableColumns = ['key','nubKey','canonicalName','scientificName','vernacularName','vernacularNames','rank','taxonomicStatus','parent','parentKey','occurrences','family','srank','grank','sgcn','iucn']
 var excludeColumns = []; //array of column names not sortable
 async function addHead() {
   let objHed = eleTbl.createTHead();
@@ -230,13 +230,46 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
   let res = {}; let vern = [];
   if (objSpc.nubKey) {res = objSpc; vern = Promise.resolve(objSpc.vernacularNames);}
   else {res = taxn; vern = getGbifVernacularsFromKey(objSpc.key); vern.catch(err => {console.log('getGbifVernacularsFromKey ERROR', err)});}
+
+  //console.log('speciesTaxon', taxn)
+  let cranks = {}; if (taxn.remarks) {
+    cranks = taxn.remarks.split('|')[1];
+    console.log('cranks', cranks);
+    if (cranks) {
+      cranks = cranks+'}';
+      var jsonStr = cranks
+        .replace(/(\w+):/g, '"$1":')  // Quote property names
+        .replace(/:([A-Z]\w+)/g, ':"$1"');  // Quote string values
+      console.log('cranks', cranks);
+      try {
+        cranks=JSON.parse(jsonStr);
+        cranks = cranks.conservation_status;
+        console.log('cranks', cranks);
+      } 
+      catch(err) {
+        cranks={};
+        console.log('cranks error', err);
+      }
+    }
+  }
+
+  //let verbatim = await verbatimSpecies(objSpc.key);
+  let iucn = {}; if (objSpc.nubKey) {iucn = await iucnSpecies(key);}
+
   let name = res.canonicalName ? res.canonicalName : res.scientificName;
   if (typeof(res.rank) == 'undefined') {res.rank = parseNameToRank(name);}
-  let inat = getInatSpecies(name, res.rank, res.parent, getParentRank(res.rank)); inat.catch(err=> {console.log('getInatSpecies ERROR', err)});
-  let wiki = getWikiPage(name); wiki.catch(err => {console.log('getWikiPage ERROR', err)});
-  //To-do: restore the use of getStoredOccCnts for lower overhead
-  let occs = fetchOccSimpleCountByKey(res.key,fCfg); occs.catch(err => {console.log('fetchOccSimpleCountByKey ERROR:', err)});
-  gOccCnts.push(occs); //Append a new promise with each row. A dubious construct, except that it works.
+  let inat = new Promise(() => {});
+  let wiki = new Promise(() => {});
+  if (columns.includes('iconImage')) {
+    inat = getInatSpecies(name, res.rank, res.parent, getParentRank(res.rank)); inat.catch(err=> {console.log('getInatSpecies ERROR', err)});
+    wiki = getWikiPage(name); wiki.catch(err => {console.log('getWikiPage ERROR', err)});
+  }
+  let occs = new Promise(() => {});
+  if (columns.includes('occurrences')) {
+    //To-do: restore the use of getStoredOccCnts for lower overhead
+    occs = fetchOccSimpleCountByKey(res.key,fCfg); occs.catch(err => {console.log('fetchOccSimpleCountByKey ERROR:', err)});
+    gOccCnts.push(occs); //Append a new promise with each row. A dubious construct, except that it works.
+  }
   //console.log('gbif_species_results::fillRow','canonicalName:', objSpc.canonicalName, 'key:', objSpc.key, 'nubKey:', objSpc.nubKey, 'combinedKey:', key);
   columns.forEach(async (colNam, colIdx) => {
     let colObj = objRow.insertCell(colIdx);
@@ -301,7 +334,13 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
           colObj.innerHTML = html;
         })
         break;
-      case 'scientificName': case 'vernacularName':
+      case 'vernacularName':
+        if (taxn.vernacularName) {}
+        if (res.vernacularName) {}
+        if (res.vernacularNames) {}
+        colObj.innerHTML = res[colNam] ? `<a title="Species Explorer: ${res[colNam]}" href="${resultsUrl}?siteName=${siteName}&q=${res[colNam]}">${res[colNam]}</a>` : null;
+        break;
+      case 'scientificName':
         colObj.innerHTML = res[colNam] ? `<a title="Species Explorer: ${res[colNam]}" href="${resultsUrl}?siteName=${siteName}&q=${res[colNam]}">${res[colNam]}</a>` : null;
         break;
       case 'parent':
@@ -415,8 +454,17 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
           colObj.innerHTML = res[colNam] ? res[colNam] : null;
         }
         break;
+      case 'grank': case 'srank':
+        colObj.innerHTML = cranks && cranks[colNam] ? cranks[colNam] : null;
+        break;
+      case 'sgcn':
+        colObj.innerHTML = cranks ? (cranks.sgcn ? true : null) : null;
+        break;
+      case 'iucn':
+        colObj.innerHTML = iucn && iucn.code ? iucn.code : null;
+        break;
       default:
-        console.log('switch-default', colNam, res[colNam], objSpc);
+        //console.log('switch-default', colNam, res[colNam], objSpc);
         colObj.innerHTML = res[colNam] ? res[colNam] : null;
         break;
     }
@@ -747,7 +795,7 @@ async function getDownloadData(type=0) {
   .then(async fCfg => {
     let spc = await getAllDataPages(fCfg); //returns just an array of taxa, not a decorated object
     let dsi = await getDatasetInfo(fCfg.dataConfig.speciesDatasetKey); //returns a single object
-    var name = `${fCfg.dataConfig.atlasAbbrev}_taxa`; //download file name
+    var name = `${fCfg.dataConfig.atlasName.replaceAll(' ','_')}_taxa`; //download file name
     if (qParm) {name += `_${qParm}`;} //add search term to download file name
     //Object.keys(objOther).forEach(key => {name += `_${objOther[key]}`;}) //add query params to download file name
     Object.keys(objOther).forEach(key => {
@@ -804,14 +852,33 @@ async function startUp(fCfg) {
     } else {
       if (!qParm) {qParm = "";} //important: include q="" to show ALL species results
       if ("" === qParm && !other) { //default condition
-        let rootRank = fCfg.dataConfig.rootRank;
-        if (Array.isArray(rootRank)) {
-          other=''; objOther={'rank':rootRank}; eleRnk.value=rootRank[0];
-          for (const rank of rootRank) {other+=`&rank=${rank}`;}
-        } else {
-          other=`&rank=${rootRank}`; objOther={'rank':[rootRank]}; eleRnk.value=rootRank;
+        other=''; objOther={};
+
+        let rootRank = fCfg.dataConfig.rootRank; //rank preset
+        if (rootRank) {
+          if (Array.isArray(rootRank)) {
+            objOther.rank=rootRank; if (eleRnk) {eleRnk.value=rootRank[0];}
+            for (const rank of rootRank) {other+=`&rank=${rank}`;}
+          } else {
+            other+=`&rank=${rootRank}`; objOther.rank=[rootRank]; if (eleRnk) {eleRnk.value=rootRank;}
+          }
         }
+
+        let taxonStatus = fCfg.dataConfig.taxonomicStatus;
+        if (taxonStatus) {
+          if (Array.isArray(taxonStatus)) {
+            objOther.status=taxonStatus; if (eleSts) {eleSts.value=taxonStatus[0];}
+            for (const stus of taxonStatus) {other+=`&status=${stus}`;}
+          } else {
+            other+=`&status=${taxonStatus}`; objOther.status=[taxonStatus]; if (eleSts) {eleSts.value=taxonStatus;}
+          }
+        }
+
+        let listLimit = fCfg.dataConfig.limit;
+        if (listLimit) {limit = listLimit;}
+
       }
+      console.log('startup', qParm, other, objOther)
       loadByQueryParams(fCfg, qParm, offset, limit, qField, other);
     }
   } else {
@@ -925,11 +992,11 @@ function columnSort() {
     let excludeColumnIds = []; //[columnIds['childTaxa'], columnIds['parentTaxa'], columnIds['iconImage']];
     for (const columnName of excludeColumns) {excludeColumnIds.push(columnIds[columnName]);}
     let columnDefs=[];
-    let limit=10;
+    let limit=25;
     let responsive=false;
-    let paging=false;
-    let searching=false;
-    let info=false;
+    let paging=true;
+    let searching=true;
+    let info=true;
     tableSort = tableSortHeavy(tableId, orderColumn, excludeColumnIds, columnDefs, limit, responsive, paging, searching, info);
   });
 }

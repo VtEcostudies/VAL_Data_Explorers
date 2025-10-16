@@ -66,6 +66,58 @@ export async function speciesSearch(dataConfig, searchTerm="", offset=0, limit=2
   }
 }
 
+export async function verbatimSpecies(taxonKey) {
+  let reqHost = gbifApi;
+  let reqRoute = `/species/${taxonKey}/verbatim`;
+  let url = reqHost+reqRoute
+  let enc = encodeURI(url);
+
+  //console.log(`verbatimSpecies(${taxonKey})`, enc);
+
+  try {
+    let res = await fetch(enc);
+    if (res.ok) {
+      let json = await res.json();
+      json.query = enc;
+      console.log(`verbatimSpecies(${taxonKey}) RESULT:`, json);
+      return json;
+    } else {
+      console.log(`verbatimSpecies(${gbifNubKey}) BAD RESULT:`, res);
+      return null;
+    }
+  } catch (err) {
+    err.query = enc;
+    console.error(`verbatimSpecies(${taxonKey}) ERROR:`, err);
+    throw err
+  }
+}
+
+export async function iucnSpecies(gbifNubKey) {
+  let reqHost = gbifApi;
+  let reqRoute = `/species/${gbifNubKey}/iucnRedListCategory`;
+  let url = reqHost+reqRoute
+  let enc = encodeURI(url);
+
+  //console.log(`iucnSpecies(${gbifNubKey})`, enc);
+
+  try {
+    let res = await fetch(enc);
+    if (res.ok) {
+      let json = await res.json();
+      json.query = enc;
+      console.log(`iucnSpecies(${gbifNubKey}) RESULT JSON:`, json);
+      return json;
+    } else {
+      console.log(`iucnSpecies(${gbifNubKey}) BAD RESULT:`, res);
+      return null;
+    }
+  } catch (err) {
+    err.query = enc;
+    console.error(`iucnSpecies(${gbifNubKey}) ERROR:`, err);
+    throw err
+  }
+}
+
 //this copied and simplified from gbif_species_results.js to fix bug with circular dependencies
 function SpeciesPage(qParm) {
   window.location.assign(`${resultsUrl}?siteName=${siteName}&q=${qParm}`);
