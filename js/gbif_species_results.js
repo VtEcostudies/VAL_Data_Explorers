@@ -805,7 +805,12 @@ async function startUp(fCfg) {
       if (!qParm) {qParm = "";} //important: include q="" to show ALL species results
       if ("" === qParm && !other) { //default condition
         let rootRank = fCfg.dataConfig.rootRank;
-        other=`&rank=${rootRank}`; objOther={'rank':[rootRank]}; eleRnk.value=rootRank;
+        if (Array.isArray(rootRank)) {
+          other=''; objOther={'rank':rootRank}; eleRnk.value=rootRank[0];
+          for (const rank of rootRank) {other+=`&rank=${rank}`;}
+        } else {
+          other=`&rank=${rootRank}`; objOther={'rank':[rootRank]}; eleRnk.value=rootRank;
+        }
       }
       loadByQueryParams(fCfg, qParm, offset, limit, qField, other);
     }
@@ -908,14 +913,23 @@ async function loadByTaxonKeys(fCfg, tKeys) {
 let tableSort = false;
 function columnSort() {
   Promise.all(gOccCnts).then(() => {
-    let excludeColumnIds = []; //[columnIds['childTaxa'], columnIds['parentTaxa'], columnIds['iconImage']];
-    for (const columnName of excludeColumns) {excludeColumnIds.push(columnIds[columnName]);}
     if (tableSort) {
       tableSort.clear();
       tableSort.destroy();
-      tableSort = tableSortHeavy('species-table', [columnIds['occurrences'],'desc'], excludeColumnIds);
-    } else {
-        tableSort = tableSortHeavy('species-table', [columnIds['occurrences'],'desc'], excludeColumnIds);
     }
+    //tableSortHeavy arguments
+    let tableId='species-table';
+    let orderColumn=[];
+    if (columns.includes('occurrences')) {orderColumn = [columnIds['occurrences'],'desc']}
+    else if (columns.includes('canonicalName')) {orderColumn = [columnIds['canonicalName'],'asc']}
+    let excludeColumnIds = []; //[columnIds['childTaxa'], columnIds['parentTaxa'], columnIds['iconImage']];
+    for (const columnName of excludeColumns) {excludeColumnIds.push(columnIds[columnName]);}
+    let columnDefs=[];
+    let limit=10;
+    let responsive=false;
+    let paging=false;
+    let searching=false;
+    let info=false;
+    tableSort = tableSortHeavy(tableId, orderColumn, excludeColumnIds, columnDefs, limit, responsive, paging, searching, info);
   });
 }
