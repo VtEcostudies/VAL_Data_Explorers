@@ -11,7 +11,7 @@ import { gbifCountsByDateByTaxonKey } from '../../VAL_Species_Page/js/gbifCounts
 import { getGbifTaxonFromName, getGbifTaxonFromKey, getGbifVernacularsFromKey, getParentRank, getNextChildRank, parseNameToRank } from '../../VAL_Web_Utilities/js/fetchGbifSpecies.js';
 import { getInatSpecies } from '../../VAL_Web_Utilities/js/inatSpeciesData.js';
 import { getStoredData, setStoredData } from '../../VAL_Web_Utilities/js/storedData.js';
-import { capitalize, alphaNumeric } from '../../VAL_Web_Utilities/js/commonUtilities.js';
+import { normalize, capitalize, alphaNumeric } from '../../VAL_Web_Utilities/js/commonUtilities.js';
 import { addInfoIcon, addInfoOverlay } from '../../VAL_Web_Utilities/js/infoPopup.js';
 import { createImageOverlay, showImageOverlay } from '../../VAL_Web_Utilities/js/imageOverlay.js';
 /*
@@ -19,7 +19,6 @@ sessionStorage: cleared when page session ends: when the page is closed
 localStorage: stored data is saved across browser sessions
 localStorage data for a document loaded in a "private browsing" or "incognito" session is cleared when the last "private" tab is closed.
 */
-const sessionStore = window.sessionStorage ? window.sessionStorage : false;
 
 const gbifApi = "https://api.gbif.org/v1";
 const pageUrl = new URL(document.URL);
@@ -145,9 +144,8 @@ async function setHead() {
   console.log('setHead', objHed);
   if (!objHed.length) {return await addHead();}
 }
-var initCollapsed = sessionStore.getItem('speciesExplorerParentTaxaCollapsed');
+var initCollapsed = localStorage.getItem('speciesExplorerParentTaxaCollapsed');
 initCollapsed = "true" == initCollapsed ? true : false;
-//console.log('sessionStorage(speciesExplorerParentTaxaCollapsed)', sessionStore.getItem('speciesExplorerParentTaxaCollapsed'), initCollapsed);
 var sortableColumns = ['key','nubKey','canonicalName','scientificName','vernacularName','vernacularNames','rank','taxonomicStatus','parent','parentKey','occurrences']
 var excludeColumns = []; //array of column names not sortable
 async function addHead() {
@@ -175,7 +173,7 @@ async function addHead() {
         initCollapsed = !initCollapsed;
         if (initCollapsed) {listNode.innerText = '+Parent Taxa';}
         else {listNode.innerText = '-Parent Taxa';}
-          sessionStore.setItem('speciesExplorerParentTaxaCollapsed', initCollapsed)
+          localStorage.setItem('speciesExplorerParentTaxaCollapsed', initCollapsed)
       })
     } else {
       colObj.innerHTML = columNames[hedNam];
@@ -228,7 +226,7 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
   //console.log('gbif_species_results=>fillRow=>listTaxon |', objSpc.key, '|', objSpc.canonicalName, '|');
   let taxn = {};
   try {taxn = await getGbifTaxonFromKey(objSpc.key);} //get taxonObj for species-list key to obtain its view of taxonomy
-  catch(err) {return;} //2024-11-1 GBIF returning dupliate keys for some VAL species checklists. Abort on those.
+  catch(err) {return;} //2024-11-1 GBIF returning duplciate keys for some VAL species checklists. Abort on those.
   let res = {}; let vern = [];
   if (objSpc.nubKey) {res = objSpc; vern = Promise.resolve(objSpc.vernacularNames);}
   else {res = taxn; vern = getGbifVernacularsFromKey(objSpc.key); vern.catch(err => {console.log('getGbifVernacularsFromKey ERROR', err)});}
@@ -266,37 +264,38 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
       case 'vernacularNames':
         let vnObj = {};
         if (taxn.vernacularName) { //taxon by key species/{key}
-          taxn.vernacularName = capitalize(alphaNumeric(taxn.vernacularName));
-          vnObj[taxn.vernacularName] = 'GBIF species/key vernacularName';
+          taxn.vernacularName = capitalize(taxn.vernacularName);
+          vnObj[normalize(taxn.vernacularName)] = {name:taxn.vernacularName, title:'GBIF species/key vernacularName'};
         } 
         if (res.vernacularName) { //taxon by key from species/search
-          res.vernacularName = capitalize(alphaNumeric(res.vernacularName));
-          vnObj[res.vernacularName] = 'GBIF species/search vernacularName';
+          res.vernacularName = capitalize(res.vernacularName);
+          vnObj[normalize(res.vernacularName)] = {name:res.vernacularName, title:'GBIF species/search vernacularName'};
         }
         if (res.vernacularNames && res.vernacularNames.length) {
           for (const ele of res.vernacularNames) {
-            ele.vernacularName = capitalize(alphaNumeric(ele.vernacularName));
-            vnObj[ele.vernacularName] = 'GBIF species/search/vernacularNames';
+            ele.vernacularName = capitalize(ele.vernacularName);
+            vnObj[normalize(ele.vernacularName)] = {name:ele.vernacularName, title:'GBIF species/search/vernacularNames'};
           }
         }
         vern.then(vern => {//getGbifVernacularsFromKey errors caught above, inline with function call
           for (const ele of vern) {
-            let name = capitalize(alphaNumeric(ele.vernacularName));
+            let name = capitalize(ele.vernacularName);
             //console.log('vernacularNames:', ele.vernacularName, name);
-            vnObj[name] = 'GBIF species/key/vernacularNames'
+            vnObj[normalize(name)] = {name:name, title:'GBIF species/key/vernacularNames'};
           }
         })
         inat.then(inat => {//getInatSpecies errors caught above, inline with function call
             if (inat.preferred_common_name) {
-              let name = capitalize(alphaNumeric(inat.preferred_common_name));
-              vnObj[name] = 'iNat species/key preferred_common_name';
+              let name = capitalize(inat.preferred_common_name);
+              vnObj[normalize(name)] = {name:name, title:'iNat species/key preferred_common_name'};
             }
         })
         Promise.all([vern,inat]).finally(()=> {
-          //console.log('vernacularListAll:', vnObj);
+          console.log('vernacularList:', vnObj);
           let html = '';
           for (const key in vnObj) {
-            html += `<a title="${vnObj[key]}" href="${resultsUrl}?siteName=${siteName}&q=${key}">${key}</a>, `;
+            let val = vnObj[key];
+            html += `<a title="${val.title}" href="${resultsUrl}?siteName=${siteName}&q=${val.name}">${val.name}</a>, `;
           }
           html = html.slice(0,-2);
           colObj.innerHTML = html;
