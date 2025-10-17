@@ -79,7 +79,7 @@ export async function verbatimSpecies(taxonKey) {
     if (res.ok) {
       let json = await res.json();
       json.query = enc;
-      console.log(`verbatimSpecies(${taxonKey}) RESULT:`, json);
+      //console.log(`verbatimSpecies(${taxonKey}) RESULT:`, json);
       return json;
     } else {
       console.log(`verbatimSpecies(${gbifNubKey}) BAD RESULT:`, res);
@@ -106,7 +106,7 @@ export async function iucnSpecies(gbifNubKey) {
     if (res.ok) {
       let json = await res.json();
       json.query = enc;
-      console.log(`iucnSpecies(${gbifNubKey}) RESULT JSON:`, json);
+      //console.log(`iucnSpecies(${gbifNubKey}) RESULT JSON:`, json);
       return json;
     } else {
       console.log(`iucnSpecies(${gbifNubKey}) BAD RESULT:`, res);

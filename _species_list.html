@@ -13,10 +13,6 @@
   <link rel="stylesheet" href="css/species-explorer.css">
   <link href="VAL_Web_Utilities/css/infoPopup.css" rel="stylesheet">
   <link href="VAL_Web_Utilities/css/imageOverlay.css" rel="stylesheet">
-<!--
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta2/css/bootstrap-select.min.css" integrity="sha512-mR/b5Y7FRsKqrYZou7uysnOdCIJib/7r5QeJMFvLNHNhtye3xJp1TdJVPLtetkukFn227nKpXD9OjUc09lx97Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
--->
   <script src="https://code.jquery.com/jquery-3.6.3.min.js" integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
   <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js" integrity="sha256-lSjKY0/srUM9BE3dPm+c4fBo1dky2v27Gdjm2uoZaL0=" crossorigin="anonymous"></script>
   <script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -26,6 +22,9 @@
   <script type="module" src="./js/localSiteConfig.js">/*THIS SCRIPT MUST COME FIRST*/</script>
   <script type="module" src="js/gbif_auto_complete.js"></script>
   <script type="module" src="js/gbif_species_results.js"></script>
+  
+  <!-- Force all links within page to parent scope. -->
+  <base target="_parent">
 </head>
 
 <body class="page-template-page-species-explorer">

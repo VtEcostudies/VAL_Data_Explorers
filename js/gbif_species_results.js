@@ -1,5 +1,5 @@
 import { siteConfig, siteNames } from './gbifSiteConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_config.js"></script>
-import { getSite } from '../../VAL_Web_Utilities/js/gbifDataConfig.js';
+import { siteName, getSite } from '../../VAL_Web_Utilities/js/gbifDataConfig.js';
 import { speciesSearch, verbatimSpecies, iucnSpecies } from './gbif_species_search.js'; //NOTE: importing just a function includes the entire module
 import { getStoredOccCnts, getAggOccCounts } from '../../VAL_Web_Utilities/js/gbifOccFacetCounts.js';
 import { fetchOccSimpleCountByKey } from '../../VAL_Web_Utilities/js/gbifOccSimpleCounts.js';
@@ -23,7 +23,7 @@ localStorage data for a document loaded in a "private browsing" or "incognito" s
 const gbifApi = "https://api.gbif.org/v1";
 const pageUrl = new URL(document.URL);
 const objUrlParams = pageUrl.searchParams; //get URL search params from calling http route address
-var siteName = await getSite(pageUrl);
+//var siteName = await getSite(pageUrl);
 var homeUrl;
 var exploreUrl;
 var resultsUrl;
@@ -51,24 +51,28 @@ var qField =  objUrlParams.get('qField'); qField = qField ? qField.toUpperCase()
 var drillRanks = objUrlParams.get('drillRanks');
 var count = 0; //this is set elsewhere after loading data. initialize here.
 var page = offset / limit + 1;
-console.log('Query param q:', qParm, 'offset:', offset, 'limit:', limit, 'page:', page, 'qField:', qField, 'Other:', other);
+console.log('Query param q:', qParm, 'offset:', offset, 'limit:', limit, 'page:', page, 'qField:', qField);
 
 //get other query params (there are many, and they are necessary. eg. higherTaxonRank)
-var other = ''; var objOther = {};
+//objOther stores param values as array always (to handle multiple-value params)
+var strOther = ''; var objOther = {};
 objUrlParams.forEach((val, key) => {
   if ('siteName'!=key && 'taxonKey'!=key && 'q'!=key && 'offset'!=key && 'limit'!=key && 'qField'!=key) {
-    other += `&${key}=${val}`;
+    strOther += `&${key}=${val}`;
     if (objOther[key]) {objOther[key].push(val);}
     else {objOther[key] = [val];}
   }
 });
-console.log('objOther', objOther, other);
+console.log('objOther', objOther, strOther);
 
 //get atlas configuration and startup
-import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`)
+//import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`)
+import(`../../VAL_Web_Utilities/js/gbifDataConfig.js`)
   .then(fCfg => {
     fileConfig = fCfg; //set global value
-    console.log('gbif_species_results | siteName:', siteName, 'dataConfig:', fCfg.dataConfig);
+    //console.log('gbif_species_results | siteName:', siteName, 'dataConfig:', fCfg.dataConfig);
+    console.log('gbif_species_results | dataConfig:', fCfg.dataConfig);
+    console.log('gbif_species_results | hostConfig:', fCfg.hostConfig);
     startUp(fCfg);
   })
   .catch(err => {console.log('gbif_species_results=>import siteConfig ERROR', err)})
@@ -232,22 +236,23 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
   if (objSpc.nubKey) {res = objSpc; vern = Promise.resolve(objSpc.vernacularNames);}
   else {res = taxn; vern = getGbifVernacularsFromKey(objSpc.key); vern.catch(err => {console.log('getGbifVernacularsFromKey ERROR', err)});}
 
-  let cranks = {}; if (taxn.remarks) {
-    cranks = taxn.remarks.split('|')[1];
-    console.log('cranks', cranks);
-    if (cranks) {
-      var jsonStr = cranks
+  let cranks = {}; 
+  if (taxn.remarks) {
+    let sranks = taxn.remarks.split('|')[1];
+    //console.log('cranks string', sranks, taxn);
+    if (sranks) {
+      var jsonStr = sranks
         .replace(/(\w+):/g, '"$1":')  // Quote property names
-        .replace(/:([A-Z]\w+)/g, ':"$1"');  // Quote string values
-      console.log('cranks', cranks);
+        .replace(/:([A-Za-z][\w?]*)/g, ':"$1"');  // Quote string values (allowing ? and other chars)
+      //console.log('cranks', sranks);
       try {
         cranks = JSON.parse(jsonStr);
         cranks = cranks.conservation_status;
-        console.log('cranks', cranks);
+        //console.log('cranks', cranks);
       } 
       catch(err) {
         cranks = {};
-        console.log('cranks error', err);
+        console.log('cranks error', sranks, err);
       }
     }
   }
@@ -527,19 +532,19 @@ export async function getDatasetInfo(speciesDatasetKey) {
   }
 }
 
-export function SamePage(newParm=qParm, newLimit=limit, newOffset=offset, newQField=qField, newOther=other) {
+export function SamePage(newParm=qParm, newLimit=limit, newOffset=offset, newQField=qField, newOther=strOther) {
   qParm = newParm;
   limit = newLimit;
   offset = newOffset;
   qField = newQField;
-  other = newOther;
-  window.location.assign(`${resultsUrl}?siteName=${siteName}&q=${qParm}&offset=${offset}&limit=${limit}&qField=${qField}${other}`);
+  strOther = newOther;
+  window.location.assign(`${resultsUrl}?siteName=${siteName}&q=${qParm}&offset=${offset}&limit=${limit}&qField=${qField}${strOther}`);
 }
 export function PrevPage() {
   if (offset > 0) {
     offset = offset - limit;
     //alert(`${resultsUrl}?siteName=${siteName}&q=${qParm}&offset=${offset}&limit=${limit}`);
-    window.location.assign(`${resultsUrl}?siteName=${siteName}&q=${qParm}&offset=${offset}&limit=${limit}${other}`);
+    window.location.assign(`${resultsUrl}?siteName=${siteName}&q=${qParm}&offset=${offset}&limit=${limit}${strOther}`);
   }
 }
 export function NextPage() {
@@ -548,12 +553,12 @@ export function NextPage() {
   } else if ((offset + limit) < count) {
     offset = offset + limit;
     //alert(`${resultsUrl}?siteName=${siteName}&q=${qParm}&offset=${offset}&limit=${limit}`);
-    window.location.assign(`${resultsUrl}?siteName=${siteName}&q=${qParm}&offset=${offset}&limit=${limit}${other}`);
+    window.location.assign(`${resultsUrl}?siteName=${siteName}&q=${qParm}&offset=${offset}&limit=${limit}${strOther}`);
   }
 }
 export function FirstPage() {
   //alert(`${resultsUrl}?siteName=${siteName}&q=${qParm}&offset=0&limit=${limit}`);
-  window.location.assign(`${resultsUrl}?siteName=${siteName}&q=${qParm}&offset=0&limit=${limit}${other}`);
+  window.location.assign(`${resultsUrl}?siteName=${siteName}&q=${qParm}&offset=0&limit=${limit}${strOther}`);
 }
 export function LastPage() {
   //alert(`LastPage() | count:${count}, limit:${limit}, offset:${offset}`);
@@ -563,7 +568,7 @@ export function LastPage() {
     offset = Math.floor(count/limit)*limit;
     if (offset >= count) {offset = offset - limit;}
     //alert(`${resultsUrl}?siteName=${siteName}&q=${qParm}&offset=${offset}&limit=${limit}`);
-    window.location.assign(`${resultsUrl}?siteName=${siteName}&q=${qParm}&offset=${offset}&limit=${limit}${other}`);
+    window.location.assign(`${resultsUrl}?siteName=${siteName}&q=${qParm}&offset=${offset}&limit=${limit}${strOther}`);
   }
 }
 if (document.getElementById("results_search")) {
@@ -607,7 +612,7 @@ function selectToUpdate(eleMnt, qParam) {
   for (const option of eleMnt.options) { //rebuild objOther from drop-down selections
     if (option.selected && 'ALL' != option.value) {objOther[qParam].push(option.value)}
   }
-  Object.keys(objOther).forEach(key => { //rebuild entire 'other' list from objOther (not just ranks)
+  Object.keys(objOther).forEach(key => { //rebuild entire 'strOther' list from objOther (not just ranks)
     if (Array.isArray(objOther[key])) {objOther[key].forEach(val => {newOther += `&${key}=${val}`;})}
     else {newOther += `&${key}=${objOther[key]}`}
   })
@@ -655,7 +660,7 @@ if (eleSts) { // Status drop-down, id="taxon-status"
       for (const option of eleSts.options) { //rebuild objOther from drop-down selections
         if (option.selected && 'ALL' != option.value) {objOther.status.push(option.value)}
       }
-      Object.keys(objOther).forEach(key => { //rebuild entire 'other' list from objOther (not just ranks)
+      Object.keys(objOther).forEach(key => { //rebuild entire 'strOther' list from objOther (not just ranks)
         if (Array.isArray(objOther[key])) {objOther[key].forEach(val => {newOther += `&${key}=${val}`;})}
         else {newOther += `&${key}=${objOther[key]}`}
       })
@@ -672,8 +677,8 @@ if (eleSts) { // Status drop-down, id="taxon-status"
     let newStatus = eleSts.value;
     console.log('taxon-status change to', newStatus);
     var newOther = "";
-    if ("ALL" != newStatus) { //now we have to search the extant 'other' args for 'status' and replace it...
-      objOther.status = [newStatus]; //just assign it in the object version of 'other' - this adds or replaces 'status'
+    if ("ALL" != newStatus) { //now we have to search the extant 'strOther' args for 'status' and replace it...
+      objOther.status = [newStatus]; //just assign it in the object version of 'strOther' - this adds or replaces 'status'
     } else {
       delete objOther.status;
     }
@@ -681,7 +686,7 @@ if (eleSts) { // Status drop-down, id="taxon-status"
       objOther[key].forEach(val => {
         newOther += `&${key}=${val}`;
       })
-    }) //rebuild 'other' list from 'other' object
+    }) //rebuild 'strOther' list from 'objOther' object
     SamePage(qParm, limit, 0, qField, newOther);
   });
 */
@@ -737,7 +742,7 @@ if (document.getElementById("download-csv")) {
     });}
 //using search term and other query parameters, download all species data by page and concatenate into a single array of objects
 //NOTE: function arguments are all initialized to global values!
-async function getAllDataPages(fCfg, q=qParm, lim=limit, qf=qField, oth=other) {
+async function getAllDataPages(fCfg, q=qParm, lim=limit, qf=qField, oth=strOther) {
   var res = []; var page = {}; var off = 0; var fatalError = 0;
   eleDwn.style.display = 'block'; eleOvr.style.display = 'block';
   do {
@@ -785,7 +790,7 @@ async function getAllDataPages(fCfg, q=qParm, lim=limit, qf=qField, oth=other) {
         })
         */
         //let occs = await gbifCountsByDateByTaxonKey(key, fCfg);//This call must be synchronous. And so we await.
-        let occs = await fetchOccSimpleCountByKey(res.key, fCfg);
+        let occs = await fetchOccSimpleCountByKey(key, fCfg);
         oSpc[`${fCfg.dataConfig.atlasAbbrev}-Occurrences`] = occs.total;
      }
     }
@@ -807,7 +812,7 @@ async function getDownloadData(type=0) {
       objOther[key].forEach(val => {
         name += `_${val}`;
       })
-    }) //rebuild 'other' list from 'other' object
+    }) //rebuild 'strOther' list from 'objOther' object
 
     if (type) { //json-download
       var res = {citation: dsi.citation.text, taxa: spc}; console.log('JSON Download:', res);
@@ -850,6 +855,7 @@ async function startUp(fCfg) {
     fCfg.dataConfig.rootRank = ['SPECIES'];
     fCfg.dataConfig.taxonomicStatus = ['ACCEPTED'];
     fCfg.dataConfig.limit = 500;
+    fCfg.dataConfig.pageLimit = 10;
     fCfg.dataConfig.columNames.canonicalName = 'Scientific Name';
   }
 
@@ -865,16 +871,16 @@ async function startUp(fCfg) {
       loadByTaxonKeys(fCfg, tKeys);
     } else {
       if (!qParm) {qParm = "";} //important: include q="" to show ALL species results
-      if ("" === qParm && !other) { //default condition
-        other=''; objOther={};
+      if ("" === qParm && !strOther) { //default condition
+        strOther=''; objOther={};
 
         let rootRank = fCfg.dataConfig.rootRank; //rank preset
         if (rootRank) {
           if (Array.isArray(rootRank)) {
             objOther.rank=rootRank; if (eleRnk) {eleRnk.value=rootRank[0];}
-            for (const rank of rootRank) {other+=`&rank=${rank}`;}
+            for (const rank of rootRank) {strOther+=`&rank=${rank}`;}
           } else {
-            other+=`&rank=${rootRank}`; objOther.rank=[rootRank]; if (eleRnk) {eleRnk.value=rootRank;}
+            strOther+=`&rank=${rootRank}`; objOther.rank=[rootRank]; if (eleRnk) {eleRnk.value=rootRank;}
           }
         }
 
@@ -882,9 +888,9 @@ async function startUp(fCfg) {
         if (taxonStatus) {
           if (Array.isArray(taxonStatus)) {
             objOther.status=taxonStatus; if (eleSts) {eleSts.value=taxonStatus[0];}
-            for (const stus of taxonStatus) {other+=`&status=${stus}`;}
+            for (const stus of taxonStatus) {strOther+=`&status=${stus}`;}
           } else {
-            other+=`&status=${taxonStatus}`; objOther.status=[taxonStatus]; if (eleSts) {eleSts.value=taxonStatus;}
+            strOther+=`&status=${taxonStatus}`; objOther.status=[taxonStatus]; if (eleSts) {eleSts.value=taxonStatus;}
           }
         }
 
@@ -892,8 +898,8 @@ async function startUp(fCfg) {
         if (listLimit) {limit = listLimit;}
 
       }
-      console.log('startup', qParm, other, objOther)
-      loadByQueryParams(fCfg, qParm, offset, limit, qField, other);
+      console.log('startup', qParm, strOther, objOther)
+      loadByQueryParams(fCfg, qParm, offset, limit, qField, strOther);
     }
   } else {
     console.log('gbif_species_results.js requires a table having id="species-table" to operate.')
@@ -1006,9 +1012,9 @@ function columnSort() {
     let excludeColumnIds = []; //[columnIds['childTaxa'], columnIds['parentTaxa'], columnIds['iconImage']];
     for (const columnName of excludeColumns) {excludeColumnIds.push(columnIds[columnName]);}
     let columnDefs=[];
-    let limit=25;
+    let limit=fileConfig.dataConfig.pageLimit ?? 10;
     let responsive=false;
-    let paging=true;
+    let paging=false;
     let searching=true;
     let info=true;
     tableSort = tableSortHeavy(tableId, orderColumn, excludeColumnIds, columnDefs, limit, responsive, paging, searching, info);
