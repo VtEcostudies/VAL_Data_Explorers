@@ -88,7 +88,8 @@ export async function verbatimSpecies(taxonKey) {
   } catch (err) {
     err.query = enc;
     console.error(`verbatimSpecies(${taxonKey}) ERROR:`, err);
-    throw err
+    //throw err
+    return null;
   }
 }
 
@@ -114,7 +115,8 @@ export async function iucnSpecies(gbifNubKey) {
   } catch (err) {
     err.query = enc;
     console.error(`iucnSpecies(${gbifNubKey}) ERROR:`, err);
-    throw err
+    //throw err
+    return null;
   }
 }
 

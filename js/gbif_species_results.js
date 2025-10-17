@@ -231,23 +231,21 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
   if (objSpc.nubKey) {res = objSpc; vern = Promise.resolve(objSpc.vernacularNames);}
   else {res = taxn; vern = getGbifVernacularsFromKey(objSpc.key); vern.catch(err => {console.log('getGbifVernacularsFromKey ERROR', err)});}
 
-  //console.log('speciesTaxon', taxn)
   let cranks = {}; if (taxn.remarks) {
     cranks = taxn.remarks.split('|')[1];
     console.log('cranks', cranks);
     if (cranks) {
-      //cranks = cranks+'}';
       var jsonStr = cranks
         .replace(/(\w+):/g, '"$1":')  // Quote property names
         .replace(/:([A-Z]\w+)/g, ':"$1"');  // Quote string values
       console.log('cranks', cranks);
       try {
-        cranks=JSON.parse(jsonStr);
+        cranks = JSON.parse(jsonStr);
         cranks = cranks.conservation_status;
         console.log('cranks', cranks);
       } 
       catch(err) {
-        cranks={};
+        cranks = {};
         console.log('cranks error', err);
       }
     }
@@ -335,10 +333,16 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
         })
         break;
       case 'vernacularName':
-        if (taxn.vernacularName) {}
-        if (res.vernacularName) {}
-        if (res.vernacularNames) {}
-        colObj.innerHTML = res[colNam] ? `<a title="Species Explorer: ${res[colNam]}" href="${resultsUrl}?siteName=${siteName}&q=${res[colNam]}">${res[colNam]}</a>` : null;
+        let vrnac = null;
+        if (taxn.vernacularName) {vrnac = capitalize(taxn.vernacularName);}
+        if (res.vernacularName) {vrnac = capitalize(res.vernacularName);}
+        if (res.vernacularNames && res.vernacularNames.length) {
+          vrnac = res.vernacularNames[0].vernacularName;
+          for (const ele of res.vernacularNames) {
+            if (ele.isPreferred) vrnac = capitalize(ele.vernacularName);
+          }
+        }
+        colObj.innerHTML = vrnac ?? null;
         break;
       case 'scientificName':
         colObj.innerHTML = res[colNam] ? `<a title="Species Explorer: ${res[colNam]}" href="${resultsUrl}?siteName=${siteName}&q=${res[colNam]}">${res[colNam]}</a>` : null;
