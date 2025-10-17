@@ -858,11 +858,18 @@ async function startUp(fCfg) {
     fCfg.dataConfig.pageLimit = 10;
     fCfg.dataConfig.columNames.canonicalName = 'Scientific Name';
   }
+  if (embed && fCfg.hostConfig.parentUrl) {
+    homeUrl = fCfg.hostConfig.parentUrl.hostname + fCfg.hostConfig.homeUrl;
+    exploreUrl = fCfg.hostConfig.parentUrl.hostname + fCfg.hostConfig.exploreUrl;
+    resultsUrl = fCfg.hostConfig.parentUrl.hostname + fCfg.hostConfig.resultsUrl;
+    profileUrl = fCfg.hostConfig.parentUrl.hostname + fCfg.hostConfig.profileUrl;
+  } else {
+    homeUrl = fCfg.dataConfig.homeUrl;
+    exploreUrl = fCfg.dataConfig.exploreUrl;
+    resultsUrl = fCfg.dataConfig.resultsUrl;
+    profileUrl = fCfg.dataConfig.profileUrl;
+  }
 
-  homeUrl = fCfg.dataConfig.homeUrl;
-  exploreUrl = fCfg.dataConfig.exploreUrl;
-  resultsUrl = fCfg.dataConfig.resultsUrl;
-  profileUrl = fCfg.dataConfig.profileUrl;
   columns = fCfg.dataConfig.columns;
   columNames = fCfg.dataConfig.columNames;
     
