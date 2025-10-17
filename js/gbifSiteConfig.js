@@ -7,7 +7,6 @@ export const siteNames = [
   'val'
   ,'mval'
   ,'vtBees'
-  ,'vtBees_list'
   ,'vtButterflies'
   ,'vtFungi'
   ,'vtLadyBeetles'

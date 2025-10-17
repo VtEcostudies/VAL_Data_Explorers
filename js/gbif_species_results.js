@@ -73,6 +73,7 @@ import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`)
   })
   .catch(err => {console.log('gbif_species_results=>import siteConfig ERROR', err)})
 
+const embed = document.getElementById("embed_species_list"); //called by _species_list.html/php, the embedded version
 const eleTtl = document.getElementById("species-title"); //the h tag within the title
 const eleHom = document.getElementById('homeLink');
 const eleSit = document.getElementById('siteSelect');
@@ -843,6 +844,15 @@ function jsonToCsv(json) {
 }
 
 async function startUp(fCfg) {
+
+  if (embed) {
+    fCfg.dataConfig.columns = ['family', 'canonicalName','vernacularName','grank','srank','sgcn','iucn'];
+    fCfg.dataConfig.rootRank = ['SPECIES'];
+    fCfg.dataConfig.taxonomicStatus = ['ACCEPTED'];
+    fCfg.dataConfig.limit = 500;
+    fCfg.dataConfig.columNames.canonicalName = 'Scientific Name';
+  }
+
   homeUrl = fCfg.dataConfig.homeUrl;
   exploreUrl = fCfg.dataConfig.exploreUrl;
   resultsUrl = fCfg.dataConfig.resultsUrl;
