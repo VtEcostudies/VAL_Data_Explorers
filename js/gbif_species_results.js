@@ -860,9 +860,9 @@ async function startUp(fCfg) {
   }
 
   if (embed && fCfg.hostConfig.parentUrl) {
-    exploreUrl = fCfg.hostConfig.parentUrl.href + fCfg.hostConfig.baseRoute + fCfg.hostConfig.wpRoute.occurrences;
-    resultsUrl = fCfg.hostConfig.parentUrl.href + fCfg.hostConfig.baseRoute + fCfg.hostConfig.wpRoute.speciesList;
-    profileUrl = fCfg.hostConfig.parentUrl.href + fCfg.hostConfig.baseRoute + fCfg.hostConfig.wpRoute.speciesProfile;
+    exploreUrl = fCfg.hostConfig.parentUrl.href + fCfg.hostConfig.wpRoute.occurrences;
+    resultsUrl = fCfg.hostConfig.parentUrl.href + fCfg.hostConfig.wpRoute.speciesList;
+    profileUrl = fCfg.hostConfig.parentUrl.href + fCfg.hostConfig.wpRoute.speciesProfile;
   } else {
     homeUrl = fCfg.dataConfig.homeUrl;
     exploreUrl = fCfg.dataConfig.exploreUrl;
