@@ -861,8 +861,8 @@ async function startUp(fCfg) {
 
   if (embed && fCfg.hostConfig.parentUrl) {
     exploreUrl = fCfg.hostConfig.parentUrl.href + fCfg.hostConfig.baseRoute + fCfg.hostConfig.wpRoute.occurrences;
-    resultsUrl = fCfg.hostConfig.parentUrl.href + fCfg.hostConfig.resultsPath + fCfg.hostConfig.wpRoute.speciesList;
-    profileUrl = fCfg.hostConfig.parentUrl.href + fCfg.hostConfig.profilePath + fCfg.hostConfig.wpRoute.speciesProfile;
+    resultsUrl = fCfg.hostConfig.parentUrl.href + fCfg.hostConfig.baseRoute + fCfg.hostConfig.wpRoute.speciesList;
+    profileUrl = fCfg.hostConfig.parentUrl.href + fCfg.hostConfig.baseRoute + fCfg.hostConfig.wpRoute.speciesProfile;
   } else {
     homeUrl = fCfg.dataConfig.homeUrl;
     exploreUrl = fCfg.dataConfig.exploreUrl;
