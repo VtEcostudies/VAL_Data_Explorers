@@ -20,6 +20,8 @@ localStorage: stored data is saved across browser sessions
 localStorage data for a document loaded in a "private browsing" or "incognito" session is cleared when the last "private" tab is closed.
 */
 
+const natureServeRankHelpUrl='https://help.natureserve.org/biotics/content/record_management/Element_Files/Element_Tracking/ETRACK_Definitions_of_Heritage_Conservation_Status_Ranks.htm';
+const valConservationHelpUrl='https://vtatlasoflife.freshdesk.com/support/solutions/articles/62000228137-conservation-status-and-ranks-defined';
 const gbifApi = "https://api.gbif.org/v1";
 const pageUrl = new URL(document.URL);
 const objUrlParams = pageUrl.searchParams; //get URL search params from calling http route address
@@ -183,7 +185,7 @@ async function addHead() {
     } else {
       colObj.innerHTML = columNames[hedNam];
     }
-    let html;
+    let html=null;let link=null;
     if ("childTaxa" == hedNam) {html = `Click <i class="fa-solid fa-code-branch parent-branch"></i> symbol to explore ALL sub-taxa of taxon. Click named rank to explore sub-taxa having only that rank.`}
     if ("parentTaxa" == hedNam) {html = `Click column header to expand/collapse parent taxa in all rows. Click parent taxon name for Species Explorer search of that taxon.`}
     if ("parent" == hedNam) {html = `Click symbol for Species Explorer with ALL children of named parent taxon. Click parent taxon name for Species Explorer with just that taxon and rank.`}
@@ -191,12 +193,12 @@ async function addHead() {
     if ("vernacularNames" == hedNam) {html = 'Click column header to sort by common name. Click common name for Species Explorer search of that name.'}
     if ("vernacularName" == hedNam) {html = 'Click column header to sort by common name.'}
     if ("occurrences" == hedNam) {html = 'Click column header to sort by occurrence count. Occurrence counts are for taxon and sub-taxa. ACCEPTED name counts include their SYNONYMS. SYNONYM counts do not include their ACCEPTED names. Click count for Occurrence Explorer.'}
-    if ("grank" == hedNam) {html = 'Click column header to sort by Global Rank.'}
     if ("family" == hedNam) {html = 'Click column header to sort by taxon Family.'}
-    if ("srank" == hedNam) {html = 'Click column header to sort by State Rank.'}
-    if ("sgcn" == hedNam) {html = 'Click column header to sort by Species of Greatest Conservation Need.'}
-    if ("iucn" == hedNam) {html = 'Click column header to sort by IUCN rank.'}
-    if (html) {addInfoIcon(colObj, html, ["header-info-icon"]);}
+    if ("grank" == hedNam) {html = 'Click column header to sort by Global Rank. Click &#9432 for more info.'; link=valConservationHelpUrl;}
+    if ("srank" == hedNam) {html = 'Click column header to sort by State Rank. Click &#9432 for more info.'; link=valConservationHelpUrl;}
+    if ("sgcn" == hedNam) {html = 'Click column header to sort by Species of Greatest Conservation Need. Click &#9432 for more info.'; link=valConservationHelpUrl;}
+    if ("iucn" == hedNam) {html = 'Click column header to sort by IUCN rank. Click &#9432 for more info.'; link=valConservationHelpUrl;}
+    if (html) {addInfoIcon(colObj, html, ["header-info-icon"], link);}
     //add to sortable/non-sortable column arrays here?
     if (sortableColumns.includes(hedNam)) {colObj.classList.add("sortableHeader")}
     else {excludeColumns.push(hedNam)}
