@@ -1038,6 +1038,6 @@ function columnSort() {
     let info=objOther.pageInfo ?? false;
     let fixedHeader=objOther.fixedHeader ?? false; //sticky column header row
     let responsive=objOther.responsive ?? false; //Do not use. This doesn't work well. We handle responsive views in CSS.
-    tableSort = tableSortHeavy(tableId, orderColumn, excludeColumnIds, columnDefs, pageLength, paging, searching, info, fixedHeader, responsive);
+    tableSort = tableSortHeavy(tableId, orderColumn, excludeColumnIds, columnDefs, pageLength, responsive, paging, searching, info, fixedHeader);
   });
 }
