@@ -44,7 +44,7 @@ console.log('Query Param(s) taxonKeys:', tKeys);
 // get 'q' query param
 var qParm = objUrlParams.get('q');
 var offset = objUrlParams.get('offset'); offset = Number(offset) ? Number(offset) : 0;
-var limit = objUrlParams.get('limit'); limit = Number(limit) ? Number(limit) : 20;
+var limit = objUrlParams.get('limit'); limit = Number(limit) ? Number(limit) : 0;
 var ranks =  objUrlParams.getAll('rank'); ranks = ranks.length ? ranks.map((rank) => rank.toUpperCase()) : ['ALL'];
 var status =  objUrlParams.getAll('status'); status = status.length ? status.map((stat) => stat.toUpperCase()) : ['ALL'];
 var qField =  objUrlParams.get('qField'); qField = qField ? qField.toUpperCase() : 'ALL';
@@ -70,7 +70,7 @@ console.log('objOther', objOther, strOther);
 import(`../../VAL_Web_Utilities/js/gbifDataConfig.js`)
   .then(fCfg => {
     fileConfig = fCfg; //set global value
-    //console.log('gbif_species_results | siteName:', siteName, 'dataConfig:', fCfg.dataConfig);
+    console.log('gbif_species_results | siteName:', siteName);
     console.log('gbif_species_results | dataConfig:', fCfg.dataConfig);
     console.log('gbif_species_results | hostConfig:', fCfg.hostConfig);
     startUp(fCfg);
@@ -189,7 +189,13 @@ async function addHead() {
     if ("parent" == hedNam) {html = `Click symbol for Species Explorer with ALL children of named parent taxon. Click parent taxon name for Species Explorer with just that taxon and rank.`}
     if ("canonicalName" == hedNam) {html = `Click column header to sort by taxon name. Click taxon name to view its Species Profile.`}
     if ("vernacularNames" == hedNam) {html = 'Click column header to sort by common name. Click common name for Species Explorer search of that name.'}
+    if ("vernacularName" == hedNam) {html = 'Click column header to sort by common name.'}
     if ("occurrences" == hedNam) {html = 'Click column header to sort by occurrence count. Occurrence counts are for taxon and sub-taxa. ACCEPTED name counts include their SYNONYMS. SYNONYM counts do not include their ACCEPTED names. Click count for Occurrence Explorer.'}
+    if ("grank" == hedNam) {html = 'Click column header to sort by Global Rank.'}
+    if ("family" == hedNam) {html = 'Click column header to sort by taxon Family.'}
+    if ("srank" == hedNam) {html = 'Click column header to sort by State Rank.'}
+    if ("sgcn" == hedNam) {html = 'Click column header to sort by Species of Greatest Conservation Need.'}
+    if ("iucn" == hedNam) {html = 'Click column header to sort by IUCN rank.'}
     if (html) {addInfoIcon(colObj, html, ["header-info-icon"]);}
     //add to sortable/non-sortable column arrays here?
     if (sortableColumns.includes(hedNam)) {colObj.classList.add("sortableHeader")}
@@ -465,10 +471,10 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
         }
         break;
       case 'grank': case 'srank':
-        colObj.innerHTML = cranks && cranks[colNam] ? cranks[colNam] : null;
+        colObj.innerHTML = cranks && cranks[colNam] ? ('null'==cranks[colNam] ? null : cranks[colNam]) : null;
         break;
       case 'sgcn':
-        colObj.innerHTML = cranks ? (cranks.sgcn ? true : null) : null;
+        colObj.innerHTML = cranks ? (cranks.sgcn ? 'SGCN' : null) : null;
         break;
       case 'iucn':
         colObj.innerHTML = iucn && iucn.code ? iucn.code : null;
@@ -479,6 +485,7 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
         break;
     }
   });
+  return true; //to fulfill promise return for callers to wait?
 }
 
 /*
@@ -851,12 +858,13 @@ function jsonToCsv(json) {
 async function startUp(fCfg) {
 
   if (embed) {
+    console.log('embed species list')
     fCfg.dataConfig.columns = ['family', 'canonicalName','vernacularName','grank','srank','sgcn','iucn'];
+    fCfg.dataConfig.columNames.canonicalName = 'Scientific Name';
     fCfg.dataConfig.rootRank = ['SPECIES'];
     fCfg.dataConfig.taxonomicStatus = ['ACCEPTED'];
-    fCfg.dataConfig.limit = 500;
-    fCfg.dataConfig.pageLimit = 10;
-    fCfg.dataConfig.columNames.canonicalName = 'Scientific Name';
+    fCfg.dataConfig.dataLimit = 500;
+    fCfg.dataConfig.pageLength = 10;
   }
 
   if (embed && fCfg.hostConfig.parentUrl) {
@@ -882,11 +890,11 @@ async function startUp(fCfg) {
       loadByTaxonKeys(fCfg, tKeys);
     } else {
       if (!qParm) {qParm = "";} //important: include q="" to show ALL species results
-      if ("" === qParm && !strOther) { //default condition
-        strOther=''; objOther={};
+      if (true) { //("" === qParm && !strOther) { //default condition
+        //strOther=''; objOther={};
 
-        let rootRank = fCfg.dataConfig.rootRank; //rank preset
-        if (rootRank) {
+        let rootRank = fCfg.dataConfig.rootRank; //config default rank
+        if (rootRank && !objOther.rank) { //use default if no explicit argument
           if (Array.isArray(rootRank)) {
             objOther.rank=rootRank; if (eleRnk) {eleRnk.value=rootRank[0];}
             for (const rank of rootRank) {strOther+=`&rank=${rank}`;}
@@ -895,8 +903,8 @@ async function startUp(fCfg) {
           }
         }
 
-        let taxonStatus = fCfg.dataConfig.taxonomicStatus;
-        if (taxonStatus) {
+        let taxonStatus = fCfg.dataConfig.taxonomicStatus; //config default taxon status
+        if (taxonStatus && !objOther.status) { //use default if no explicit argument
           if (Array.isArray(taxonStatus)) {
             objOther.status=taxonStatus; if (eleSts) {eleSts.value=taxonStatus[0];}
             for (const stus of taxonStatus) {strOther+=`&status=${stus}`;}
@@ -905,11 +913,12 @@ async function startUp(fCfg) {
           }
         }
 
-        let listLimit = fCfg.dataConfig.limit;
-        if (listLimit) {limit = listLimit;}
+        let dataLimit = fCfg.dataConfig.dataLimit; //config default data query limit
+        if (dataLimit && !limit) {limit = dataLimit;} //use default if no explicit argument
 
       }
-      console.log('startup', qParm, strOther, objOther)
+      if (limit < 1) {limit = 20;}
+      console.log('startUp qParm:', qParm, 'offset:', offset, 'limit:', limit, 'other:', strOther, objOther)
       loadByQueryParams(fCfg, qParm, offset, limit, qField, strOther);
     }
   } else {
@@ -1023,11 +1032,12 @@ function columnSort() {
     let excludeColumnIds = []; //[columnIds['childTaxa'], columnIds['parentTaxa'], columnIds['iconImage']];
     for (const columnName of excludeColumns) {excludeColumnIds.push(columnIds[columnName]);}
     let columnDefs=[];
-    let limit=fileConfig.dataConfig.pageLimit ?? 10;
-    let responsive=false;
-    let paging=false;
-    let searching=true;
-    let info=true;
-    tableSort = tableSortHeavy(tableId, orderColumn, excludeColumnIds, columnDefs, limit, responsive, paging, searching, info);
+    let pageLength=Number(objOther.pageLength) ?? 10; //must be numeric type or dataTables fails
+    let paging=objOther.paging ?? false;
+    let searching=objOther.searching ?? false;
+    let info=objOther.pageInfo ?? false;
+    let fixedHeader=objOther.fixedHeader ?? false; //sticky column header row
+    let responsive=objOther.responsive ?? false; //Do not use. This doesn't work well. We handle responsive views in CSS.
+    tableSort = tableSortHeavy(tableId, orderColumn, excludeColumnIds, columnDefs, pageLength, paging, searching, info, fixedHeader, responsive);
   });
 }
