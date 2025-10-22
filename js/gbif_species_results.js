@@ -893,8 +893,8 @@ async function startUp(fCfg) {
     } else {
       if (!qParm) {qParm = "";} //important: include q="" to show ALL species results
       //if ("" == qParm && !strOther) { //default condition
-      if (!embed && ""==qParm && !strOther) {
-        strOther=''; objOther={};
+      if (embed || (""==qParm && !strOther)) {
+        if (!embed) {strOther=''; objOther={};}
         let rootRank = fCfg.dataConfig.rootRank; //config default rank
         if (rootRank && !objOther.rank) { //use default if no explicit argument
           if (Array.isArray(rootRank)) {
