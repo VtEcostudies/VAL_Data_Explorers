@@ -892,9 +892,9 @@ async function startUp(fCfg) {
       loadByTaxonKeys(fCfg, tKeys);
     } else {
       if (!qParm) {qParm = "";} //important: include q="" to show ALL species results
-      if (true) { //("" === qParm && !strOther) { //default condition
-        //strOther=''; objOther={};
-
+      //if ("" == qParm && !strOther) { //default condition
+      if (!embed && ""==qParm && !strOther) {
+        strOther=''; objOther={};
         let rootRank = fCfg.dataConfig.rootRank; //config default rank
         if (rootRank && !objOther.rank) { //use default if no explicit argument
           if (Array.isArray(rootRank)) {
