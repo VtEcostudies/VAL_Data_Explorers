@@ -52,7 +52,7 @@ var status =  objUrlParams.getAll('status'); status = status.length ? status.map
 var qField =  objUrlParams.get('qField'); qField = qField ? qField.toUpperCase() : 'ALL';
 var drillRanks = objUrlParams.get('drillRanks');
 var count = 0; //this is set elsewhere after loading data. initialize here.
-var page = offset / limit + 1;
+var page = limit ? offset / limit + 1 : 1;
 console.log('Query param q:', qParm, 'offset:', offset, 'limit:', limit, 'page:', page, 'qField:', qField);
 
 //get other query params (there are many, and they are necessary. eg. higherTaxonRank)
@@ -892,9 +892,8 @@ async function startUp(fCfg) {
       loadByTaxonKeys(fCfg, tKeys);
     } else {
       if (!qParm) {qParm = "";} //important: include q="" to show ALL species results
-      //if ("" == qParm && !strOther) { //default condition
-      if (embed || (""==qParm && !strOther)) {
-        if (!embed) {strOther=''; objOther={};}
+      if (embed || (""==qParm && !strOther)) { //detect the default species-explorer view; apply default parameters below.
+        if (!embed) {strOther=''; objOther={};} //
         let rootRank = fCfg.dataConfig.rootRank; //config default rank
         if (rootRank && !objOther.rank) { //use default if no explicit argument
           if (Array.isArray(rootRank)) {

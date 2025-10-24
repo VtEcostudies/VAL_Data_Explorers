@@ -26,12 +26,21 @@
 <script src="https://cdn.datatables.net/responsive/2.4.0/js/dataTables.responsive.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdn.datatables.net/responsive/2.4.0/js/responsive.bootstrap.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-  <section class="hero data-explorer-hero" >
+<?php
+  $image_object = get_field('hero-img');
+  $image_size = 'hero';
+  $image_url = $image_object['sizes'][$image_size];
+?>
+
+  <section class="hero data-explorer-hero" style="background-image: url(<?php echo $image_url; ?>)">
 
   	<div class="content">
 
       <div class="hero-header-info-icon">
-  		  <h2 id="species-title" style="display: inline-block;">Species Explorer</h2>
+        <h1>
+          <?php the_field('heading-1'); ?>
+          <span class='dadra-tooltip' data-tippy-content="The Species Explorer does a full text search of the Atlas Species Checklist on GBIF. Text is searched against Scientific Name, Common Name, and Species Description."><i class="fa fa-info-circle" aria-hidden="true"></i></span>
+        </h1>
       </div>
 
   		<form id="searchform" onsubmit="return false;" >
