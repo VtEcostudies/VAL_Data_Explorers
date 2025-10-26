@@ -163,6 +163,9 @@ async function addHead() {
     columnIds[hedNam]=hedIdx; //make an object having names as keys and index as values, for use by dataTables to enable/disable sorting
     let colObj = await hedRow.insertCell(hedIdx);
     colObj.classList.add("speciesExplorerColumnHeader");
+    if (['srank','grank','sgcn','iucn'].includes(hedNam)) {
+      colObj.classList.add("min-width"); //make these columns minimal width
+    }
     if ("parentTaxa" ==  hedNam) {
       //colObj.classList.add("parentTaxaHeader");
       const listNode = document.createElement("li"); //create a list tag <li>

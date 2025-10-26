@@ -10,7 +10,7 @@ table td {
 }
 
   @media screen and (max-width: 680px) {
-    table {min-width: 300px;}
+    table {min-width:300px;}
     table td {max-width:100%;}
     thead {display: none;}
     tr:nth-child(odd) td:first-child {
@@ -35,7 +35,16 @@ table td {
     tbody tr:nth-child(even) {
       background-color: lightgray !important;
     }
-  }
+
+    /* Restore columns to have normal width */
+    #species-table td.min-width, 
+    #species-table td.min-width, 
+    #species-table td.min-width, 
+    #species-table td.min-width
+    {
+      width: unset !important; /* Restore default column width */
+    }  
+}
   
   .pagination {padding:0;}
   #search-term {margin-top:8px;}
@@ -161,4 +170,27 @@ li.parentTaxa.collapsed {
 }
 .pagination li select option {
   /*background-color: gold;*/
+}
+
+/* Styles for the _species_list.html captive iFrame view */
+#species-table thead {
+  color: #fff;
+  background: #176f75 !important;
+}
+
+#species-table {
+  table-layout: auto !important;
+}
+
+#species-table td {
+  width: auto;
+}
+
+/* Force specific columns to be minimal width */
+#species-table td.min-width, 
+#species-table td.min-width, 
+#species-table td.min-width, 
+#species-table td.min-width
+{
+  width: 1%; /* Forces column to minimum necessary width */
 }
