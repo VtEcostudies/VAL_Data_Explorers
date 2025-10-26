@@ -1,0 +1,17 @@
+.species-checklist a,
+.species-checklist a.btn-link,
+.species-checklist button.btn-link
+{
+  /*color: #c44100; LoonWeb link color */
+  color: #007e95;
+  text-decoration: underline;
+}
+.species-checklist a:hover,
+.species-checklist a.btn-link:hover,
+.species-checklist button.btn-link:hover
+{
+  /*color: #c44100; LoonWeb link color */
+  color: #176f75;
+  text-decoration: underline;
+  cursor: pointer;
+}
