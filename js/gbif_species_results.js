@@ -46,7 +46,7 @@ console.log('Query Param(s) taxonKeys:', tKeys);
 // get 'q' query param
 var qParm = objUrlParams.get('q');
 var offset = objUrlParams.get('offset'); offset = Number(offset) ? Number(offset) : 0;
-var limit = objUrlParams.get('limit'); limit = Number(limit) ? Number(limit) : 0;
+var limit = objUrlParams.get('limit'); limit = Number(limit) ? Number(limit) : null;
 var ranks =  objUrlParams.getAll('rank'); ranks = ranks.length ? ranks.map((rank) => rank.toUpperCase()) : ['ALL'];
 var status =  objUrlParams.getAll('status'); status = status.length ? status.map((stat) => stat.toUpperCase()) : ['ALL'];
 var qField =  objUrlParams.get('qField'); qField = qField ? qField.toUpperCase() : 'ALL';
@@ -92,7 +92,7 @@ const eleLb2 = document.getElementById("search-value-bot"); //a duplicate search
 const eleRnk = document.getElementById("taxon-rank"); if (eleRnk) {setChosenMulti(eleRnk, ranks);}
 const eleSts = document.getElementById("taxon-status"); if (eleSts) {setChosenMulti(eleSts, status);}
 const eleCto = document.getElementById("compare-to"); if (eleCto) {eleCto.value =  qField;}
-const eleSiz = document.getElementById("page-size"); if (eleSiz) {eleSiz.value =  limit;}
+const eleSiz = document.getElementById("page-size"); if (eleSiz) {eleSiz.value =  limit ?? 20;}
 const eleDwn = document.getElementById("download-progress"); if (eleDwn) {eleDwn.style.display = 'none';}
 const eleOvr = document.getElementById("download-overlay"); if (eleOvr) {eleOvr.style.display = 'none';}
 //const eleInf = document.getElementById("information-overlay"); if (eleInf) {eleInf.style.display = 'none';}
@@ -250,9 +250,10 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
     //console.log('cranks string', sranks, taxn);
     if (sranks) {
       var jsonStr = sranks
-        .replace(/(\w+):/g, '"$1":')  // Quote property names
-        .replace(/:([A-Za-z][\w?]*)/g, ':"$1"');  // Quote string values (allowing ? and other chars)
-      //console.log('cranks', sranks);
+        .replace(/(\w+):/g, '"$1":')           // Quote property names
+        .replace(/:,/g, ':"",')                 // Handle empty values before comma
+        .replace(/:}/g, ':""}')                 // Handle empty values before closing brace
+        .replace(/:([A-Za-z][\w?]*)/g, ':"$1"'); // Quote string values      //console.log('cranks', sranks);
       try {
         cranks = JSON.parse(jsonStr);
         cranks = cranks.conservation_status;
