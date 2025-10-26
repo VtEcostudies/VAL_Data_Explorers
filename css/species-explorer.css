@@ -186,6 +186,14 @@ li.parentTaxa.collapsed {
   width: auto;
 }
 
+#species-table th {
+  vertical-align: bottom !important;
+}
+
+#species-table thead td {
+  vertical-align: bottom !important;
+}
+
 /* Force specific columns to be minimal width */
 #species-table td.min-width, 
 #species-table td.min-width, 
@@ -193,4 +201,10 @@ li.parentTaxa.collapsed {
 #species-table td.min-width
 {
   width: 1%; /* Forces column to minimum necessary width */
+}
+
+/* Styles for the _species_list.html captive iFrame view */
+#species-table.species-checklist tbody td:last-child::after {
+  content: '\A\00a0'; /* \A is newline, \00a0 is non-breaking space */
+  white-space: pre; /* Preserves the newline */
 }
