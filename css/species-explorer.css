@@ -9,41 +9,41 @@ table td {
   word-wrap:break-word;
 }
 
-  @media screen and (max-width: 680px) {
-    table {min-width:300px;}
-    table td {max-width:100%;}
-    thead {display: none;}
-    tr:nth-child(odd) td:first-child {
-      background: white;
-      font-weight:bold;
-      font-size:1.3em;
-    }
-    tr:nth-child(even) td:first-child {
-      background: lightgray;
-      font-weight:bold;
-      font-size:1.3em;
-    }
-    tbody td {display: block;  text-align:center;}
-    tbody td:before {
-        content: attr(data-th);
-        display: block;
-        text-align:center;
-    }
-    tbody tr:nth-child(odd) {
-      background-color: white !important;
-    }
-    tbody tr:nth-child(even) {
-      background-color: lightgray !important;
-    }
+@media screen and (max-width: 680px) {
+  table {min-width:300px;}
+  table td {max-width:100%;}
+  thead {display: none;}
+  tr:nth-child(odd) td:first-child {
+    background: white;
+    font-weight:bold;
+    font-size:1.3em;
+  }
+  tr:nth-child(even) td:first-child {
+    background: lightgray;
+    font-weight:bold;
+    font-size:1.3em;
+  }
+  tbody td {display: block;  text-align:center;}
+  tbody td:before {
+      content: attr(data-th);
+      display: block;
+      text-align:center;
+  }
+  tbody tr:nth-child(odd) {
+    background-color: white !important;
+  }
+  tbody tr:nth-child(even) {
+    background-color: lightgray !important;
+  }
 
-    /* Restore columns to have normal width */
-    #species-table td.min-width, 
-    #species-table td.min-width, 
-    #species-table td.min-width, 
-    #species-table td.min-width
-    {
-      width: unset !important; /* Restore default column width */
-    }  
+  /* Restore columns to have normal width */
+  #species-table td.min-width, 
+  #species-table td.min-width, 
+  #species-table td.min-width, 
+  #species-table td.min-width
+  {
+    width: unset !important; /* Restore default column width */
+  }  
 }
   
   .pagination {padding:0;}
@@ -180,12 +180,18 @@ li.parentTaxa.collapsed {
   width: auto;
 }
 
-#species-table th {
-  vertical-align: bottom !important;
-}
+/* 
+  Align header text to bottom of header cell when the screen
+  is smaller. 
+*/
+@media screen and (max-width: 900px) {
+  #species-table th {
+    vertical-align: bottom !important;
+  }
 
-#species-table thead td {
-  vertical-align: bottom !important;
+  #species-table thead td {
+    vertical-align: bottom !important;
+  }
 }
 
 /* Force specific columns to be minimal width */
@@ -200,8 +206,21 @@ li.parentTaxa.collapsed {
   background: #176f75 !important;
 }
 
+/* 
+  Styles for cloned fixed header. To implement fixed Header,
+  dataTables clones the entire table outside our parent divs, etc. 
+  so it doesn't inherit classes from those containers.
+
+  This will apply styles to any fixed header created by dataTables,
+  which is not what we intend, but there is no easy way to do this.
+*/
+table.fixedHeader-floating thead {
+  color: #fff;
+  background: #176f75 !important;
+}
+
 .species-checklist #species-table thead td:hover {
-  color: #919e59;
+  color: black;
 }
 
 .species-checklist #species-table tbody td:last-child::after {

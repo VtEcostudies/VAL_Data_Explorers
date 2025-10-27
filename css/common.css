@@ -6,6 +6,7 @@
   color: #007e95;
   text-decoration: underline;
 }
+
 .species-checklist a:hover,
 .species-checklist a.btn-link:hover,
 .species-checklist button.btn-link:hover
@@ -14,4 +15,12 @@
   color: #176f75;
   text-decoration: underline;
   cursor: pointer;
+}
+
+.dt-paging-button.current {
+  background-color: #176f75 !important;
+}
+
+.dt-paging-button:hover {
+  background-color: #176f75 !important;
 }
