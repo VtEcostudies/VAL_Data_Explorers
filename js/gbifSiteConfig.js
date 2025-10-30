@@ -15,6 +15,7 @@ export const siteNames = [
   ,'vtOrthoptera'
   ,'vtPlants'
   ,'usBees'
+  ,'cSWGBees'
   //,'eButterfly'
   //,'wwButterfly'
   //,'fieldMuseum'
