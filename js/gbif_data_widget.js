@@ -134,7 +134,9 @@ import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`).then
             "gadmGid",
             "locality",
             "elevation",
+            "eventDate",
             "year",
+            "month",
             "recordedBy",
             "publishingOrg"
         ],
@@ -151,8 +153,9 @@ import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`).then
             "features",
             "coordinates",
             "locality",
-            "year",
-            "month",
+            "eventDate",
+            //"year",
+            //"month", //doesn't show when we add this
             "basisOfRecord",
             "dataset",
             "publisher",
