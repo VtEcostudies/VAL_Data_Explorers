@@ -6,6 +6,8 @@
 
 <?php get_header(); the_post(); ?>
 
+<meta name="robots" content="noindex, nofollow">
+
 <script language="Javascript">
     var info_on = false;
     function showInfo(text=false, button=false) {
