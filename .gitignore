@@ -2,3 +2,4 @@ wordpress_sftp_login/
 backup/
 #images/
 species_datasets/
+*.secret
