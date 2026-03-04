@@ -85,6 +85,103 @@ zgrep -c "202\.46\.\(3[2-9]\|[45][0-9]\|6[0-3]\)\." /var/log/nginx/access.log* 2
 echo -n "  116.128.0.0/10 (all logs): "
 zgrep -c "116\.1[2-8][0-9]\.\|116\.19[01]\." /var/log/nginx/access.log* 2>/dev/null | awk -F: '{sum+=$2} END {print sum}'
 
+# ==========================================
+# LOG HEALTH & SIZE REPORT
+# ==========================================
+echo ""
+echo "========================================"
+echo "  LOG HEALTH & SIZE REPORT"
+echo "========================================"
+
+# --- CURRENT LOG FILE SIZES ---
+echo ""
+echo "--- CURRENT LOG FILE SIZES ---"
+echo "  Access logs:"
+ls -lh /var/log/nginx/access.log* 2>/dev/null | awk '{printf "    %-50s %s\n", $NF, $5}'
+echo ""
+echo "  Error logs:"
+ls -lh /var/log/nginx/error.log* 2>/dev/null | awk '{printf "    %-50s %s\n", $NF, $5}'
+
+# --- TOTAL LOG DISK USAGE ---
+echo ""
+echo -n "  Total nginx log disk usage: "
+du -sh /var/log/nginx/ 2>/dev/null | awk '{print $1}'
+
+# --- LOG FILE COUNT ---
+echo ""
+ACCESS_COUNT=$(ls /var/log/nginx/access.log* 2>/dev/null | wc -l)
+ERROR_COUNT=$(ls /var/log/nginx/error.log* 2>/dev/null | wc -l)
+echo "  Access log files (current + rotated): $ACCESS_COUNT"
+echo "  Error log files (current + rotated):  $ERROR_COUNT"
+
+# --- LOG DATE RANGES ---
+echo ""
+echo "--- LOG DATE RANGES ---"
+echo -n "  Current access log first entry: "
+head -n 1 "$ACCESS_LOG" 2>/dev/null | awk '{print $4}' | tr -d '['
+echo -n "  Current access log last entry:  "
+tail -n 1 "$ACCESS_LOG" 2>/dev/null | awk '{print $4}' | tr -d '['
+echo ""
+echo -n "  Current error log first entry:  "
+head -n 1 "$ERROR_LOG" 2>/dev/null | awk '{print $1, $2}'
+echo -n "  Current error log last entry:   "
+tail -n 1 "$ERROR_LOG" 2>/dev/null | awk '{print $1, $2}'
+
+# --- OLDEST ROTATED LOG ---
+echo ""
+OLDEST_ACCESS=$(ls -t /var/log/nginx/access.log* 2>/dev/null | tail -n 1)
+if [ -n "$OLDEST_ACCESS" ] && [ "$OLDEST_ACCESS" != "$ACCESS_LOG" ]; then
+    echo -n "  Oldest rotated access log: $OLDEST_ACCESS "
+    if [[ "$OLDEST_ACCESS" == *.gz ]]; then
+        echo -n "first entry: "
+        zcat "$OLDEST_ACCESS" 2>/dev/null | head -n 1 | awk '{print $4}' | tr -d '['
+    else
+        echo -n "first entry: "
+        head -n 1 "$OLDEST_ACCESS" 2>/dev/null | awk '{print $4}' | tr -d '['
+    fi
+fi
+
+# --- LINE COUNTS ---
+echo ""
+echo "--- LINE COUNTS (CURRENT LOGS) ---"
+echo -n "  Access log lines: "
+wc -l < "$ACCESS_LOG" 2>/dev/null
+echo -n "  Error log lines:  "
+wc -l < "$ERROR_LOG" 2>/dev/null
+
+# --- LOGROTATE CONFIG ---
+echo ""
+echo "--- LOGROTATE CONFIGURATION ---"
+if [ -f /etc/logrotate.d/nginx ]; then
+    echo "  Config file: /etc/logrotate.d/nginx"
+    echo ""
+    sed 's/^/    /' /etc/logrotate.d/nginx
+else
+    echo "  No logrotate config found at /etc/logrotate.d/nginx"
+fi
+
+# --- DAILY REQUEST VOLUME (LAST 7 DAYS) ---
+echo ""
+echo "--- DAILY REQUEST VOLUME (LAST 7 DAYS) ---"
+for i in $(seq 0 6); do
+    DAY=$(date -d "$i days ago" +%d/%b/%Y 2>/dev/null || date -v-${i}d +%d/%b/%Y 2>/dev/null)
+    if [ -n "$DAY" ]; then
+        COUNT=$(zgrep -c "$DAY" /var/log/nginx/access.log* 2>/dev/null | awk -F: '{sum+=$NF} END {print sum}')
+        echo "  $DAY: $COUNT requests"
+    fi
+done
+
+# --- DAILY ERROR VOLUME (LAST 7 DAYS) ---
+echo ""
+echo "--- DAILY ERROR VOLUME (LAST 7 DAYS) ---"
+for i in $(seq 0 6); do
+    DAY=$(date -d "$i days ago" +%Y/%m/%d 2>/dev/null || date -v-${i}d +%Y/%m/%d 2>/dev/null)
+    if [ -n "$DAY" ]; then
+        COUNT=$(zgrep -c "$DAY" /var/log/nginx/error.log* 2>/dev/null | awk -F: '{sum+=$NF} END {print sum}')
+        echo "  $DAY: $COUNT errors"
+    fi
+done
+
 echo ""
 echo "========================================"
 echo "  REPORT COMPLETE"
