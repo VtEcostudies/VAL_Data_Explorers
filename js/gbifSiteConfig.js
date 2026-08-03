@@ -14,6 +14,7 @@ export const siteNames = [
   ,'vtOdonata'
   ,'vtOrthoptera'
   ,'vtPlants'
+  ,'vtBryophytes'
   ,'usBees'
   ,'cSWGBees'
   //,'eButterfly'
