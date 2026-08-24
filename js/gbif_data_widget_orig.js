@@ -138,7 +138,7 @@ import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`).then
   }
 
   var apiKeys = {
-    "maptiler": "qcDo0JkF6EBKzpW7hlYB"
+    "maptiler": "Krwdtmk1680qXEL04MhP"
   }
 
   var maps = {

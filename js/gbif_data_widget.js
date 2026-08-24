@@ -91,7 +91,7 @@ import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`).then
         "drawerZIndex": 50001
     },
     "apiKeys": {
-      "maptiler": "qcDo0JkF6EBKzpW7hlYB"
+      "maptiler": "Krwdtmk1680qXEL04MhP"
     },
     "maps": {
         "locale": "en",
