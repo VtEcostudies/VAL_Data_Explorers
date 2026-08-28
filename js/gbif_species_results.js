@@ -2,7 +2,7 @@ import { siteConfig, siteNames } from './gbifSiteConfig.js'; //in html must decl
 import { siteName, getSite } from '../../VAL_Web_Utilities/js/gbifDataConfig.js';
 import { speciesSearch, verbatimSpecies, iucnSpecies } from './gbif_species_search.js'; //NOTE: importing just a function includes the entire module
 import { getStoredOccCnts, getAggOccCounts } from '../../VAL_Web_Utilities/js/gbifOccFacetCounts.js';
-import { fetchOccSimpleCountByKey } from '../../VAL_Web_Utilities/js/gbifOccSimpleCounts.js';
+import { fetchOccSimpleCountByKey, occCountForListTaxon } from '../../VAL_Web_Utilities/js/gbifOccSimpleCounts.js';
 import { getWikiPage } from '../../VAL_Web_Utilities/js/wikiPageData.js';
 import { tableSortSimple } from '../../VAL_Web_Utilities/js/tableSortSimple.js';
 import { tableSortTrivial } from '../../VAL_Web_Utilities/js/tableSortTrivial.js';
@@ -282,8 +282,8 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
   }
   let occs = new Promise(() => {});
   if (columns.includes('occurrences')) {
-    //To-do: restore the use of getStoredOccCnts for lower overhead
-    occs = fetchOccSimpleCountByKey(res.key,fCfg); occs.catch(err => {console.log('fetchOccSimpleCountByKey ERROR:', err)});
+    //Restored: one page-wide facet map rather than ~3 occurrence queries per row. See getStoredOccCnts.
+    occs = occCountForListTaxon(res, fCfg); occs.catch(err => {console.log('occCountForListTaxon ERROR:', err)});
     gOccCnts.push(occs); //Append a new promise with each row. A dubious construct, except that it works.
   }
   //console.log('gbif_species_results::fillRow','canonicalName:', objSpc.canonicalName, 'key:', objSpc.key, 'nubKey:', objSpc.nubKey, 'combinedKey:', key);
@@ -807,7 +807,7 @@ async function getAllDataPages(fCfg, q=qParm, lim=limit, qf=qField, oth=strOther
         })
         */
         //let occs = await gbifCountsByDateByTaxonKey(key, fCfg);//This call must be synchronous. And so we await.
-        let occs = await fetchOccSimpleCountByKey(key, fCfg);
+        let occs = await occCountForListTaxon(oSpc, fCfg);
         oSpc[`${fCfg.dataConfig.atlasAbbrev}-Occurrences`] = occs.total;
      }
     }
