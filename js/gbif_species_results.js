@@ -420,7 +420,11 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
         occs.then(occs => {
           let title = `Occurrence Explorer: ${name}`;
           if (occs.names) {title += `, ${occs.names.join(", ")}`};
-          colObj.innerHTML = `<a title="${title}" href="${exploreUrl}?siteName=${siteName}&${occs.search}&view=MAP">${nFmt.format(occs.total)}</a>`;
+          //A count can be genuinely unavailable when GBIF rate-limits us. Show that plainly.
+          //nFmt.format would render NaN as "NaN" and null as "0" - one alarming, the other quietly wrong.
+          let cnt = Number.isFinite(occs.total) ? nFmt.format(occs.total) : '&mdash;';
+          if (!Number.isFinite(occs.total)) {title = `Occurrence count unavailable - GBIF declined the request. ${title}`;}
+          colObj.innerHTML = `<a title="${title}" href="${exploreUrl}?siteName=${siteName}&${occs.search}&view=MAP">${cnt}</a>`;
         })
         break;
       case 'iconImage':

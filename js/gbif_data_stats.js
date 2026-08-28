@@ -1,6 +1,7 @@
 import { siteConfig, siteNames } from './gbifSiteConfig.js'; //in html must declare this as module eg. <script type="module" src="js/gbif_data_config.js"></script>
 import { speciesSearch } from './gbif_species_search.js';
 import { getAggOccCounts } from '../../VAL_Web_Utilities/js/gbifOccFacetCounts.js';
+import { gbifFetchJson } from '../../VAL_Web_Utilities/js/gbifFetch.js';
 import { getStoredData, setStoredData } from '../../VAL_Web_Utilities/js/storedData.js';
 import { getGbifRecordedBy, getInatObserverStats, getEbirdUsers, getEbutterflyUsers } from '../../VAL_Web_Utilities/js/fetchObservers.js';
 
@@ -46,13 +47,19 @@ import(`../../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`)
   })
 
 var nFmt = new Intl.NumberFormat(); //use this to format numbers by locale... automagically?
+/*
+    A count can be genuinely unavailable - GBIF rate-limits us, or one sub-query of a sum failed.
+    nFmt.format would render undefined as "NaN" and null as "0": one alarming, the other quietly
+    wrong. Show an em-dash instead, so an absent number never reads as a real one.
+*/
+const fmtCnt = n => Number.isFinite(n) ? nFmt.format(n) : '\u2014';
 
 function occStats(fileConfig) {
   var elem = eleCountOccs;
   let occs = getAggOccCounts(fileConfig, false, []); //get just top-level all-taxon agg occ counts w/o taxon-breakout
   if (elem) {
     occs.then(occs => {
-      elem.innerHTML = nFmt.format(occs.total);
+      elem.innerHTML = fmtCnt(occs.total);
     }).catch(err =>{
       elem.innerHTML = `<a title="${err.message}" href="${JSON.stringify(err.arrQry)}">(Error)</a>`;
     })
@@ -90,7 +97,7 @@ function occImageStats(fileConfig) {
     let imgs = getAggOccCounts(fileConfig, false, ['mediaType'], 'facetMincount=1&facetLimit=1199999');
     imgs.then(imgs => {
       console.log(`gbif_data_stats.js=>occImageStats=>getAccOccCounts('mediaType')`, imgs);
-      elem.innerHTML = nFmt.format(imgs.objOcc.StillImage);
+      elem.innerHTML = fmtCnt(imgs.objOcc.StillImage);
     }).catch(err =>{
       elem.innerHTML = `<a title="${err.message}" href="${JSON.stringify(err.arrQry)}">(Error)</a>`;
     })
@@ -117,7 +124,7 @@ async function speciesStats(dataConfig, reqQuery="") {
     reqQuery += `&rank=SPECIES&status=ACCEPTED`;
     let spcs = speciesSearch(dataConfig, reqQuery, 0, 0);
     spcs.then(spcs => {
-      elem.innerHTML = nFmt.format(spcs.count);
+      elem.innerHTML = fmtCnt(spcs.count);
     }).catch(err => {
       elem.innerHTML = `<a title="${err.message}" href="${err.query}">(Error)</a>`;
     })
@@ -135,7 +142,7 @@ async function observerStats(dataConfig) {
   if (elem) {
     if (dataConfig.inatPlaceId) {
       let inat = await getInatObserverStats(dataConfig.inatPlaceId);
-      elem.innerHTML += ` ${nFmt.format(inat.total)} (iNat)`;
+      elem.innerHTML += ` ${fmtCnt(inat.total)} (iNat)`;
     } else {elem.innerHTML = 'N/A';}
     //let eBrd = await getEbirdUsers();
     //let eBut = await getEbutterflyUsers();
@@ -179,12 +186,12 @@ export async function publisherStats(dataConfig) {
   console.log(`publisherStats(${publOrgKey})`, enc);
 
   try {
-    let res = await fetch(enc);
-    let json = await res.json();
+    //via gbifFetchJson so a 429 is retried rather than read as data
+    let json = await gbifFetchJson(enc);
     json.query = enc;
     console.log(`publisherStats(${publOrgKey}) RESULT:`, json);
     if (elem) {
-      elem.innerHTML = nFmt.format(json.count);
+      elem.innerHTML = fmtCnt(json.count);
     } else {
       console.log('HTML element id="count-publishers" NOT found.')
     }
