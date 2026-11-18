@@ -21,7 +21,7 @@ localStorage data for a document loaded in a "private browsing" or "incognito" s
 */
 
 const natureServeRankHelpUrl='https://help.natureserve.org/biotics/content/record_management/Element_Files/Element_Tracking/ETRACK_Definitions_of_Heritage_Conservation_Status_Ranks.htm';
-const valConservationHelpUrl='https://vtatlasoflife.freshdesk.com/support/solutions/articles/62000228137-conservation-status-and-ranks-defined';
+const valConservationHelpUrl='https://val.vtecostudies.org/help/conservation-status-ranks';
 const gbifApi = "https://api.gbif.org/v1";
 const pageUrl = new URL(document.URL);
 const objUrlParams = pageUrl.searchParams; //get URL search params from calling http route address
@@ -153,7 +153,7 @@ async function setHead() {
 }
 var initCollapsed = localStorage.getItem('speciesExplorerParentTaxaCollapsed');
 initCollapsed = "true" == initCollapsed ? true : false;
-var sortableColumns = ['key','nubKey','canonicalName','scientificName','vernacularName','vernacularNames','rank','taxonomicStatus','parent','parentKey','occurrences','family','srank','grank','sgcn','iucn']
+var sortableColumns = ['key','nubKey','canonicalName','scientificName','vernacularName','vernacularNames','rank','taxonomicStatus','parent','parentKey','occurrences','family','srank','grank','flist','slist','sgcn','iucn']
 var excludeColumns = []; //array of column names not sortable
 async function addHead() {
   let objHed = eleTbl.createTHead();
@@ -163,7 +163,7 @@ async function addHead() {
     columnIds[hedNam]=hedIdx; //make an object having names as keys and index as values, for use by dataTables to enable/disable sorting
     let colObj = await hedRow.insertCell(hedIdx);
     colObj.classList.add("speciesExplorerColumnHeader");
-    if (['srank','grank','sgcn','iucn'].includes(hedNam)) {
+    if (['srank','grank','flist','slist','sgcn','iucn'].includes(hedNam)) {
       colObj.classList.add("min-width"); //make these columns minimal width
     }
     if ("parentTaxa" ==  hedNam) {
@@ -199,6 +199,8 @@ async function addHead() {
     if ("family" == hedNam) {html = 'Click column header to sort by taxon Family.'}
     if ("grank" == hedNam) {html = 'Click column header to sort by Global Rank. Click &#9432 for more info.'; link=valConservationHelpUrl;}
     if ("srank" == hedNam) {html = 'Click column header to sort by State Rank. Click &#9432 for more info.'; link=valConservationHelpUrl;}
+    if ("flist" == hedNam) {html = 'Click column header to sort by Federal List. Click &#9432 for more info.'; link=valConservationHelpUrl;}
+    if ("slist" == hedNam) {html = 'Click column header to sort by State List. Click &#9432 for more info.'; link=valConservationHelpUrl;}
     if ("sgcn" == hedNam) {html = 'Click column header to sort by Species of Greatest Conservation Need. Click &#9432 for more info.'; link=valConservationHelpUrl;}
     if ("iucn" == hedNam) {html = 'Click column header to sort by IUCN rank. Click &#9432 for more info.'; link=valConservationHelpUrl;}
     if (html) {addInfoIcon(colObj, html, ["header-info-icon"], link);}
@@ -480,7 +482,7 @@ async function fillRow(fCfg, objSpc, objRow, rowIdx) {
           colObj.innerHTML = res[colNam] ? res[colNam] : null;
         }
         break;
-      case 'grank': case 'srank':
+      case 'grank': case 'srank': case 'flist': case 'slist':
         colObj.innerHTML = cranks && cranks[colNam] ? ('null'==cranks[colNam] ? null : cranks[colNam]) : null;
         break;
       case 'sgcn':
@@ -869,7 +871,7 @@ async function startUp(fCfg) {
 
   if (embed) {
     console.log('embed species list')
-    fCfg.dataConfig.columns = ['family', 'canonicalName','vernacularName','grank','srank','sgcn','iucn'];
+    fCfg.dataConfig.columns = ['family', 'canonicalName','vernacularName','grank','srank','flist','slist','sgcn'];
     fCfg.dataConfig.columNames.canonicalName = 'Scientific Name';
     fCfg.dataConfig.rootRank = ['SPECIES'];
     fCfg.dataConfig.taxonomicStatus = ['ACCEPTED'];
